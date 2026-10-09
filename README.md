@@ -25,6 +25,16 @@ Para usar localmente basta abrir `index.html` no browser.
 - **Idioma** português ou inglês (botão PT/EN ou `Shift L`). Na primeira visita segue a língua do browser.
 - **Gravação automática** no `localStorage` do browser, lista de diagramas, cópia de segurança e importação em JSON.
 
+## Importar de outras ferramentas
+
+Em **Diagramas**, os botões **Importar do draw.io** e **Importar do Visio** mostram primeiro as incompatibilidades conhecidas e como resolvê-las. Também pode largar um ficheiro `.drawio`, `.xml`, `.vsdx` ou `.json` em cima do quadro.
+
+- **draw.io** (`.drawio`, `.xml`, comprimido ou não): cada página passa a um diagrama. Mantém posições, textos (negrito, itálico, tamanho), ligações com rótulos, setas e tracejado, e swimlanes (as pools são desfeitas).
+- **Visio** (`.vsdx`, incluindo exportações do Lucidchart): as formas são reconhecidas pelo nome do stencil (Fluxograma básico, Fluxograma interfuncional) ou pela geometria. Só contam os conectores colados às formas. O formato antigo `.vsd` não é suportado.
+- **Lucidchart**: Ficheiro › Exportar › Visio (VSDX). Se faltarem formas, abra o `.vsdx` no draw.io, guarde como `.drawio` e importe esse.
+
+No fim aparece um relatório: formas sem equivalente (passam a Passo e ficam selecionadas), textos soltos convertidos em notas, imagens e contentores ignorados, ligações soltas e, se as lanes forem verticais, a rotação de 90° aplicada ao diagrama.
+
 ## Exportação
 
 Tudo sai pelo botão **Exportar**, com um separador por formato.
@@ -94,6 +104,7 @@ Os diagramas ficam guardados apenas no browser onde foram criados (`localStorage
 - Portfólio multi-utilizador e partilha em equipa
 - Exportação SVG
 - Importar texto IA / Mermaid para gerar o diagrama
+- Importação direta de Lucidchart (CSV) e de PNG/SVG com diagrama draw.io embebido
 - Conectores que contornam formas
 
 ## Licença

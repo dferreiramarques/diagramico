@@ -103,6 +103,13 @@ button{font:inherit;color:inherit}
 .docitem .acts .ibtn svg{width:16px;height:16px}
 .drawer footer{border-top:1px solid var(--line);padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:6px}
 .drawer footer p{margin:0 0 4px;width:100%;color:var(--muted);font-size:12px;line-height:1.45}
+.drawer footer p.sub{margin:8px 0 0;font-weight:600;color:var(--ink);font-size:12px}
+.issues{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:8px}
+.issues li{display:flex;flex-direction:column;gap:3px;padding:10px 12px;background:var(--panel-2);border-radius:8px;line-height:1.45;max-width:72ch}
+.issues li strong{font-weight:600}
+.issues li .fix{color:var(--muted);font-size:12px}
+.issues li .fix b{color:var(--accent);font-weight:600}
+.modal .summary{font-size:15px;font-weight:500;margin:0 0 10px}
 .scrim{position:fixed;inset:0;background:rgba(10,12,20,.25);z-index:19}
 
 /* Modal */
@@ -189,8 +196,12 @@ button{font:inherit;color:inherit}
   <footer>
     <p data-i18n="drawerNote"></p>
     <button class="btn" id="btnBackup" data-i18n="backup"></button>
-    <button class="btn" id="btnImport" data-i18n="import"></button>
+    <button class="btn" id="btnImport" data-i18n="importJson"></button>
+    <p class="sub" data-i18n="importFrom"></p>
+    <button class="btn" id="btnImpDrawio" data-i18n="imp_drawio"></button>
+    <button class="btn" id="btnImpVisio" data-i18n="imp_visio"></button>
     <input type="file" id="fileIn" accept=".json,application/json" hidden>
+    <input type="file" id="fileImp" hidden>
   </footer>
 </aside>
 
@@ -263,6 +274,45 @@ pt: {
   export:'Exportar', exportTitle:'Exportar texto para IA, Mermaid, JSON ou imagem', tools:'Ferramentas',
   zoomOut:'Afastar (Ctrl −)', zoom100:'Repor 100% (Shift 0)', zoomIn:'Aproximar (Ctrl +)', fitAll:'Ver tudo (Shift 1)', undo:'Desfazer (Ctrl Z)', redo:'Refazer (Ctrl Shift Z)', help:'Atalhos e ajuda',
   new:'Novo', close:'Fechar', drawerNote:'Tudo é gravado automaticamente neste browser. Guarde um pacote de cópia de segurança para mover ou proteger os diagramas.',
+
+  imp_drawio:'Importar do draw.io', imp_visio:'Importar do Visio', cancel:'Cancelar', imp_choose:'Escolher ficheiro…', imp_fixLabel:'Como resolver:',
+  imp_drawioTitle:'Importar do draw.io', imp_visioTitle:'Importar do Visio (.vsdx)',
+  imp_drawioIntro:'O ficheiro é convertido forma a forma, mantendo posições, textos, ligações e lanes. Como o Diagramico tem menos tipos de forma e caixas que se ajustam ao texto, algumas coisas mudam:',
+  imp_visioIntro:'Aceita ficheiros .vsdx do Visio 2013 ou mais recente, incluindo exportações do Lucidchart. O tipo de cada forma é reconhecido pelo nome do stencil (Fluxograma básico, Fluxograma interfuncional) ou pela geometria. Algumas coisas mudam:',
+  imp_drawioIssues:[
+    ['Tamanho das caixas','As caixas ajustam-se ao texto. Uma forma desenhada maior do que o texto fica mais pequena.','Selecione as formas e aumente o texto com ] ou com o botão +.'],
+    ['Formas sem equivalente','Ícones, imagens, UML, cloud, mockups e outras formas especiais passam a Passo. Imagens sem texto são ignoradas.','No fim, essas formas ficam selecionadas. Troque o tipo na barra de opções.'],
+    ['Formatação de texto','Mantém-se o negrito, o itálico e o tamanho de letra. Cores, tipos de letra e tamanhos diferentes dentro do mesmo texto perdem-se.','Use **negrito** e *itálico* no texto se precisar de ênfase.'],
+    ['Ligações','Os pontos de dobra desenhados à mão passam a percurso automático. Ligações com uma ponta solta são ignoradas.','Antes de exportar do draw.io, confirme que as setas estão presas às formas. Depois ajuste o percurso com o botão de percurso.'],
+    ['Swimlanes','As pools são desfeitas e ficam só as lanes. O Diagramico só tem lanes horizontais: se forem verticais, o diagrama inteiro roda 90°.','Para manter a orientação, passe as lanes a horizontais no draw.io antes de exportar.'],
+    ['Cores e grupos','As cores são aproximadas à paleta do Diagramico. Os grupos são desfeitos e as caixas grandes vazias (fundos, molduras) são ignoradas.','Reaplique as cores na barra de opções, se precisar.'],
+    ['Ficheiros','Aceita .drawio e .xml, comprimidos ou não. Cada página passa a um diagrama separado. PNG e SVG com o diagrama embebido não são suportados.','Se a importação falhar, no draw.io use Ficheiro › Exportar como › XML.'],
+  ],
+  imp_visioIssues:[
+    ['Ficheiros','Só .vsdx. O formato antigo .vsd não é suportado.','No Visio: Ficheiro › Guardar como › .vsdx. No Lucidchart: Ficheiro › Exportar › Visio (VSDX).'],
+    ['Formas sem equivalente','Formas de stencils fora dos fluxogramas (redes, cloud, plantas, ícones) passam a Passo.','No fim, essas formas ficam selecionadas. Troque o tipo na barra de opções.'],
+    ['Ligações','Só contam os conectores colados às formas. Linhas desenhadas por cima, sem ligação, são ignoradas. Os pontos de dobra passam a percurso automático.','No Visio, use o Conector dinâmico e prenda-o aos pontos de ligação das formas.'],
+    ['Lucidchart','As exportações Visio do Lucidchart às vezes perdem formas ou trazem tudo como formas genéricas.','Alternativa: abra o .vsdx no draw.io, guarde como .drawio e use Importar do draw.io.'],
+    ['Tamanho e estilo','As caixas ajustam-se ao texto. Mantém-se o negrito, o itálico e o tamanho de letra; temas, sombras, imagens e efeitos perdem-se e as cores são aproximadas.','Ajuste o tamanho com [ e ] e reaplique cores na barra de opções.'],
+    ['Swimlanes','Contentores, fases e separadores são ignorados e ficam só as lanes. Lanes verticais fazem o diagrama rodar 90°.','Para manter a orientação, use o layout horizontal do Fluxograma interfuncional.'],
+  ],
+  imp_after:'Os diagramas importados são acrescentados à lista. Nada é substituído.',
+  rep_title:'Importação concluída', rep_summary:(s,e,l)=>`${s} formas, ${e} ligações e ${l} lanes importadas.`, rep_check:'Reveja:', rep_clean:'Tudo foi convertido sem avisos.',
+  rep_pages:n=>`${n} páginas passaram a ${n} diagramas (veja a lista em Diagramas).`,
+  rep_fallback:n=>n===1?'1 forma sem equivalente passou a Passo. Está selecionada agora.':`${n} formas sem equivalente passaram a Passo. Estão selecionadas agora.`,
+  rep_textNotes:n=>n===1?'1 texto solto passou a Nota.':`${n} textos soltos passaram a Notas.`,
+  rep_rotated:'As lanes eram verticais: o diagrama foi rodado 90° para ficar com lanes horizontais.',
+  rep_images:n=>n===1?'1 imagem ou ícone sem texto foi ignorado.':`${n} imagens ou ícones sem texto foram ignorados.`,
+  rep_containers:n=>n===1?'1 contentor, pool ou fundo foi ignorado.':`${n} contentores, pools ou fundos foram ignorados.`,
+  rep_groups:n=>n===1?'1 grupo foi desfeito.':`${n} grupos foram desfeitos.`,
+  rep_loose:n=>n===1?'1 ligação sem forma numa das pontas foi ignorada.':`${n} ligações sem forma numa das pontas foram ignoradas.`,
+  rep_empty:n=>n===1?'1 forma não tem texto.':`${n} formas não têm texto.`,
+  imp_failTitle:'Não foi possível importar',
+  imp_failDrawio:'O ficheiro não parece ser um diagrama draw.io válido. No draw.io, use Ficheiro › Exportar como › XML e tente outra vez.',
+  imp_failVisio:'O ficheiro não parece ser um .vsdx válido. Experimente abri-lo no draw.io, guardar como .drawio e usar Importar do draw.io.',
+  imp_vsdOld:'O formato antigo .vsd não é suportado. Abra-o no Visio e guarde como .vsdx, ou abra-o no draw.io e guarde como .drawio.',
+  imp_oldBrowser:'Este browser não consegue descomprimir ficheiros. Use uma versão recente do Chrome, Edge, Firefox ou Safari.',
+  importJson:'Importar cópia (JSON)…', importFrom:'Importar de outras ferramentas',
   backup:'Guardar cópia de segurança', import:'Importar…', untitled:'Sem título', newLane:'Nova lane', lane:'Lane', copySuffix:' (cópia)', importedSuffix:' (importado)',
   t_step:'Passo / processo', t_action:'Ação do utilizador', t_decision:'Decisão', t_screen:'Ecrã / interface', t_doc:'Documento', t_data:'Dados',
   t_start:'Início', t_end:'Fim', t_pause:'Pausa / espera', t_handoff:'Mudança de lane', t_note:'Nota', t_lane:'Swimlane',
@@ -294,7 +344,8 @@ pt: {
     <dt>N · L · C</dt><dd>Nota · Swimlane · Conector</dd>
     <dt>Duplo clique</dt><dd>No vazio cria um passo; numa forma edita o texto</dd>
     <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
-    <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte</dd></dl>
+    <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte</dd>
+    <dt>Largar ficheiro</dt><dd>Importa .drawio, .vsdx ou .json para um novo diagrama</dd></dl>
   <h3>Texto</h3><dl>
     <dt>[ · ]</dt><dd>Diminuir · aumentar texto (a caixa acompanha)</dd>
     <dt>Ctrl B · Ctrl I</dt><dd>Negrito · itálico (forma inteira ou seleção de texto)</dd>
@@ -319,6 +370,45 @@ en: {
   export:'Export', exportTitle:'Export AI text, Mermaid, JSON or image', tools:'Tools',
   zoomOut:'Zoom out (Ctrl −)', zoom100:'Reset to 100% (Shift 0)', zoomIn:'Zoom in (Ctrl +)', fitAll:'Fit all (Shift 1)', undo:'Undo (Ctrl Z)', redo:'Redo (Ctrl Shift Z)', help:'Shortcuts and help',
   new:'New', close:'Close', drawerNote:'Everything is saved automatically in this browser. Download a backup package to move or protect your diagrams.',
+
+  imp_drawio:'Import from draw.io', imp_visio:'Import from Visio', cancel:'Cancel', imp_choose:'Choose file…', imp_fixLabel:'How to fix:',
+  imp_drawioTitle:'Import from draw.io', imp_visioTitle:'Import from Visio (.vsdx)',
+  imp_drawioIntro:'The file is converted shape by shape, keeping positions, text, connectors and lanes. Diagramico has fewer shape types and boxes that fit their text, so some things change:',
+  imp_visioIntro:'Accepts .vsdx files from Visio 2013 or later, including Lucidchart exports. Each shape type is recognised by its stencil name (Basic Flowchart, Cross-Functional Flowchart) or by its geometry. Some things change:',
+  imp_drawioIssues:[
+    ['Box size','Boxes fit their text. A shape drawn larger than its text becomes smaller.','Select the shapes and enlarge the text with ] or the + button.'],
+    ['Shapes with no equivalent','Icons, images, UML, cloud, mockups and other special shapes become Steps. Images without text are skipped.','Those shapes are left selected at the end. Change their type in the options bar.'],
+    ['Text formatting','Bold, italic and font size are kept. Colours, typefaces and mixed sizes inside one text are lost.','Use **bold** and *italic* in the text where you need emphasis.'],
+    ['Connectors','Hand-placed bends become automatic routing. Connectors with a loose end are skipped.','Before exporting from draw.io, check that arrows are attached to shapes. Then adjust routing with the route button.'],
+    ['Swimlanes','Pools are removed and only lanes remain. Diagramico only has horizontal lanes: if yours are vertical, the whole diagram is rotated 90°.','To keep the orientation, make the lanes horizontal in draw.io before exporting.'],
+    ['Colours and groups','Colours are matched to the closest Diagramico colour. Groups are ungrouped and large empty boxes (backgrounds, frames) are skipped.','Reapply colours from the options bar if needed.'],
+    ['Files','Accepts .drawio and .xml, compressed or not. Each page becomes a separate diagram. PNG and SVG files with an embedded diagram are not supported.','If the import fails, in draw.io use File › Export as › XML.'],
+  ],
+  imp_visioIssues:[
+    ['Files','Only .vsdx. The old .vsd format is not supported.','In Visio: File › Save as › .vsdx. In Lucidchart: File › Export › Visio (VSDX).'],
+    ['Shapes with no equivalent','Shapes from non-flowchart stencils (network, cloud, floor plans, icons) become Steps.','Those shapes are left selected at the end. Change their type in the options bar.'],
+    ['Connectors','Only connectors glued to shapes count. Lines drawn on top without a connection are skipped. Bends become automatic routing.','In Visio, use the Dynamic Connector and glue it to the shapes’ connection points.'],
+    ['Lucidchart','Lucidchart’s Visio exports sometimes drop shapes or turn everything into generic shapes.','Alternative: open the .vsdx in draw.io, save it as .drawio and use Import from draw.io.'],
+    ['Size and style','Boxes fit their text. Bold, italic and font size are kept; themes, shadows, images and effects are lost, and colours are approximated.','Adjust size with [ and ] and reapply colours from the options bar.'],
+    ['Swimlanes','Containers, phases and separators are skipped; only lanes remain. Vertical lanes rotate the diagram 90°.','To keep the orientation, use the horizontal Cross-Functional Flowchart layout.'],
+  ],
+  imp_after:'Imported diagrams are added to your list. Nothing is replaced.',
+  rep_title:'Import complete', rep_summary:(s,e,l)=>`${s} shapes, ${e} connectors and ${l} lanes imported.`, rep_check:'Check:', rep_clean:'Everything converted without warnings.',
+  rep_pages:n=>`${n} pages became ${n} diagrams (see the list under Diagrams).`,
+  rep_fallback:n=>n===1?'1 shape with no equivalent became a Step. It is selected now.':`${n} shapes with no equivalent became Steps. They are selected now.`,
+  rep_textNotes:n=>n===1?'1 free-floating text became a Note.':`${n} free-floating texts became Notes.`,
+  rep_rotated:'The lanes were vertical: the diagram was rotated 90° to get horizontal lanes.',
+  rep_images:n=>n===1?'1 image or icon without text was skipped.':`${n} images or icons without text were skipped.`,
+  rep_containers:n=>n===1?'1 container, pool or background was skipped.':`${n} containers, pools or backgrounds were skipped.`,
+  rep_groups:n=>n===1?'1 group was ungrouped.':`${n} groups were ungrouped.`,
+  rep_loose:n=>n===1?'1 connector without a shape at one end was skipped.':`${n} connectors without a shape at one end were skipped.`,
+  rep_empty:n=>n===1?'1 shape has no text.':`${n} shapes have no text.`,
+  imp_failTitle:'Could not import',
+  imp_failDrawio:'This doesn’t look like a valid draw.io diagram. In draw.io, use File › Export as › XML and try again.',
+  imp_failVisio:'This doesn’t look like a valid .vsdx file. Try opening it in draw.io, saving it as .drawio and using Import from draw.io.',
+  imp_vsdOld:'The old .vsd format is not supported. Open it in Visio and save as .vsdx, or open it in draw.io and save as .drawio.',
+  imp_oldBrowser:'This browser cannot decompress files. Use a recent version of Chrome, Edge, Firefox or Safari.',
+  importJson:'Import backup (JSON)…', importFrom:'Import from other tools',
   backup:'Download backup', import:'Import…', untitled:'Untitled', newLane:'New lane', lane:'Lane', copySuffix:' (copy)', importedSuffix:' (imported)',
   t_step:'Step / process', t_action:'User action', t_decision:'Decision', t_screen:'Screen / interface', t_doc:'Document', t_data:'Data',
   t_start:'Start', t_end:'End', t_pause:'Pause / wait', t_handoff:'Lane handoff', t_note:'Note', t_lane:'Swimlane',
@@ -350,7 +440,8 @@ en: {
     <dt>N · L · C</dt><dd>Note · Swimlane · Connector</dd>
     <dt>Double-click</dt><dd>On empty space creates a step; on a shape edits its text</dd>
     <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
-    <dt>Side dots</dt><dd>Drag to connect; click to create the next shape</dd></dl>
+    <dt>Side dots</dt><dd>Drag to connect; click to create the next shape</dd>
+    <dt>Drop a file</dt><dd>Imports .drawio, .vsdx or .json into a new diagram</dd></dl>
   <h3>Text</h3><dl>
     <dt>[ · ]</dt><dd>Smaller · larger text (the box follows)</dd>
     <dt>Ctrl B · Ctrl I</dt><dd>Bold · italic (whole shape or selected text)</dd>
@@ -1421,13 +1512,13 @@ async function copyText(t){ try { await navigator.clipboard.writeText(t); toast(
 /* ---------- modal ---------- */
 let modalTab = 'ai';
 function openExport(tab){
-  endEdit(); modalTab = tab; $('#modal').hidden = false; renderModal();
+  endEdit(); modalTab = tab; modalRender = renderModal; $('#modal').hidden = false; renderModal();
 }
 function closeModal(){ $('#modal').hidden = true; if (lastImgUrl){ URL.revokeObjectURL(lastImgUrl); lastImgUrl = null; } cv.focus({preventScroll:true}); }
 let lastImgUrl = null, imgOpts = {sel:false, scale:2, transparent:false};
 function renderModal(){
   const tabs = [['ai',T('tabAi')],['mermaid',T('tabMermaid')],['json',T('tabJson')],['png',T('tabPng')]];
-  $('#mTitle').textContent = T('exportOf') + doc.name;
+  $('#mTabs').hidden = false; $('#mTitle').textContent = T('exportOf') + doc.name;
   const tabsEl = $('#mTabs'); tabsEl.innerHTML = '';
   for (const [k,l] of tabs){ const b = document.createElement('button'); b.textContent = l; b.className = modalTab === k ? 'on' : ''; b.onclick = () => { modalTab = k; renderModal(); }; tabsEl.appendChild(b); }
   const body = $('#mBody'), foot = $('#mFoot'); body.innerHTML = ''; foot.innerHTML = '';
@@ -1461,6 +1552,426 @@ function renderModal(){
 }
 $('#mClose').onclick = closeModal;
 $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') closeModal(); });
+
+/* ---------- import: shared ---------- */
+const FS_NEAR = px => FS.reduce((a,b) => Math.abs(b-px) < Math.abs(a-px) ? b : a, 14);
+function colorKey(hex){
+  if (!hex || hex[0] !== '#') return 'none';
+  let h = hex.slice(1); if (h.length === 3) h = h.split('').map(c=>c+c).join('');
+  if (h.length < 6) return 'none';
+  const r = parseInt(h.slice(0,2),16)/255, g = parseInt(h.slice(2,4),16)/255, b = parseInt(h.slice(4,6),16)/255;
+  if ([r,g,b].some(isNaN)) return 'none';
+  const mx = Math.max(r,g,b), mn = Math.min(r,g,b), l = (mx+mn)/2, d = mx-mn;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2*l - 1));
+  if (s < 0.18 || d < 0.06) return l > 0.9 ? 'none' : 'grey';
+  let hue = mx === r ? ((g-b)/d) % 6 : mx === g ? (b-r)/d + 2 : (r-g)/d + 4; hue = (hue*60 + 360) % 360;
+  return hue < 18 || hue >= 330 ? 'red' : hue < 68 ? 'yellow' : hue < 170 ? 'green' : hue < 255 ? 'blue' : 'violet';
+}
+function guessLaneType(t){
+  t = (t||'').toLowerCase();
+  if (/sistema|system|\bapp\b|\bapi\b|server|servidor|plataforma|platform|software|base de dados|database|\berp\b|\bcrm\b|website|site\b/.test(t)) return 'sistema';
+  if (/depart|dept|direç|direct|division|divisão|\bárea\b|\barea\b/.test(t)) return 'departamento';
+  if (/equipa|team|grupo|group|squad|staff/.test(t)) return 'equipa';
+  return 'pessoa';
+}
+const START_RE = /\b(start|begin|in[ií]cio|come[cç]a|abre|open)/i, END_RE = /\b(end|fim|stop|termin|conclu|done|final|exit|sa[ií]da)/i;
+function htmlToText(html){
+  if (!/[<&]/.test(html)) return html;
+  const d = new DOMParser().parseFromString('<div>' + html + '</div>', 'text/html');
+  let out = '';
+  const walk = (el, b, i) => {
+    for (const n of el.childNodes){
+      if (n.nodeType === 3){ const t = n.textContent.replace(/\s+/g, ' '); if (!t.trim()){ if (out && !/[ \n]$/.test(out)) out += ' '; continue; } out += t; continue; }
+      if (n.nodeType !== 1) continue;
+      const tag = n.tagName.toLowerCase(), st = (n.getAttribute('style') || '').toLowerCase();
+      if (tag === 'br'){ out += '\n'; continue; }
+      const block = /^(div|p|li|h\d|tr|ul|ol|table)$/.test(tag);
+      if (block && out && !out.endsWith('\n')) out += '\n';
+      const nb = !b && (tag === 'b' || tag === 'strong' || /font-weight:\s*(bold|[6-9]00)/.test(st));
+      const ni = !i && (tag === 'i' || tag === 'em' || /font-style:\s*italic/.test(st));
+      const mark = (nb ? '**' : '') + (ni ? '*' : ''), endmark = (ni ? '*' : '') + (nb ? '**' : '');
+      const start = out.length; out += mark; walk(n, b || nb, i || ni);
+      if (out.length === start + mark.length) out = out.slice(0, start);
+      else if (mark){ const inner = out.slice(start + mark.length); const tr = inner.replace(/\s+$/, ''); out = out.slice(0, start + mark.length) + tr + endmark + inner.slice(tr.length); }
+      if (block && !out.endsWith('\n')) out += '\n';
+    }
+  };
+  walk(d.body.firstChild, false, false);
+  return out.split('\n').map(l => l.trim()).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+function newReport(){ return {shapes:0, edges:0, lanes:0, pages:0, fallback:[], textNotes:0, images:0, containers:0, loose:0, empty:0, rotated:false, groups:0}; }
+/* build one Diagramico doc from imported nodes/edges; returns the doc */
+function finishImport(name, nodes, edges, rep){
+  const lanes = nodes.filter(n => n.type === 'lane');
+  if (lanes.length && lanes.filter(l => l.h > l.w * 1.2).length > lanes.length / 2){
+    for (const n of nodes){ const x = n.x; n.x = n.y; n.y = x; if (n.type === 'lane'){ const w = n.w; n.w = n.h; n.h = w; } }
+    rep.rotated = true;
+  }
+  for (const l of lanes){ l.x = Math.round(l.x); l.y = Math.round(l.y); l.w = Math.max(200, Math.round(l.w)); l.h = Math.max(80, Math.round(l.h)); }
+  for (const n of nodes) if (n.type !== 'lane'){ n.x = Math.round(n.x); n.y = Math.round(n.y); }
+  const d = newDoc(name);
+  d.nodes = [...lanes.sort((a,b) => a.y - b.y || a.x - b.x), ...nodes.filter(n => n.type !== 'lane')];
+  const ids = new Set(d.nodes.map(n => n.id));
+  d.edges = edges.filter(e => ids.has(e.from) && ids.has(e.to) && e.from !== e.to);
+  rep.shapes += d.nodes.length - lanes.length; rep.lanes += lanes.length; rep.edges += d.edges.length;
+  return d;
+}
+function mkNode(type, x, y, text, o = {}){
+  return Object.assign({id:uid('n'), type, x, y, text:text || '', fs:14, b:false, i:false, color:'none'}, o);
+}
+function mkEdge(from, to, o = {}){
+  return Object.assign({id:uid('e'), from, to, label:'', style:'elbow', arrow:'end', dash:false}, o);
+}
+
+/* ---------- import: draw.io ---------- */
+async function inflateRaw(bytes){
+  const s = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(s).arrayBuffer());
+}
+function parseStyle(s){ const o = {}; (s || '').split(';').forEach(p => { if (!p) return; const k = p.indexOf('='); if (k < 0) o[p.trim()] = '1'; else o[p.slice(0,k).trim()] = p.slice(k+1).trim(); }); return o; }
+async function drawioPages(text){
+  const xml = new DOMParser().parseFromString(text, 'application/xml');
+  if (xml.getElementsByTagName('parsererror').length) throw new Error('xml');
+  const pages = [], diagrams = [...xml.getElementsByTagName('diagram')];
+  if (diagrams.length){
+    for (const d of diagrams){
+      let m = d.getElementsByTagName('mxGraphModel')[0];
+      if (!m){
+        const raw = d.textContent.trim(); if (!raw) continue;
+        const bin = Uint8Array.from(atob(raw), c => c.charCodeAt(0));
+        let s; try { s = new TextDecoder().decode(await inflateRaw(bin)); } catch(e){ s = new TextDecoder().decode(bin); }
+        if (/^%3C/i.test(s)) { try { s = decodeURIComponent(s); } catch(e){} }
+        m = new DOMParser().parseFromString(s, 'application/xml').getElementsByTagName('mxGraphModel')[0];
+      }
+      if (m) pages.push({name: d.getAttribute('name') || '', model: m});
+    }
+  } else { const m = xml.getElementsByTagName('mxGraphModel')[0]; if (m) pages.push({name:'', model:m}); }
+  return pages;
+}
+function drawioModel(model, rep){
+  const cells = new Map(), order = [];
+  for (const el of model.getElementsByTagName('mxCell')){
+    const wrap = el.parentElement && /^(UserObject|object)$/i.test(el.parentElement.tagName) ? el.parentElement : null;
+    const id = wrap ? wrap.getAttribute('id') : el.getAttribute('id');
+    const g = [...el.children].find(c => c.tagName === 'mxGeometry');
+    const c = {id, value: wrap ? (wrap.getAttribute('label') || '') : (el.getAttribute('value') || ''),
+      styleRaw: el.getAttribute('style') || '', vertex: el.getAttribute('vertex') === '1', edge: el.getAttribute('edge') === '1',
+      parent: el.getAttribute('parent'), source: el.getAttribute('source'), target: el.getAttribute('target'),
+      x: +(g?.getAttribute('x') || 0), y: +(g?.getAttribute('y') || 0), w: +(g?.getAttribute('width') || 0), h: +(g?.getAttribute('height') || 0)};
+    c.style = parseStyle(c.styleRaw);
+    cells.set(id, c); order.push(c);
+  }
+  const kids = new Map(); for (const c of order){ if (!kids.has(c.parent)) kids.set(c.parent, []); kids.get(c.parent).push(c); }
+  const abs = c => { let x = c.x, y = c.y, p = cells.get(c.parent), guard = 0; while (p && p.vertex && guard++ < 50){ x += p.x; y += p.y; p = cells.get(p.parent); } return {x, y}; };
+  const text = c => { const t = c.style.html === '1' || /<[a-z]/i.test(c.value) ? htmlToText(c.value) : c.value; return t.replace(/\r/g, '').trim(); };
+  const isSwim = c => c.vertex && (/^swimlane/.test(c.styleRaw) || c.style.shape === 'swimlane' || c.style.swimlane === '1' || /^(pool|lane)$/.test(c.style.shape || ''));
+  const nodes = [], edges = [], map = new Map();
+  const edgeLabels = new Map();
+  for (const c of order){
+    if (!c.vertex) continue;
+    const par = cells.get(c.parent);
+    if (par && par.edge){ const t = text(c); if (t) edgeLabels.set(par.id, (edgeLabels.get(par.id) ? edgeLabels.get(par.id) + ' ' : '') + t); continue; }
+    const st = c.style, raw = c.styleRaw.toLowerCase(), shape = (st.shape || '').toLowerCase(), first = raw.split(';')[0];
+    const bare = c.styleRaw.split(';').map(x => x.trim().toLowerCase()).filter(x => x && !x.includes('='));
+    const has = re => re.test(shape) || bare.some(x => re.test(x));
+    const t = text(c), p = abs(c), cx = p.x + c.w/2, cy = p.y + c.h/2;
+    const fsz = FS_NEAR(+st.fontSize || 12), fst = +st.fontStyle || 0;
+    const base = {fs: fsz, b: !!(fst & 1), i: !!(fst & 2), color: colorKey(st.fillColor)};
+    if (isSwim(c)){
+      const childLanes = (kids.get(c.id) || []).filter(isSwim);
+      if (childLanes.length){ rep.containers++; continue; }
+      const n = mkNode('lane', p.x, p.y, t || T('lane'), {w: c.w, h: c.h, laneType: guessLaneType(t), color: 'none'});
+      delete n.b; delete n.i; nodes.push(n); map.set(c.id, n.id); continue;
+    }
+    if (has(/^group$/)){ rep.groups++; continue; }
+    if (st.image || (has(/^image$|mxgraph\.(aws|azure|gcp|cisco|kubernetes|network|office|ios|android|citrix|signs|veeam)/) )){
+      if (!t){ rep.images++; continue; }
+      const n = mkNode('step', cx, cy, t, base); nodes.push(n); map.set(c.id, n.id); rep.fallback.push(n.id); continue;
+    }
+    let type = 'step';
+    if (has(/^text$/)) { if (!t){ rep.empty++; continue; } type = 'note'; rep.textNotes++; }
+    else if (has(/note|callout|sticky/)) type = 'note';
+    else if (has(/rhombus|decision/)) type = 'decision';
+    else if (has(/parallelogram|manual_?input|flowchart\.data$|^trapezoid|flowchart\.manual_operation/)) type = 'action';
+    else if (has(/document|multi_?doc/)) type = 'doc';
+    else if (has(/cylinder|database|datastore|stored_data|direct_data|disk|internal_storage|sequential_data/)) type = 'data';
+    else if (has(/mockup|browser|window|phone|screen|iphone|android/)) type = 'screen';
+    else if (has(/terminator|flowchart\.start_|^terminal/)) type = START_RE.test(t) ? 'start' : END_RE.test(t) ? 'end' : 'step';
+    else if (has(/ellipse|circle|on.?page_reference|flowchart\.on-page/)){
+      const small = c.w <= 90 && c.h <= 90 && Math.abs(c.w - c.h) < Math.max(c.w, c.h) * 0.3;
+      if (small) type = has(/doubleellipse/) ? 'pause' : (+st.strokeWidth >= 3 || END_RE.test(t)) ? 'end' : 'start';
+      else type = 'step';
+    }
+    else if (shape && !/^(rect|rectangle|process|label|rounded|mxgraph\.flowchart\.(process|predefined_process|preparation))$/.test(shape)) { type = 'step'; base._fallback = true; }
+    if (type === 'step' && !t && (c.w > 300 || c.h > 200)){ rep.containers++; continue; }
+    if (type === 'step' && !t) rep.empty++;
+    if (EVENTS.has(type)) base.color = 'none';
+    if (type === 'note' && ['yellow','none'].includes(base.color)) base.color = 'none';
+    const fb = base._fallback; delete base._fallback;
+    const n = mkNode(type, cx, cy, t, base); nodes.push(n); map.set(c.id, n.id);
+    if (fb) rep.fallback.push(n.id);
+  }
+  const resolve = id => { let c = cells.get(id), guard = 0; while (c && guard++ < 50){ if (map.has(c.id)) return map.get(c.id); c = cells.get(c.parent); } return null; };
+  for (const c of order){
+    if (!c.edge) continue;
+    const a = resolve(c.source), b = resolve(c.target);
+    const na = nodes.find(n => n.id === a), nb = nodes.find(n => n.id === b);
+    if (!a || !b || a === b || na?.type === 'lane' || nb?.type === 'lane'){ rep.loose++; continue; }
+    const st = c.style;
+    const endA = (st.endArrow || 'classic') !== 'none', startA = !!st.startArrow && st.startArrow !== 'none';
+    let from = a, to = b, arrow = endA && startA ? 'both' : endA ? 'end' : startA ? 'end' : 'none';
+    if (startA && !endA){ from = b; to = a; }
+    const style = st.curved === '1' ? 'curve' : st.edgeStyle && st.edgeStyle !== 'none' ? 'elbow' : 'straight';
+    const lbl = [text(c), edgeLabels.get(c.id)].filter(Boolean).join(' ');
+    edges.push(mkEdge(from, to, {label: lbl.replace(/\n+/g, ' '), style, arrow, dash: st.dashed === '1'}));
+  }
+  return {nodes, edges};
+}
+async function importDrawio(text, base, rep){
+  const pages = await drawioPages(text);
+  if (!pages.length) throw new Error('empty');
+  const docs = [];
+  for (const pg of pages){
+    const {nodes, edges} = drawioModel(pg.model, rep);
+    if (!nodes.length) continue;
+    rep.pages++;
+    docs.push(finishImport(pages.length > 1 ? `${base} · ${pg.name || rep.pages}` : base, nodes, edges, rep));
+  }
+  return docs;
+}
+
+/* ---------- import: Visio (.vsdx) ---------- */
+async function unzip(buf){
+  const dv = new DataView(buf), u8 = new Uint8Array(buf), dec = new TextDecoder();
+  let e = buf.byteLength - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('zip');
+  const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true);
+  const files = new Map();
+  for (let k = 0; k < n; k++){
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), lho = dv.getUint32(p + 42, true);
+    files.set(dec.decode(u8.subarray(p + 46, p + 46 + nl)), {method, csize, lho});
+    p += 46 + nl + xl + cl;
+  }
+  const read = async name => {
+    const f = files.get(name); if (!f) return null;
+    const nl = dv.getUint16(f.lho + 26, true), xl = dv.getUint16(f.lho + 28, true), start = f.lho + 30 + nl + xl;
+    const data = u8.subarray(start, start + f.csize);
+    return dec.decode(f.method === 8 ? await inflateRaw(data) : data);
+  };
+  return {files, read};
+}
+const xmlDoc = s => new DOMParser().parseFromString(s, 'application/xml');
+const childEls = (el, tag) => [...el.children].filter(c => c.localName === tag);
+function relsMap(xmlText){ const m = new Map(); if (!xmlText) return m; for (const r of xmlDoc(xmlText).getElementsByTagName('Relationship')) m.set(r.getAttribute('Id'), r.getAttribute('Target')); return m; }
+const relId = el => { const r = childEls(el, 'Rel')[0]; return r ? (r.getAttribute('r:id') || r.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id')) : null; };
+const cellOf = (sh, n) => { if (!sh) return null; for (const c of sh.children) if (c.localName === 'Cell' && c.getAttribute('N') === n) return c.getAttribute('V'); return null; };
+function sectionCell(sh, sec, n){ if (!sh) return null; const s = childEls(sh, 'Section').find(x => x.getAttribute('N') === sec); if (!s) return null; const row = childEls(s, 'Row')[0]; return row ? cellOf(row, n) : null; }
+function geomKind(sh){
+  if (!sh) return null;
+  const g = childEls(sh, 'Section').find(x => x.getAttribute('N') === 'Geometry'); if (!g) return null;
+  const w = +cellOf(sh, 'Width') || 1, h = +cellOf(sh, 'Height') || 1, pts = []; let arcs = 0;
+  for (const r of childEls(g, 'Row')){
+    const t = r.getAttribute('T') || '';
+    if (/Ellipse/.test(t)) return 'ellipse';
+    if (/Arc/.test(t)) arcs++;
+    const X = +cellOf(r, 'X'), Y = +cellOf(r, 'Y'); if (isNaN(X) || isNaN(Y)) continue;
+    pts.push(/^Rel/.test(t) ? [X, Y] : [X / w, Y / h]);
+  }
+  if (arcs >= 3 && pts.length <= 5) return 'ellipse';
+  const uniq = pts.filter((q, i) => pts.findIndex(o => Math.abs(o[0]-q[0]) < .01 && Math.abs(o[1]-q[1]) < .01) === i);
+  if (uniq.length !== 4) return null;
+  const near = v => Math.abs(v) < .03 || Math.abs(v - 1) < .03;
+  const corners = uniq.filter(q => near(q[0]) && near(q[1])).length;
+  if (corners === 0 && uniq.every(q => Math.abs(q[0] - .5) < .05 || Math.abs(q[1] - .5) < .05)) return 'diamond';
+  if (corners === 2 && uniq.every(q => near(q[1]))) return 'parallelogram';
+  return null;
+}
+function visioClassify(name, sh, msh, wIn, hIn, text){
+  const nm = name;
+  if (/cff container|\bpool\b|container|phase|fase|separator|title block|^title/.test(nm)) return 'container';
+  if (/swimlane|swim lane|\blane\b|raia|faixa/.test(nm)) return 'lane';
+  if (/decision|decis/.test(nm)) return 'decision';
+  if (/start\/end|terminator|terminador|in[ií]cio\/fim/.test(nm)) return START_RE.test(text) ? 'start' : END_RE.test(text) ? 'end' : 'step';
+  if (/database|stored data|data store|cylinder|disk|direct data|base de dados|dados armazenados|internal storage/.test(nm)) return 'data';
+  if (/multi.?doc|document|documento/.test(nm)) return 'doc';
+  if (/manual input|parallelogram|paralelogramo|\bdata\b|\bdados\b|input|output|entrada|sa[ií]da/.test(nm)) return 'action';
+  if (/screen|window|ecr[aã]|browser|janela/.test(nm)) return 'screen';
+  if (/note|annotation|anota|callout|comment|coment|\btext\b|texto/.test(nm)) return 'note';
+  if (/circle|ellipse|c[ií]rculo|elipse|\bevent|evento|on-page reference|refer[eê]ncia/.test(nm)) return (wIn <= 1 && hIn <= 1) ? (END_RE.test(text) ? 'end' : 'start') : 'step';
+  if (/process|processo|rectangle|ret[aâ]ngulo|subprocess|\bstep\b|task|tarefa|action|activity|atividade|passo/.test(nm)) return 'step';
+  const gk = geomKind(sh) || geomKind(msh);
+  if (gk === 'diamond') return 'decision';
+  if (gk === 'parallelogram') return 'action';
+  if (gk === 'ellipse') return (wIn <= 1 && hIn <= 1 && Math.abs(wIn - hIn) < .3) ? (END_RE.test(text) ? 'end' : 'start') : 'step';
+  return 'unknown';
+}
+async function importVisio(buf, base, rep){
+  const z = await unzip(buf);
+  const pagesXml = await z.read('visio/pages/pages.xml');
+  if (!pagesXml) throw new Error('vsdx');
+  const pageRels = relsMap(await z.read('visio/pages/_rels/pages.xml.rels'));
+  // masters
+  const masters = new Map();
+  const mx = await z.read('visio/masters/masters.xml');
+  if (mx){
+    const mrels = relsMap(await z.read('visio/masters/_rels/masters.xml.rels'));
+    for (const m of xmlDoc(mx).getElementsByTagName('Master')){
+      const target = mrels.get(relId(m)); const entry = {name: (m.getAttribute('NameU') || m.getAttribute('Name') || '').toLowerCase(), shapes: new Map(), top: null};
+      if (target){ const t = await z.read('visio/masters/' + target.replace(/^.*\//, '')); if (t){ const md = xmlDoc(t); const sh = md.getElementsByTagName('Shapes')[0]; if (sh){ entry.top = childEls(sh, 'Shape')[0] || null; for (const s of md.getElementsByTagName('Shape')) entry.shapes.set(s.getAttribute('ID'), s); } } }
+      masters.set(m.getAttribute('ID'), entry);
+    }
+  }
+  const docs = [], PX = 96;
+  const pageEls = [...xmlDoc(pagesXml).getElementsByTagName('Page')].filter(p => p.getAttribute('Background') !== '1');
+  for (const pg of pageEls){
+    const target = pageRels.get(relId(pg)); if (!target) continue;
+    const ptxt = await z.read('visio/pages/' + target.replace(/^.*\//, '')); if (!ptxt) continue;
+    const pdoc = xmlDoc(ptxt);
+    const psheet = childEls(pg, 'PageSheet')[0];
+    const pageH = +(cellOf(psheet, 'PageHeight') || 11);
+    const nodes = [], edges = [], vmap = new Map(), parentOf = new Map(), connectors = new Map();
+    const root = [...pdoc.getElementsByTagName('Shapes')].find(s => s.parentElement && s.parentElement.localName === 'PageContents');
+    const visit = (sh, offX, offY, masterId, parentVid) => {
+      const vid = sh.getAttribute('ID'); if (parentVid) parentOf.set(vid, parentVid);
+      const mid = sh.getAttribute('Master') || masterId, M = masters.get(mid);
+      const msh = sh.getAttribute('Master') ? M?.top : (sh.getAttribute('MasterShape') && M ? M.shapes.get(sh.getAttribute('MasterShape')) : null);
+      const num = n => { const v = cellOf(sh, n) ?? cellOf(msh, n); const f = parseFloat(v); return isNaN(f) ? null : f; };
+      const w = num('Width') ?? 1, h = num('Height') ?? 0.75, pinX = num('PinX') ?? 0, pinY = num('PinY') ?? 0;
+      const locX = num('LocPinX') ?? w/2, locY = num('LocPinY') ?? h/2;
+      const ax = offX + pinX, ay = offY + pinY;
+      const tEl = childEls(sh, 'Text')[0];
+      const text = (tEl ? tEl.textContent : '').replace(/\r/g, '\n').replace(/[ \t]+\n/g, '\n').trim();
+      const name = ((M?.name || '') + ' ' + (sh.getAttribute('NameU') || sh.getAttribute('Name') || '')).replace(/\.\d+/g, '').toLowerCase().trim();
+      const oneD = cellOf(sh, 'BeginX') !== null || cellOf(msh, 'BeginX') !== null;
+      if (oneD){
+        const ea = cellOf(sh, 'EndArrow') ?? cellOf(msh, 'EndArrow'), ba = cellOf(sh, 'BeginArrow') ?? cellOf(msh, 'BeginArrow');
+        const lp = cellOf(sh, 'LinePattern') ?? cellOf(msh, 'LinePattern');
+        connectors.set(vid, {text, end: ea === null ? true : ea !== '0', begin: ba !== null && ba !== '0', dash: lp !== null && +lp > 1, curve: /curve|curv/.test(name)});
+        return;
+      }
+      const kind = visioClassify(name, sh, msh, w, h, text);
+      const isGroup = sh.getAttribute('Type') === 'Group';
+      const sub = childEls(sh, 'Shapes')[0];
+      if (kind === 'container' || (isGroup && kind === 'unknown')){
+        if (kind === 'container') rep.containers++; else rep.groups++;
+        const before = nodes.length;
+        if (sub) for (const c of childEls(sub, 'Shape')) visit(c, ax - locX, ay - locY, mid, vid);
+        if (kind === 'unknown' && nodes.length === before && text){ const n = mkNode('step', (ax - locX + w/2)*PX, (pageH - (ay - locY + h/2))*PX, text); nodes.push(n); vmap.set(vid, n.id); rep.fallback.push(n.id); }
+        return;
+      }
+      const cx = (ax - locX + w/2) * PX, cy = (pageH - (ay - locY + h/2)) * PX;
+      if (kind === 'lane'){
+        const n = mkNode('lane', (ax - locX) * PX, (pageH - (ay - locY + h)) * PX, text || T('lane'), {w: w*PX, h: h*PX, laneType: guessLaneType(text)});
+        delete n.b; delete n.i; nodes.push(n); vmap.set(vid, n.id); return;
+      }
+      if (!text && kind !== 'start' && kind !== 'end' && kind !== 'decision' && (w > 3.2 || h > 2.2)){ rep.containers++; return; }
+      const sizeIn = parseFloat(sectionCell(sh, 'Character', 'Size') ?? sectionCell(msh, 'Character', 'Size'));
+      const sty = +(sectionCell(sh, 'Character', 'Style') ?? sectionCell(msh, 'Character', 'Style') ?? 0);
+      const fill = cellOf(sh, 'FillForegnd') ?? cellOf(msh, 'FillForegnd');
+      const type = kind === 'unknown' ? 'step' : kind;
+      const o = {fs: isNaN(sizeIn) ? 14 : FS_NEAR(sizeIn * PX), b: !!(sty & 1), i: !!(sty & 2), color: EVENTS.has(type) ? 'none' : colorKey(fill)};
+      if (type === 'note' && o.color === 'yellow') o.color = 'none';
+      if (!text) rep.empty++;
+      const n = mkNode(type, cx, cy, text, o); nodes.push(n); vmap.set(vid, n.id);
+      if (kind === 'unknown') rep.fallback.push(n.id);
+    };
+    if (root) for (const s of childEls(root, 'Shape')) visit(s, 0, 0, null, null);
+    // connections
+    const ends = new Map();
+    for (const c of pdoc.getElementsByTagName('Connect')){
+      const from = c.getAttribute('FromSheet'), cell = c.getAttribute('FromCell') || '', to = c.getAttribute('ToSheet');
+      if (!connectors.has(from)) continue;
+      if (!ends.has(from)) ends.set(from, {});
+      if (/^Begin/.test(cell)) ends.get(from).a = to; else if (/^End/.test(cell)) ends.get(from).b = to;
+    }
+    const resolve = vid => { let v = vid, g = 0; while (v && g++ < 50){ if (vmap.has(v)) return vmap.get(v); v = parentOf.get(v); } return null; };
+    const laneIds = new Set(nodes.filter(n => n.type === 'lane').map(n => n.id));
+    for (const [vid, cn] of connectors){
+      const e = ends.get(vid) || {};
+      const a = resolve(e.a), b = resolve(e.b);
+      if (!a || !b || a === b || laneIds.has(a) || laneIds.has(b)){ rep.loose++; continue; }
+      let from = a, to = b, arrow = cn.end && cn.begin ? 'both' : cn.end ? 'end' : cn.begin ? 'end' : 'none';
+      if (cn.begin && !cn.end){ from = b; to = a; }
+      edges.push(mkEdge(from, to, {label: cn.text.replace(/\n+/g, ' '), arrow, dash: cn.dash, style: cn.curve ? 'curve' : 'elbow'}));
+    }
+    if (!nodes.length) continue;
+    rep.pages++;
+    const pname = pg.getAttribute('NameU') || pg.getAttribute('Name') || String(rep.pages);
+    docs.push(finishImport(pageEls.length > 1 ? `${base} · ${pname}` : base, nodes, edges, rep));
+  }
+  return docs;
+}
+
+/* ---------- import: UI ---------- */
+let modalRender = () => {};
+let importKind = null;
+function dialog(title, bodyNodes, buttons){
+  $('#mTabs').hidden = true; $('#mTitle').textContent = title;
+  const body = $('#mBody'), foot = $('#mFoot'); body.innerHTML = ''; foot.innerHTML = '';
+  for (const n of bodyNodes) body.appendChild(n);
+  for (const b of buttons){ const el = document.createElement('button'); el.className = 'btn' + (b.primary ? ' primary' : ''); el.textContent = b.label; el.onclick = b.onClick; foot.appendChild(el); }
+  $('#modal').hidden = false;
+  const pb = foot.querySelector('.primary'); if (pb) pb.focus();
+}
+function el(tag, cls, html){ const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; }
+function issuesList(items){
+  const ul = el('ul', 'issues');
+  for (const [title, problem, fix] of items){
+    const li = el('li'); li.append(el('strong', '', title), el('span', '', problem), el('span', 'fix', `<b>${T('imp_fixLabel')}</b> ${fix}`)); ul.appendChild(li);
+  }
+  return ul;
+}
+function showImportInfo(kind){
+  endEdit(); closeDrawer();
+  modalRender = () => showImportInfo(kind);
+  const isV = kind === 'visio';
+  dialog(T(isV ? 'imp_visioTitle' : 'imp_drawioTitle'), [
+    el('p', 'hint', T(isV ? 'imp_visioIntro' : 'imp_drawioIntro')),
+    issuesList(T(isV ? 'imp_visioIssues' : 'imp_drawioIssues')),
+    el('p', 'hint', T('imp_after')),
+  ], [
+    {label: T('cancel'), onClick: closeModal},
+    {label: T('imp_choose'), primary: true, onClick: () => { importKind = kind; const f = $('#fileImp'); f.accept = isV ? '.vsdx' : '.drawio,.dio,.xml'; f.click(); }},
+  ]);
+}
+function showImportReport(rep, docs){
+  modalRender = () => showImportReport(rep, docs);
+  const items = [];
+  if (rep.pages > 1) items.push(T('rep_pages', rep.pages));
+  if (rep.fallback.length) items.push(T('rep_fallback', rep.fallback.length));
+  if (rep.textNotes) items.push(T('rep_textNotes', rep.textNotes));
+  if (rep.rotated) items.push(T('rep_rotated'));
+  if (rep.images) items.push(T('rep_images', rep.images));
+  if (rep.containers) items.push(T('rep_containers', rep.containers));
+  if (rep.groups) items.push(T('rep_groups', rep.groups));
+  if (rep.loose) items.push(T('rep_loose', rep.loose));
+  if (rep.empty) items.push(T('rep_empty', rep.empty));
+  const body = [el('p', 'summary', T('rep_summary', rep.shapes, rep.edges, rep.lanes))];
+  if (items.length){ const ul = el('ul', 'issues'); for (const t of items) ul.appendChild(el('li', '', `<span>${t}</span>`)); body.push(el('p', 'hint', T('rep_check')), ul); }
+  else body.push(el('p', 'hint', T('rep_clean')));
+  dialog(T('rep_title'), body, [{label: T('close'), primary: true, onClick: closeModal}]);
+}
+async function importFile(f, kind){
+  const ext = (f.name.split('.').pop() || '').toLowerCase();
+  kind = kind || (ext === 'vsdx' || ext === 'vsd' ? 'visio' : ext === 'json' ? 'json' : 'drawio');
+  if (kind === 'json') return importJSONFile(f);
+  const base = f.name.replace(/\.(drawio|dio|xml|vsdx|vsd)$/i, '') || T('untitled');
+  if (ext === 'vsd'){ errorDialog(T('imp_vsdOld')); return; }
+  if (typeof DecompressionStream === 'undefined'){ errorDialog(T('imp_oldBrowser')); return; }
+  const rep = newReport();
+  try {
+    const docs = kind === 'visio' ? await importVisio(await f.arrayBuffer(), base, rep) : await importDrawio(await f.text(), base, rep);
+    if (!docs.length) throw new Error('empty');
+    persistNow(); openDoc(docs[0].id);
+    S.sel = new Set(rep.fallback.filter(id => N(id))); draw();
+    showImportReport(rep, docs);
+  } catch(err){
+    console.warn('Diagramico import:', err);
+    errorDialog(T(kind === 'visio' ? 'imp_failVisio' : 'imp_failDrawio'));
+  }
+}
+function errorDialog(msg){ modalRender = () => errorDialog(msg); dialog(T('imp_failTitle'), [el('p', 'hint', msg)], [{label: T('close'), primary: true, onClick: closeModal}]); }
 
 /* ---------- drawer / portfolio ---------- */
 function openDrawer(){ endEdit(); renderDocs(); $('#drawer').hidden = false; $('#scrim').hidden = false; }
@@ -1502,8 +2013,7 @@ $('#docName').addEventListener('input', e => { doc.name = e.target.value || T('u
 $('#docName').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Escape') e.target.blur(); });
 $('#btnBackup').onclick = () => saveFile(`diagramico-backup-${today()}.json`, JSON.stringify({app:'diagramico', version:1, kind:'backup', exported:new Date().toISOString(), docs:Object.values(store.docs)}));
 $('#btnImport').onclick = () => $('#fileIn').click();
-$('#fileIn').onchange = async e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+async function importJSONFile(f){
   try {
     const o = JSON.parse(await f.text());
     const list = o.docs ? o.docs : o.doc ? [o.doc] : (o.nodes ? [o] : null);
@@ -1513,7 +2023,16 @@ $('#fileIn').onchange = async e => {
     if (!n) throw new Error('vazio');
     persistNow(); if (n === 1) openDoc(last); renderDocs(); toast(n === 1 ? T('imported1') : T('importedN', n));
   } catch(err){ toast(T('importFail')); }
-};
+}
+$('#fileIn').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) importJSONFile(f); };
+$('#fileImp').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f){ closeModal(); importFile(f, importKind); } };
+$('#btnImpDrawio').onclick = () => showImportInfo('drawio');
+$('#btnImpVisio').onclick = () => showImportInfo('visio');
+window.addEventListener('dragover', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
+window.addEventListener('drop', e => {
+  const f = e.dataTransfer && e.dataTransfer.files[0]; if (!f) return; e.preventDefault();
+  if (/\.(drawio|dio|xml|vsdx|vsd|json)$/i.test(f.name)) importFile(f, null); else toast(T('importFail'));
+});
 
 /* ---------- theme ---------- */
 const THEME_KEY = 'diagramico.theme', hostTheme = document.documentElement.getAttribute('data-theme');
@@ -1539,7 +2058,7 @@ function applyLang(){
   const b = $('#btnLang'); b.textContent = lang.toUpperCase(); b.title = T('langTitle'); b.setAttribute('aria-label', T('langTitle'));
   $('#saveState').textContent = storageOk ? T('saved') : T('notSaved');
   buildTools(); setTool(S.tool); applyTheme();
-  ctxKey = ''; if (!$('#modal').hidden) renderModal(); if (!$('#drawer').hidden) renderDocs(); draw();
+  ctxKey = ''; if (!$('#modal').hidden) modalRender(); if (!$('#drawer').hidden) renderDocs(); draw();
 }
 $('#btnLang').onclick = () => { lang = lang === 'pt' ? 'en' : 'pt'; try { localStorage.setItem(LANG_KEY, lang); } catch(e){} applyLang(); toast(T('langToast')); };
 
