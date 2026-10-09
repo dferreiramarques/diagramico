@@ -85,6 +85,14 @@ Layout em camadas, da esquerda para a direita, aplicado ao diagrama inteiro (`Sh
 
 Limitações: só horizontal; não desenha arestas à volta de formas; a lane de cada forma é a atual, nunca é alterada.
 
+## Importação de texto (`importFromText`)
+
+`detectText` distingue Mermaid (`flowchart`/`graph`) do texto para IA (`DIAGRAM`/`NODES`/`FLOW`). `parseAIText` e `parseMermaid` produzem a mesma estrutura intermédia `{name, lanes, nodes, edges, notes, skipped}`; `buildDocFromParsed` cria o diagrama (cada forma é posta na lane certa, uma linha por lane), `importFromText` abre-o e corre `autoLayout`.
+
+- Texto IA: o ID de cada forma pertence à lane cujo código é prefixo do ID (o código mais longo ganha). Cadeias `A > B > C` e etiquetas `[x]` no fim da linha.
+- Mermaid: `mmRef` lê `ID` + forma opcional (`((` → início/fim/pausa/mudança de lane conforme o texto e as ligações), `mmLink` lê as setas (`-->`, `-.->`, `<-->`, rótulos `|x|` ou `-- x -->`). Nós `NOTE<n>` ou `:::note` tornam-se notas ligadas a tracejado.
+- O exportador de Mermaid e o de IA são o formato de referência: se mudar um, mudar o outro parser.
+
 ## Exportação SVG (`renderSVG`)
 
 `SvgCtx` é um gravador mínimo da API Canvas 2D: implementa `save/restore`, transformações, caminhos (`moveTo`, `lineTo`, `arc`, `ellipse`, `arcTo`, `roundRect`, `bezierCurveTo`…), `fill/stroke`, `fillRect/strokeRect` e `fillText`, e escreve elementos `<path>` e `<text>`. `paintScene(x, onlySel, transparent)` desenha o diagrama num contexto qualquer, por isso o ecrã, o PNG e o SVG partilham exatamente o mesmo código de desenho (`renderScene`). Cores `rgba()` passam a cor + opacidade; a sombra das notas é um filtro `feDropShadow`. Se uma função de desenho passar a usar um método do canvas que o `SvgCtx` não tem, o SVG falha ou omite esse elemento: implementar o método ali.
@@ -125,7 +133,6 @@ Se o `localStorage` falhar (modo privado, quota), a app continua a funcionar e m
 ## Limitações conhecidas
 
 - Dados só no browser: sem sincronização nem colaboração.
-- Sem importação de texto IA/Mermaid.
 - Conectores não contornam formas.
 - `.vsd` (Visio antigo) não suportado.
 - Sem testes automáticos; `window.__diagramico` existe para verificações manuais na consola (`exportAI()`, `exportMermaid()`, `doc()`).

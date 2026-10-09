@@ -109,6 +109,8 @@ button{font:inherit;color:inherit}
 .issues li strong{font-weight:600}
 .issues li .fix{color:var(--muted);font-size:12px}
 .issues li .fix b{color:var(--accent);font-weight:600}
+.modal textarea.import{width:100%;min-height:240px;box-sizing:border-box;font:12px/1.55 var(--mono);background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px;resize:vertical;outline:none}
+.modal textarea.import:focus{border-color:var(--accent)}
 .modal .summary{font-size:15px;font-weight:500;margin:0 0 10px}
 .scrim{position:fixed;inset:0;background:rgba(10,12,20,.25);z-index:19}
 
@@ -211,6 +213,7 @@ button{font:inherit;color:inherit}
     <p class="sub" data-i18n="importFrom"></p>
     <button class="btn" id="btnImpDrawio" data-i18n="imp_drawio"></button>
     <button class="btn" id="btnImpVisio" data-i18n="imp_visio"></button>
+    <button class="btn" id="btnImpText" data-i18n="txt_btn"></button>
     <input type="file" id="fileIn" accept=".json,application/json" hidden>
     <input type="file" id="fileImp" hidden>
   </footer>
@@ -326,6 +329,10 @@ pt: {
   imp_vsdOld:'O formato antigo .vsd não é suportado. Abra-o no Visio e guarde como .vsdx, ou abra-o no draw.io e guarde como .drawio.',
   imp_oldBrowser:'Este browser não consegue descomprimir ficheiros. Use uma versão recente do Chrome, Edge, Firefox ou Safari.',
   importJson:'Importar cópia (JSON)…', importFrom:'Importar de outras ferramentas',
+  txt_btn:'Importar texto (IA / Mermaid)', txt_title:'Criar diagrama a partir de texto', txt_hint:'Cole o texto para IA do Diagramico ou um flowchart Mermaid. O diagrama é criado como novo e organizado automaticamente. Também pode largar um ficheiro .txt, .md ou .mmd no quadro.',
+  txt_ph:'flowchart LR\n  A(("Início")) --> B["Passo"]\n  B --> C{"Decisão?"}\n  C -->|sim| D["Outro passo"]\n  C -->|não| E((("Fim")))', txt_create:'Criar diagrama',
+  txt_unknown:'Formato não reconhecido. Use o texto para IA do Diagramico (DIAGRAM / NODES / FLOW) ou um flowchart Mermaid.', txt_empty:'Não foi encontrada nenhuma forma no texto.',
+  txt_done:(a,b,c)=>`Diagrama criado: ${a} formas, ${b} setas${c ? ` · ${c} linhas ignoradas` : ''}`,
   backup:'Guardar cópia de segurança', import:'Importar…', untitled:'Sem título', newLane:'Nova lane', lane:'Lane', copySuffix:' (cópia)', importedSuffix:' (importado)',
   t_step:'Passo / processo', t_action:'Ação do utilizador', t_decision:'Decisão', t_screen:'Ecrã / interface', t_doc:'Documento', t_data:'Dados',
   t_start:'Início', t_end:'Fim', t_pause:'Pausa / espera', t_handoff:'Mudança de lane', t_note:'Nota', t_lane:'Swimlane',
@@ -440,6 +447,10 @@ en: {
   imp_vsdOld:'The old .vsd format is not supported. Open it in Visio and save as .vsdx, or open it in draw.io and save as .drawio.',
   imp_oldBrowser:'This browser cannot decompress files. Use a recent version of Chrome, Edge, Firefox or Safari.',
   importJson:'Import backup (JSON)…', importFrom:'Import from other tools',
+  txt_btn:'Import text (AI / Mermaid)', txt_title:'Create a diagram from text', txt_hint:'Paste Diagramico AI text or a Mermaid flowchart. The diagram is created as a new one and arranged automatically. You can also drop a .txt, .md or .mmd file on the board.',
+  txt_ph:'flowchart LR\n  A(("Start")) --> B["Step"]\n  B --> C{"Decision?"}\n  C -->|yes| D["Another step"]\n  C -->|no| E((("End")))', txt_create:'Create diagram',
+  txt_unknown:'Format not recognised. Use Diagramico AI text (DIAGRAM / NODES / FLOW) or a Mermaid flowchart.', txt_empty:'No shapes were found in the text.',
+  txt_done:(a,b,c)=>`Diagram created: ${a} shapes, ${b} arrows${c ? ` · ${c} lines ignored` : ''}`,
   backup:'Download backup', import:'Import…', untitled:'Untitled', newLane:'New lane', lane:'Lane', copySuffix:' (copy)', importedSuffix:' (imported)',
   t_step:'Step / process', t_action:'User action', t_decision:'Decision', t_screen:'Screen / interface', t_doc:'Document', t_data:'Data',
   t_start:'Start', t_end:'End', t_pause:'Pause / wait', t_handoff:'Lane handoff', t_note:'Note', t_lane:'Swimlane',
@@ -2268,6 +2279,157 @@ async function importFile(f, kind){
 }
 function errorDialog(msg){ modalRender = () => errorDialog(msg); dialog(T('imp_failTitle'), [el('p', 'hint', msg)], [{label: T('close'), primary: true, onClick: closeModal}]); }
 
+/* ---------- import: AI text / Mermaid ---------- */
+// Both parsers fill the same intermediate shape: {name, lanes:[{code,name,type}], nodes:[{id,type,text,lane}], edges:[{a,b,arrow,dash,label}], notes:[{text,targets}], skipped}
+const AI_REV = Object.fromEntries(Object.entries(AI_TYPE).map(([k,v]) => [v,k]));
+const LANE_REV = Object.fromEntries(Object.entries(LANE_TYPES).map(([k,v]) => [v,k]));
+const AI_OPS = {'>':{arrow:'end',dash:false}, '<>':{arrow:'both',dash:false}, '-':{arrow:'none',dash:false}, '~>':{arrow:'end',dash:true}, '~':{arrow:'none',dash:true}, '<~>':{arrow:'both',dash:true}};
+function newParsed(){ return {name:'', lanes:[], nodes:[], edges:[], notes:[], skipped:[]}; }
+function parseAIText(src){
+  const r = newParsed(); let sec = '', m;
+  for (const raw of src.split(/\r?\n/)){
+    const line = raw.trim(); if (!line) continue;
+    if (/^DIAGRAM\s*:/i.test(line)){ r.name = line.replace(/^DIAGRAM\s*:/i, '').trim(); continue; }
+    if (/^SYNTAX\s*:/i.test(line)) continue;
+    if ((m = /^(LANES|NODES|FLOW|NOTES)\s*:?\s*$/i.exec(line))){ sec = m[1].toUpperCase(); continue; }
+    if (sec === 'LANES'){
+      m = /^(\S+)\s*=\s*(.+?)(?:\s*\(([^()]*)\))?$/.exec(line);
+      if (m) r.lanes.push({code:m[1], name:m[2].trim(), type:LANE_REV[(m[3]||'').trim()]}); else r.skipped.push(line);
+    } else if (sec === 'NODES'){
+      m = /^([A-Za-z]+\d+)\s+([a-z_]+)(?:\s*:\s*(.*))?$/.exec(line);
+      if (m && AI_REV[m[2]]) r.nodes.push({id:m[1], type:AI_REV[m[2]], text:(m[3]||'').trim().replace(/\s\|\s/g, '\n'), lane:null}); else r.skipped.push(line);
+    } else if (sec === 'FLOW'){
+      let label = ''; const lm = /\s*\[([^\]]*)\]\s*$/.exec(line), body = lm ? line.slice(0, lm.index) : line; if (lm) label = lm[1].trim();
+      const parts = body.trim().split(/\s+(<~>|~>|<>|>|~|-)\s+/);
+      if (parts.length < 3 || parts.length % 2 === 0){ r.skipped.push(line); continue; }
+      for (let i = 0; i + 2 < parts.length + 0; i += 2) r.edges.push({a:parts[i], b:parts[i+2], ...AI_OPS[parts[i+1]], label: i + 2 === parts.length - 1 ? label : ''});
+    } else if (sec === 'NOTES'){
+      m = /^([^:]+):\s*(.+)$/.exec(line);
+      if (m) r.notes.push({text:m[2].trim().replace(/\s\|\s/g, '\n'), targets:m[1].split(',').map(s => s.trim())}); else r.skipped.push(line);
+    } else r.skipped.push(line);
+  }
+  // an ID belongs to the lane whose code is its prefix (longest code wins)
+  const codes = r.lanes.map(l => l.code).sort((a,b) => b.length - a.length);
+  for (const n of r.nodes){ const c = codes.find(c => n.id.startsWith(c) && /^\d+$/.test(n.id.slice(c.length))); n.lane = c || null; }
+  return r;
+}
+const MM_SHAPES = [['(((',')))','end'],['((','))','circle'],['([','])','step'],['[(',')]','data'],['[[',']]','screen'],['[/','/]','user_action'],['[\\','\\]','user_action'],['[/','\\]','step'],['{{','}}','step'],['(',')','step'],['[',']','step'],['{','}','decision'],['>',']','document']];
+const mmText = t => t.replace(/<br\s*\/?>/gi, '\n').replace(/#quot;|&quot;/g, '"').replace(/&amp;/g, '&').replace(/<[^>]+>/g, '').trim();
+function mmRef(s, pos){
+  const m = /^\s*([A-Za-z0-9_]+)/.exec(s.slice(pos)); if (!m) return null;
+  let p = pos + m[0].length; const id = m[1], rest = s.slice(p), ref = {id, end:p};
+  for (const [o, c, t] of MM_SHAPES){
+    if (!rest.startsWith(o)) continue;
+    let q = o.length, text, e;
+    if (rest[q] === '"'){ e = rest.indexOf('"', q+1); if (e < 0 || !rest.startsWith(c, e+1)) continue; text = rest.slice(q+1, e); e += 1 + c.length; }
+    else { e = rest.indexOf(c, q); if (e < 0) continue; text = rest.slice(q, e); e += c.length; }
+    ref.shape = t; ref.text = mmText(text); ref.end = p + e; break;
+  }
+  const cm = /^:::([A-Za-z0-9_]+)/.exec(s.slice(ref.end)); if (cm){ ref.cls = cm[1]; ref.end += cm[0].length; }
+  return ref;
+}
+function mmLink(s, pos){
+  const rest = s.slice(pos); let m;
+  if ((m = /^\s*(<)?(--|-\.|==)\s+(.+?)\s+(-->|---|\.->|\.-|==>|===)\s*/.exec(rest))){
+    const op = (m[1]||'') + m[2] + m[4]; return {arrow: op.startsWith('<') && op.endsWith('>') ? 'both' : op.endsWith('>') ? 'end' : 'none', dash: op.includes('.'), label: mmText(m[3].replace(/^"|"$/g, '')), end: pos + m[0].length};
+  }
+  if ((m = /^\s*(<)?(-->|---|-\.->|-\.-|==>|===|--x|--o)\s*(?:\|"?([^|]*?)"?\|)?\s*/.exec(rest))){
+    const op = (m[1]||'') + m[2]; return {arrow: m[1] && op.endsWith('>') ? 'both' : op.endsWith('>') || /[xo]$/.test(op) ? 'end' : 'none', dash: op.includes('.'), label: mmText(m[3]||''), end: pos + m[0].length};
+  }
+  return null;
+}
+function parseMermaid(src){
+  const r = newParsed(), nodes = new Map(), stack = [], links = [];
+  src = src.replace(/```(?:mermaid)?/gi, '');
+  const reg = ref => {
+    let n = nodes.get(ref.id); if (!n){ n = {id:ref.id, type:'step', text:ref.id, lane:null, note:false}; nodes.set(ref.id, n); }
+    if (ref.shape){ n.shape = ref.shape; n.text = ref.text; }
+    if (ref.cls === 'note' || /^NOTE\d+$/.test(ref.id)) n.note = true;
+    if (stack.length && !n.lane) n.lane = stack[stack.length-1];
+    return n;
+  };
+  let m;
+  for (let raw of src.split(/\r?\n/)){
+    let line = raw.replace(/%%.*$/, '').trim().replace(/;$/, ''); if (!line) continue;
+    if (/^(flowchart|graph)\b/i.test(line)) continue;
+    if (/^(direction|classDef|class|style|linkStyle|click|accTitle|accDescr)\b/.test(line)) continue;
+    if (/^end$/i.test(line)){ stack.pop(); continue; }
+    if ((m = /^subgraph\s+(.+)$/i.exec(line))){
+      const ref = mmRef(m[1], 0); let code, name;
+      if (ref && ref.shape){ code = ref.id; name = ref.text; } else { name = mmText(m[1].replace(/^"|"$/g, '')); code = name.replace(/[^A-Za-z0-9]+/g, '_') || 'L' + r.lanes.length; }
+      r.lanes.push({code, name, type:undefined}); stack.push(code); continue;
+    }
+    let ref = mmRef(line, 0); if (!ref){ r.skipped.push(line); continue; }
+    let prev = reg(ref), pos = ref.end;
+    for (;;){ const lk = mmLink(line, pos); if (!lk) break; const ref2 = mmRef(line, lk.end); if (!ref2) break; const cur = reg(ref2); links.push({a:prev.id, b:cur.id, arrow:lk.arrow, dash:lk.dash, label:lk.label}); prev = cur; pos = ref2.end; }
+  }
+  const indeg = new Map(), outdeg = new Map(); for (const l of links){ indeg.set(l.b, (indeg.get(l.b)||0)+1); outdeg.set(l.a, (outdeg.get(l.a)||0)+1); }
+  const noteOf = new Map();
+  for (const n of nodes.values()){
+    if (n.note){ noteOf.set(n.id, {text:n.text, targets:[]}); continue; }
+    let t = n.shape === 'circle' ? ((indeg.get(n.id) && !outdeg.get(n.id)) ? 'end' : 'start') : (n.shape || 'step');
+    if (n.shape === 'circle' && /^⏸\s*/.test(n.text)){ t = 'pause'; n.text = n.text.replace(/^⏸\s*/, ''); }
+    else if (n.shape === 'circle' && /^⇄\s*/.test(n.text)){ t = 'handoff'; n.text = n.text.replace(/^⇄\s*/, ''); }
+    if ((t === 'start' || t === 'end') && n.text === n.id) n.text = '';
+    r.nodes.push({id:n.id, type:t, text:n.text, lane:n.lane});
+  }
+  for (const l of links){
+    if (noteOf.has(l.a) && !noteOf.has(l.b)) noteOf.get(l.a).targets.push(l.b);
+    else if (noteOf.has(l.b) && !noteOf.has(l.a)) noteOf.get(l.b).targets.push(l.a);
+    else if (!noteOf.has(l.a) && !noteOf.has(l.b)) r.edges.push(l);
+  }
+  r.notes = [...noteOf.values()];
+  return r;
+}
+function buildDocFromParsed(r){
+  const nodes = [], edges = [], byCode = new Map(), laneNodes = new Map(), count = new Map();
+  r.lanes.forEach((l, i) => { const n = {id:uid('n'), type:'lane', x:0, y:i*180, w:1320, h:180, text:l.name, fs:14, color:'none'}; if (l.type) n.laneType = l.type; laneNodes.set(l.code, n); nodes.push(n); });
+  for (const s of r.nodes){
+    const lane = s.lane ? laneNodes.get(s.lane) : null, k = count.get(s.lane || '_') || 0; count.set(s.lane || '_', k+1);
+    const n = mkNode(s.type, 150 + k*200, lane ? lane.y + 90 : r.lanes.length*180 + 90, s.text); byCode.set(s.id, n); nodes.push(n);
+  }
+  let dropped = 0;
+  for (const e of r.edges){ const a = byCode.get(e.a), b = byCode.get(e.b); if (a && b && a !== b) edges.push(mkEdge(a.id, b.id, {arrow:e.arrow, dash:e.dash, label:e.label || ''})); else dropped++; }
+  r.notes.forEach((nt, i) => {
+    const ts = nt.targets.map(t => byCode.get(t)).filter(Boolean), t0 = ts[0];
+    const n = mkNode('note', t0 ? t0.x : 0, (t0 ? t0.y : 0) - 130, nt.text, {fs:12}); nodes.push(n);
+    for (const t of ts) edges.push(mkEdge(n.id, t.id, {style:'straight', arrow:'none', dash:true}));
+  });
+  const d = newDoc(r.name || T('untitled')); d.nodes = nodes; d.edges = edges;
+  return {d, dropped};
+}
+function detectText(src){
+  if (/^\s*(?:```(?:mermaid)?\s*)?(flowchart|graph)\b/im.test(src)) return 'mermaid';
+  if (/^\s*(DIAGRAM|NODES|FLOW)\s*:?/im.test(src)) return 'ai';
+  return null;
+}
+function importFromText(src, fallbackName){
+  const kind = detectText(src); if (!kind) return {error:T('txt_unknown')};
+  const r = kind === 'ai' ? parseAIText(src) : parseMermaid(src);
+  if (fallbackName && !r.name) r.name = fallbackName;
+  if (!r.nodes.length) return {error:T('txt_empty')};
+  const {d, dropped} = buildDocFromParsed(r);
+  openDoc(d.id); autoLayout(); changed(); fit();
+  return {shapes:d.nodes.filter(n => n.type !== 'lane').length, edges:d.edges.length, skipped:r.skipped.length + dropped};
+}
+let txtDraft = '';
+function showTextImport(){
+  endEdit(); closeDrawer(); modalRender = showTextImport;
+  const area = el('textarea', 'import'); area.value = txtDraft; area.placeholder = T('txt_ph'); area.spellcheck = false;
+  area.oninput = () => { txtDraft = area.value; };
+  const err = el('p', 'hint'); err.style.color = 'var(--danger)';
+  dialog(T('txt_title'), [el('p', 'hint', T('txt_hint')), area, err], [
+    {label: T('cancel'), onClick: closeModal},
+    {label: T('txt_create'), primary: true, onClick: () => { const res = importFromText(area.value); if (res.error){ err.textContent = res.error; return; } txtDraft = ''; closeModal(); toast(T('txt_done', res.shapes, res.edges, res.skipped)); }},
+  ]);
+  area.focus();
+}
+$('#btnImpText').onclick = showTextImport;
+async function importTextFile(f){
+  try { const res = importFromText(await f.text(), f.name.replace(/\.[^.]+$/, '')); toast(res.error || T('txt_done', res.shapes, res.edges, res.skipped)); }
+  catch(e){ toast(T('importFail')); }
+}
+
 /* ---------- drawer / portfolio ---------- */
 function openDrawer(){ endEdit(); renderDocs(); $('#drawer').hidden = false; $('#scrim').hidden = false; }
 function closeDrawer(){ $('#drawer').hidden = true; $('#scrim').hidden = true; }
@@ -2326,7 +2488,9 @@ $('#btnImpVisio').onclick = () => showImportInfo('visio');
 window.addEventListener('dragover', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
 window.addEventListener('drop', e => {
   const f = e.dataTransfer && e.dataTransfer.files[0]; if (!f) return; e.preventDefault();
-  if (/\.(drawio|dio|xml|vsdx|vsd|json)$/i.test(f.name)) importFile(f, null); else toast(T('importFail'));
+  if (/\.(drawio|dio|xml|vsdx|vsd|json)$/i.test(f.name)) importFile(f, null);
+  else if (/\.(txt|md|mmd|mermaid)$/i.test(f.name)) importTextFile(f);
+  else toast(T('importFail'));
 });
 
 /* ---------- theme ---------- */
@@ -2442,7 +2606,7 @@ function mobileNotice(){ modalRender = mobileNotice; dialog(T('mobTitle'), [el('
 let tourSeen = true; try { tourSeen = !!localStorage.getItem(TOUR_KEY); } catch(e){}
 if (isPhone) mobileNotice(); else if (!tourSeen) setTimeout(startTour, 600);
 // expose for testing
-window.__diagramico = { exportAI: () => exportAI(doc), exportMermaid: () => exportMermaid(doc), state: S, view, doc: () => doc };
+window.__diagramico = { exportAI: () => exportAI(doc), exportMermaid: () => exportMermaid(doc), state: S, view, doc: () => doc, importText: importFromText };
 })();
 </script>
 </body>

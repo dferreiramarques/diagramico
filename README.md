@@ -41,6 +41,14 @@ Arranque rápido:
 - **Idioma** português ou inglês (botão PT/EN ou `Shift L`). Na primeira visita segue a língua do browser.
 - **Gravação automática** no `localStorage` do browser, lista de diagramas, cópia de segurança e importação em JSON.
 
+## Importar texto (IA e Mermaid)
+
+Em **Diagramas → Importar texto (IA / Mermaid)** cola-se o texto e cria-se um diagrama novo, organizado automaticamente (também se pode largar um `.txt`, `.md` ou `.mmd` no quadro). Fecha o ciclo com a exportação: exportar para texto e voltar a importar dá o mesmo diagrama (mesmas formas, lanes e setas; as posições são recalculadas).
+
+- **Texto para IA** do Diagramico (`DIAGRAM`, `LANES`, `NODES`, `FLOW`, `NOTES`): é a forma de pedir a uma IA que desenhe um fluxo, ou de editar o diagrama por texto.
+- **Mermaid** `flowchart`/`graph`: formas (`[ ]`, `{ }`, `(( ))`, `[/ /]`, `[[ ]]`, `[( )]`, `> ]`), ligações (`-->`, `---`, `-.->`, `<-->`, com rótulo `|x|` ou `-- x -->`), cadeias (`A --> B --> C`) e `subgraph` como lanes. Estilos (`classDef`, `style`, etc.) são ignorados. Não suporta `A & B --> C`, nem outros tipos de diagrama.
+- As linhas que não são percebidas são ignoradas e contadas no aviso final.
+
 ## Importar de outras ferramentas
 
 Em **Diagramas**, os botões **Importar do draw.io** e **Importar do Visio** mostram primeiro as incompatibilidades conhecidas e como resolvê-las. Também pode largar um ficheiro `.drawio`, `.xml`, `.vsdx` ou `.json` em cima do quadro.
@@ -120,7 +128,6 @@ Os diagramas ficam guardados apenas no browser onde foram criados (`localStorage
 ## Próximos passos
 
 - Portfólio multi-utilizador e partilha em equipa
-- Importar texto IA / Mermaid para gerar o diagrama
 - Importação direta de Lucidchart (CSV) e de PNG/SVG com diagrama draw.io embebido
 - Conectores que contornam formas
 
