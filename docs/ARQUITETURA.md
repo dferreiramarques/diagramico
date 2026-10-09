@@ -4,7 +4,7 @@ Documento para quem vai ler, manter ou estender o código. Para uso da aplicaç�
 
 ## Visão geral
 
-- **Ficheiro único**: `index.html` (~2200 linhas) com HTML, CSS e um IIFE de JavaScript. Sem build, sem dependências, sem servidor.
+- **Ficheiro único**: `app/index.html` (~2800 linhas) com HTML, CSS e um IIFE de JavaScript. Sem build, sem dependências, sem servidor.
 - **Renderização**: um `<canvas>` a ecrã inteiro desenha tudo (grelha, lanes, formas, conectores, overlays de seleção). A interface (barra superior, rail de ferramentas, barra contextual, zoom, gaveta, modal) é DOM normal sobreposto ao canvas.
 - **Persistência**: `localStorage`. Não há backend.
 - **Externo**: apenas as fontes IBM Plex (Google Fonts). Sem elas a app funciona com fontes de sistema.
@@ -34,7 +34,7 @@ A largura/altura das formas **não é guardada**: deriva do texto e do `fs` (`la
 
 ## Mapa do código
 
-As secções de `index.html` estão marcadas com comentários `/* ---------- nome ---------- */`.
+As secções de `app/index.html` estão marcadas com comentários `/* ---------- nome ---------- */`.
 
 | Secção | Responsabilidade |
 |---|---|
@@ -96,6 +96,13 @@ Limitações: só horizontal; não desenha arestas à volta de formas; a lane de
 ## Exportação SVG (`renderSVG`)
 
 `SvgCtx` é um gravador mínimo da API Canvas 2D: implementa `save/restore`, transformações, caminhos (`moveTo`, `lineTo`, `arc`, `ellipse`, `arcTo`, `roundRect`, `bezierCurveTo`…), `fill/stroke`, `fillRect/strokeRect` e `fillText`, e escreve elementos `<path>` e `<text>`. `paintScene(x, onlySel, transparent)` desenha o diagrama num contexto qualquer, por isso o ecrã, o PNG e o SVG partilham exatamente o mesmo código de desenho (`renderScene`). Cores `rgba()` passam a cor + opacidade; a sombra das notas é um filtro `feDropShadow`. Se uma função de desenho passar a usar um método do canvas que o `SvgCtx` não tem, o SVG falha ou omite esse elemento: implementar o método ali.
+
+## Landing page e modo embebido
+
+- `index.html` (raiz) é a landing, bilingue (PT/EN), sem dependências além das fontes. A app vive em `app/`.
+- A demo do hero é a própria app num `<iframe src="app/?embed=1&lang=pt|en">`. Com `?embed=1` a app fica só de leitura: sem barras, sem visita nem aviso de telemóvel, sem atalhos nem edição (arrastar só move o quadro, a roda só faz zoom com Ctrl), e **nada é gravado** (um `localStorage` falso, em memória, tapa o real dentro do IIFE). `?lang=` escolhe o idioma sem o gravar.
+- A lista de espera está desligada: `WAITLIST_URL` (no `<script>` da landing) está vazio e a secção "equipas" fica escondida. Para a ativar, pôr lá o URL de um endpoint que aceite POST JSON (por exemplo um formulário Formspree); o formulário envia `{email, uso, lang, page}`.
+- Não há analytics. Para medir visitas sem cookies, acrescentar um serviço como Plausible ou GoatCounter na landing.
 
 ## Dispositivos
 
