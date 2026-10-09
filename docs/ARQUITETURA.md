@@ -51,7 +51,7 @@ As secções de `index.html` estão marcadas com comentários `/* ---------- nom
 | tool rail / contextual bar | `buildTools`, `buildCtx` (barra que muda conforme a seleção) |
 | auto layout | `autoLayout` / `runAutoLayout` (ver abaixo) |
 | AI text export | `buildIds`, `exportAI`, `exportMermaid` |
-| PNG export / files / modal | `renderPNG`, `saveFile`, modal de exportação por separadores |
+| PNG / SVG export, files, modal | `renderPNG`, `renderSVG`, `saveFile`, modal de exportação por separadores |
 | import | `importFile`; draw.io (`drawioModel`), Visio (`.vsdx` via ZIP + XML, `visioClassify`); relatório de incompatibilidades |
 | drawer | Lista de diagramas, duplicar/apagar, cópia de segurança e importação JSON |
 | theme / language | `applyTheme` (auto/claro/escuro), `applyLang` (reaplica `data-i18n*`) |
@@ -85,6 +85,14 @@ Layout em camadas, da esquerda para a direita, aplicado ao diagrama inteiro (`Sh
 
 Limitações: só horizontal; não desenha arestas à volta de formas; a lane de cada forma é a atual, nunca é alterada.
 
+## Exportação SVG (`renderSVG`)
+
+`SvgCtx` é um gravador mínimo da API Canvas 2D: implementa `save/restore`, transformações, caminhos (`moveTo`, `lineTo`, `arc`, `ellipse`, `arcTo`, `roundRect`, `bezierCurveTo`…), `fill/stroke`, `fillRect/strokeRect` e `fillText`, e escreve elementos `<path>` e `<text>`. `paintScene(x, onlySel, transparent)` desenha o diagrama num contexto qualquer, por isso o ecrã, o PNG e o SVG partilham exatamente o mesmo código de desenho (`renderScene`). Cores `rgba()` passam a cor + opacidade; a sombra das notas é um filtro `feDropShadow`. Se uma função de desenho passar a usar um método do canvas que o `SvgCtx` não tem, o SVG falha ou omite esse elemento: implementar o método ali.
+
+## Dispositivos
+
+`isPhone` (ponteiro `coarse` e `Math.min(screen.width, screen.height) < 600`) mostra um aviso (`mobileNotice`) e suprime a visita guiada. Tablets (≥ 600 px) e janelas estreitas de computador não são afetados.
+
 ## Exportação para IA (`exportAI`)
 
 - IDs estáveis por `buildIds`: prefixo da lane que contém o centro da forma + ordem da esquerda para a direita (`N` = fora de lanes).
@@ -117,7 +125,7 @@ Se o `localStorage` falhar (modo privado, quota), a app continua a funcionar e m
 ## Limitações conhecidas
 
 - Dados só no browser: sem sincronização nem colaboração.
-- Sem exportação SVG; sem importação de texto IA/Mermaid.
+- Sem importação de texto IA/Mermaid.
 - Conectores não contornam formas.
 - `.vsd` (Visio antigo) não suportado.
 - Sem testes automáticos; `window.__diagramico` existe para verificações manuais na consola (`exportAI()`, `exportMermaid()`, `doc()`).

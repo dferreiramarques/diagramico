@@ -12,6 +12,8 @@ Aplicação de ficheiro único (`index.html`): HTML, CSS e JavaScript sem depend
 
 Para usar localmente basta abrir `index.html` no browser.
 
+**Dispositivos:** pensado para computador e tablet. Em telemóvel (ecrã tátil com o lado menor abaixo de 600 px) aparece um aviso a dizer que a aplicação não funciona bem, com a opção de continuar mesmo assim.
+
 ## Primeiros passos
 
 Na primeira visita abre uma **visita guiada** de 10 passos sobre um diagrama de exemplo (ferramentas, criar e ligar formas, lanes, navegação, diagramas, exportação, tema e idioma). Pode saltá-la com `Esc` e repeti-la a qualquer momento no botão da bússola, junto ao `?`.
@@ -59,6 +61,7 @@ Tudo sai pelo botão **Exportar**, com um separador por formato.
 | Mermaid | Linguagem de texto para diagramas; o GitHub, Notion, Obsidian e GitLab desenham-na automaticamente. Lanes passam a `subgraph` |
 | JSON completo | Todos os dados, para reimportar |
 | PNG | 1×, 2× ou 3×, com fundo branco ou transparente, diagrama inteiro ou seleção |
+| SVG | Vetorial, nítido em qualquer tamanho e editável em Figma, Illustrator ou Inkscape. Usa o mesmo desenho do ecrã e do PNG; os textos referem IBM Plex, que é substituída se não estiver instalada |
 
 ### Formato "Texto para IA" (v1)
 
@@ -117,7 +120,6 @@ Os diagramas ficam guardados apenas no browser onde foram criados (`localStorage
 ## Próximos passos
 
 - Portfólio multi-utilizador e partilha em equipa
-- Exportação SVG
 - Importar texto IA / Mermaid para gerar o diagrama
 - Importação direta de Lucidchart (CSV) e de PNG/SVG com diagrama draw.io embebido
 - Conectores que contornam formas

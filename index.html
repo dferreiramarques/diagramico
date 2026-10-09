@@ -340,7 +340,8 @@ pt: {
   swap:'Inverter direção', edgeLabel:'Rótulo da ligação (Enter)', duplicate:'Duplicar (Ctrl D)', delete:'Apagar (Delete)',
   copied:'Copiado', copiedClip:'Copiado para a área de transferência', selectedCopy:'Texto selecionado. Use Ctrl C para copiar.',
   fileSaved:'Ficheiro guardado', fileFail:'Não foi possível guardar o ficheiro',
-  exportOf:'Exportar · ', tabAi:'Texto para IA', tabMermaid:'Mermaid', tabJson:'JSON completo', tabPng:'Imagem PNG',
+  exportOf:'Exportar · ', tabAi:'Texto para IA', tabMermaid:'Mermaid', tabJson:'JSON completo', tabPng:'Imagem PNG', tabSvg:'SVG (vetorial)', saveSvg:'Guardar SVG', hintSvg:'Imagem vetorial, nítida em qualquer tamanho e editável em Figma, Illustrator ou Inkscape. Os textos usam IBM Plex Sans/Mono; se a fonte não estiver instalada onde abrir o ficheiro, é substituída por outra.',
+  mobTitle:'A aplicação não funciona em telemóvel', mobBody:'O Diagramico foi pensado para ecrãs maiores: num telemóvel o quadro e as barras de ferramentas ficam demasiado pequenos e não se consegue ver nem editar o diagrama. Abra num computador ou num tablet. Pode continuar aqui, mas a experiência será limitada.', mobOk:'Continuar mesmo assim',
   onlySel:'Só a seleção', transparent:'Fundo transparente', resolution:'Resolução', preparing:'A preparar…', empty:'O diagrama está vazio.', preview:'Pré-visualização',
   savePng:'Guardar PNG', copy:'Copiar', saveFile:'Guardar ficheiro', chars:'caracteres', tokens:'tokens',
   hintAi:'Formato compacto para colar numa conversa com IA ou guardar como documentação. Cada forma tem um ID com o prefixo da lane, o tipo e o texto; o fluxo encadeia os IDs. Gasta muito menos tokens do que JSON.',
@@ -453,7 +454,8 @@ en: {
   swap:'Reverse direction', edgeLabel:'Connector label (Enter)', duplicate:'Duplicate (Ctrl D)', delete:'Delete (Delete)',
   copied:'Copied', copiedClip:'Copied to clipboard', selectedCopy:'Text selected. Press Ctrl C to copy.',
   fileSaved:'File saved', fileFail:'Could not save the file',
-  exportOf:'Export · ', tabAi:'AI text', tabMermaid:'Mermaid', tabJson:'Full JSON', tabPng:'PNG image',
+  exportOf:'Export · ', tabAi:'AI text', tabMermaid:'Mermaid', tabJson:'Full JSON', tabPng:'PNG image', tabSvg:'SVG (vector)', saveSvg:'Save SVG', hintSvg:'Vector image, sharp at any size and editable in Figma, Illustrator or Inkscape. Text uses IBM Plex Sans/Mono; if the font is not installed where you open the file, another one is substituted.',
+  mobTitle:'The app does not work on a phone', mobBody:'Diagramico is designed for larger screens: on a phone the board and toolbars are too small and you cannot see or edit the diagram. Please open it on a computer or a tablet. You can continue here, but the experience will be limited.', mobOk:'Continue anyway',
   onlySel:'Selection only', transparent:'Transparent background', resolution:'Resolution', preparing:'Preparing…', empty:'The diagram is empty.', preview:'Preview',
   savePng:'Save PNG', copy:'Copy', saveFile:'Save file', chars:'characters', tokens:'tokens',
   hintAi:'Compact format to paste into an AI chat or keep as documentation. Each shape has an ID with its lane prefix, a type and its text; the flow chains the IDs. Uses far fewer tokens than JSON.',
@@ -1661,23 +1663,118 @@ function exportMermaid(d){
 const tokEst = s => Math.round(s.length / 3.6);
 
 /* ---------- PNG export ---------- */
+// Paints the diagram (or only the selection) with the light palette onto any 2D-context-like target.
+function paintScene(x, onlySel, transparent){
+  const pal = {...PAL.light, labelBg: transparent ? PAL.light.labelBg : '#ffffff'}, opts = {z:1, editing:null, overlay:false};
+  const saveSel = S.sel; if (onlySel && S.sel.size){ // render only selection
+    const ids = expandSel(); const full = {nodes:doc.nodes, edges:doc.edges};
+    doc.nodes = full.nodes.filter(n=>ids.has(n.id)); doc.edges = full.edges.filter(e=>(!e.from||ids.has(e.from))&&(!e.to||ids.has(e.to))&&(e.from||e.to||ids.has(e.id))); reindex();
+    renderScene(x, pal, opts);
+    doc.nodes = full.nodes; doc.edges = full.edges; reindex();
+  } else renderScene(x, pal, opts);
+  S.sel = saveSel;
+}
 async function renderPNG(onlySel, scale, transparent){
   await fontsReady;
   const b = sceneBounds(onlySel && S.sel.size > 0); if (!b) return null;
   const m = 40, w = b.x1-b.x0+m*2, h = b.y1-b.y0+m*2;
   let sc = scale; while (w*sc > 12000 || h*sc > 12000) sc *= 0.8;
   const c = document.createElement('canvas'); c.width = Math.ceil(w*sc); c.height = Math.ceil(h*sc);
-  const x = c.getContext('2d'); const pal = PAL.light;
+  const x = c.getContext('2d');
   if (!transparent){ x.fillStyle = '#ffffff'; x.fillRect(0,0,c.width,c.height); }
   x.setTransform(sc,0,0,sc,(m-b.x0)*sc,(m-b.y0)*sc);
-  const saveSel = S.sel; if (onlySel && S.sel.size){ // render only selection
-    const ids = expandSel(); const full = {nodes:doc.nodes, edges:doc.edges};
-    doc.nodes = full.nodes.filter(n=>ids.has(n.id)); doc.edges = full.edges.filter(e=>ids.has(e.from)&&ids.has(e.to)); reindex();
-    renderScene(x, {...pal, labelBg: transparent ? pal.labelBg : '#ffffff'}, {z:1, editing:null, overlay:false});
-    doc.nodes = full.nodes; doc.edges = full.edges; reindex();
-  } else renderScene(x, {...pal, labelBg: transparent ? pal.labelBg : '#ffffff'}, {z:1, editing:null, overlay:false});
-  S.sel = saveSel;
+  paintScene(x, onlySel, transparent);
   return await new Promise(r => c.toBlob(r, 'image/png'));
+}
+
+/* ---------- SVG export ---------- */
+// Records the Canvas 2D calls used by renderScene (paths, arcs, text, transforms) and writes them as SVG elements,
+// so the SVG is drawn by exactly the same code as the screen and the PNG.
+const SVG_STATE = ['fillStyle','strokeStyle','lineWidth','lineCap','lineJoin','globalAlpha','shadowColor','shadowBlur','shadowOffsetY','font','textAlign','textBaseline','dash'];
+const svgNum = v => +(+v).toFixed(2);
+const svgEsc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function svgColor(s){
+  const m = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/.exec(s);
+  if (m) return {c:`rgb(${Math.round(m[1])},${Math.round(m[2])},${Math.round(m[3])})`, o: m[4] === undefined ? 1 : +m[4]};
+  return s === 'transparent' ? {c:'none', o:1} : {c:s, o:1};
+}
+class SvgCtx {
+  constructor(){
+    this.body = []; this.stack = []; this.m = [1,0,0,1,0,0]; this.d = ''; this.cp = null; this.sp = null;
+    Object.assign(this, {fillStyle:'#000', strokeStyle:'#000', lineWidth:1, lineCap:'butt', lineJoin:'miter', globalAlpha:1, shadowColor:'transparent', shadowBlur:0, shadowOffsetY:0, font:'', textAlign:'left', textBaseline:'alphabetic', dash:[]});
+  }
+  save(){ const s = {m:[...this.m]}; for (const k of SVG_STATE) s[k] = this[k]; this.stack.push(s); }
+  restore(){ const s = this.stack.pop(); if (!s) return; this.m = s.m; for (const k of SVG_STATE) this[k] = s[k]; }
+  setTransform(a,b,c,d,e,f){ this.m = [a,b,c,d,e,f]; }
+  translate(x,y){ const m = this.m; this.m = [m[0],m[1],m[2],m[3], m[0]*x+m[2]*y+m[4], m[1]*x+m[3]*y+m[5]]; }
+  scale(x,y){ const m = this.m; this.m = [m[0]*x,m[1]*x,m[2]*y,m[3]*y,m[4],m[5]]; }
+  rotate(a){ const m = this.m, c = Math.cos(a), s = Math.sin(a); this.m = [m[0]*c+m[2]*s, m[1]*c+m[3]*s, -m[0]*s+m[2]*c, -m[1]*s+m[3]*c, m[4], m[5]]; }
+  setLineDash(a){ this.dash = a || []; }
+  tf(){ const m = this.m; return (m[0]===1 && m[1]===0 && m[2]===0 && m[3]===1 && m[4]===0 && m[5]===0) ? '' : ` transform="matrix(${m.map(svgNum).join(' ')})"`; }
+  // path
+  beginPath(){ this.d = ''; this.cp = this.sp = null; }
+  moveTo(x,y){ this.d += `M${svgNum(x)} ${svgNum(y)}`; this.cp = this.sp = {x,y}; }
+  lineTo(x,y){ if (!this.cp) return this.moveTo(x,y); this.d += `L${svgNum(x)} ${svgNum(y)}`; this.cp = {x,y}; }
+  closePath(){ this.d += 'Z'; this.cp = this.sp; }
+  bezierCurveTo(a,b,c,d,x,y){ this.d += `C${[a,b,c,d,x,y].map(svgNum).join(' ')}`; this.cp = {x,y}; }
+  rect(x,y,w,h){ this.moveTo(x,y); this.lineTo(x+w,y); this.lineTo(x+w,y+h); this.lineTo(x,y+h); this.closePath(); }
+  roundRect(x,y,w,h,r){
+    r = Math.max(0, Math.min(r, w/2, h/2)); const R = svgNum(r);
+    this.moveTo(x+r,y); this.lineTo(x+w-r,y); this.d += `A${R} ${R} 0 0 1 ${svgNum(x+w)} ${svgNum(y+r)}`;
+    this.lineTo(x+w,y+h-r); this.d += `A${R} ${R} 0 0 1 ${svgNum(x+w-r)} ${svgNum(y+h)}`;
+    this.lineTo(x+r,y+h); this.d += `A${R} ${R} 0 0 1 ${svgNum(x)} ${svgNum(y+h-r)}`;
+    this.lineTo(x,y+r); this.d += `A${R} ${R} 0 0 1 ${svgNum(x+r)} ${svgNum(y)}`; this.closePath();
+  }
+  arc(cx,cy,r,a0,a1,ccw){ this.ellipse(cx,cy,r,r,0,a0,a1,ccw); }
+  ellipse(cx,cy,rx,ry,rot,a0,a1,ccw){
+    const TAU = Math.PI*2; let da = a1 - a0;
+    if (!ccw) da = da >= TAU ? TAU : ((da % TAU) + TAU) % TAU; else da = -da >= TAU ? -TAU : -((((a0-a1) % TAU) + TAU) % TAU);
+    const pt = a => ({x:cx+rx*Math.cos(a), y:cy+ry*Math.sin(a)}), s = pt(a0), sweep = da > 0 ? 1 : 0;
+    this.lineTo(s.x, s.y);
+    const arcTo = (p, large) => { this.d += `A${svgNum(rx)} ${svgNum(ry)} 0 ${large} ${sweep} ${svgNum(p.x)} ${svgNum(p.y)}`; this.cp = p; };
+    if (Math.abs(da) >= TAU - 1e-9){ arcTo(pt(a0+Math.PI), 1); arcTo(s, 1); }
+    else arcTo(pt(a0+da), Math.abs(da) > Math.PI ? 1 : 0);
+  }
+  arcTo(x1,y1,x2,y2,r){
+    const p0 = this.cp; if (!p0) return this.moveTo(x1,y1);
+    const ax = p0.x-x1, ay = p0.y-y1, bx = x2-x1, by = y2-y1, la = Math.hypot(ax,ay), lb = Math.hypot(bx,by);
+    if (!la || !lb || Math.abs(ax*by - ay*bx) < 1e-6) return this.lineTo(x1,y1);
+    const ux = ax/la, uy = ay/la, vx = bx/lb, vy = by/lb, th = Math.acos(clamp(ux*vx + uy*vy, -1, 1)), t = r/Math.tan(th/2);
+    const A = {x:x1+ux*t, y:y1+uy*t}, B = {x:x1+vx*t, y:y1+vy*t};
+    this.lineTo(A.x, A.y);
+    this.d += `A${svgNum(r)} ${svgNum(r)} 0 0 ${(-ux)*vy - (-uy)*vx > 0 ? 1 : 0} ${svgNum(B.x)} ${svgNum(B.y)}`; this.cp = B;
+  }
+  // painting
+  paintFill(d){
+    const k = svgColor(this.fillStyle); if (k.c === 'none') return;
+    const sh = this.shadowColor !== 'transparent' && this.shadowBlur > 0, o = k.o * this.globalAlpha;
+    this.body.push(`<path d="${d}" fill="${svgEsc(k.c)}"${o < 1 ? ` fill-opacity="${svgNum(o)}"` : ''}${sh ? ' filter="url(#sh)"' : ''}${this.tf()}/>`);
+  }
+  paintStroke(d){
+    const k = svgColor(this.strokeStyle); if (k.c === 'none') return; const o = k.o * this.globalAlpha;
+    this.body.push(`<path d="${d}" fill="none" stroke="${svgEsc(k.c)}" stroke-width="${svgNum(this.lineWidth)}" stroke-linecap="${this.lineCap === 'butt' ? 'butt' : this.lineCap}" stroke-linejoin="${this.lineJoin === 'miter' ? 'miter' : this.lineJoin}"${o < 1 ? ` stroke-opacity="${svgNum(o)}"` : ''}${this.dash.length ? ` stroke-dasharray="${this.dash.map(svgNum).join(' ')}"` : ''}${this.tf()}/>`);
+  }
+  fill(){ if (this.d) this.paintFill(this.d); }
+  stroke(){ if (this.d) this.paintStroke(this.d); }
+  rectD(x,y,w,h){ return `M${svgNum(x)} ${svgNum(y)}H${svgNum(x+w)}V${svgNum(y+h)}H${svgNum(x)}Z`; }
+  fillRect(x,y,w,h){ this.paintFill(this.rectD(x,y,w,h)); }
+  strokeRect(x,y,w,h){ this.paintStroke(this.rectD(x,y,w,h)); }
+  fillText(t, x, y){
+    const f = /^(italic )?(\d+) ([\d.]+)px (.+)$/.exec(this.font); if (!f || !t) return;
+    const k = svgColor(this.fillStyle), o = k.o * this.globalAlpha;
+    this.body.push(`<text x="${svgNum(x)}" y="${svgNum(y)}" font-family="${svgEsc(f[4].replace(/"/g,"'"))}" font-size="${f[3]}" font-weight="${f[2]}"${f[1] ? ' font-style="italic"' : ''} fill="${svgEsc(k.c)}"${o < 1 ? ` fill-opacity="${svgNum(o)}"` : ''} text-anchor="${this.textAlign === 'center' ? 'middle' : 'start'}"${this.textBaseline === 'middle' ? ' dominant-baseline="central"' : ''} xml:space="preserve"${this.tf()}>${svgEsc(t)}</text>`);
+  }
+  svg(w, h, bg){
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">\n<defs><filter id="sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#1e1e0a" flood-opacity=".14"/></filter></defs>\n${bg ? `<rect width="${w}" height="${h}" fill="${bg}"/>\n` : ''}${this.body.join('\n')}\n</svg>\n`;
+  }
+}
+async function renderSVG(onlySel, transparent){
+  await fontsReady;
+  const b = sceneBounds(onlySel && S.sel.size > 0); if (!b) return null;
+  const m = 40, w = Math.ceil(b.x1-b.x0+m*2), h = Math.ceil(b.y1-b.y0+m*2);
+  const x = new SvgCtx(); x.setTransform(1,0,0,1,m-b.x0,m-b.y0);
+  paintScene(x, onlySel, transparent);
+  return new Blob([x.svg(w, h, transparent ? null : '#ffffff')], {type:'image/svg+xml'});
 }
 
 /* ---------- files ---------- */
@@ -1700,7 +1797,7 @@ function openExport(tab){
 function closeModal(){ $('#modal').hidden = true; if (lastImgUrl){ URL.revokeObjectURL(lastImgUrl); lastImgUrl = null; } cv.focus({preventScroll:true}); }
 let lastImgUrl = null, imgOpts = {sel:false, scale:2, transparent:false};
 function renderModal(){
-  const tabs = [['ai',T('tabAi')],['mermaid',T('tabMermaid')],['json',T('tabJson')],['png',T('tabPng')]];
+  const tabs = [['ai',T('tabAi')],['mermaid',T('tabMermaid')],['json',T('tabJson')],['png',T('tabPng')],['svg',T('tabSvg')]];
   $('#mTabs').hidden = false; $('#mTitle').textContent = T('exportOf') + doc.name;
   const tabsEl = $('#mTabs'); tabsEl.innerHTML = '';
   for (const [k,l] of tabs){ const b = document.createElement('button'); b.textContent = l; b.className = modalTab === k ? 'on' : ''; b.onclick = () => { modalTab = k; renderModal(); }; tabsEl.appendChild(b); }
@@ -1719,6 +1816,21 @@ function renderModal(){
     const stat = document.createElement('span'); stat.className = 'stat'; foot.appendChild(stat);
     const b = document.createElement('button'); b.className = 'btn primary'; b.textContent = T('savePng');
     b.onclick = async () => { const blob = await renderPNG(imgOpts.sel, imgOpts.scale, imgOpts.transparent); if (blob) saveFile(slug(doc.name) + '.png', blob); };
+    foot.appendChild(b); refresh(); return;
+  }
+  if (modalTab === 'svg'){
+    const o = document.createElement('div'); o.className = 'opts';
+    o.innerHTML = `<label><input type="checkbox" id="oSel" ${imgOpts.sel?'checked':''} ${S.sel.size?'':'disabled'}> ${T('onlySel')}</label>
+      <label><input type="checkbox" id="oTr" ${imgOpts.transparent?'checked':''}> ${T('transparent')}</label>`;
+    body.appendChild(o);
+    const p = document.createElement('p'); p.className = 'hint'; p.textContent = T('hintSvg'); body.appendChild(p);
+    const pv = document.createElement('div'); pv.className = 'preview'; pv.innerHTML = '<span style="color:var(--muted)">' + T('preparing') + '</span>'; body.appendChild(pv);
+    const refresh = async () => { const blob = await renderSVG(imgOpts.sel, imgOpts.transparent); if (!blob){ pv.textContent = T('empty'); return; } if (lastImgUrl) URL.revokeObjectURL(lastImgUrl); lastImgUrl = URL.createObjectURL(blob); pv.innerHTML = `<img alt="${T('preview')}" src="${lastImgUrl}">`; stat.textContent = `${Math.max(1, Math.round(blob.size/1024))} KB`; };
+    $('#oSel').onchange = e => { imgOpts.sel = e.target.checked; refresh(); };
+    $('#oTr').onchange = e => { imgOpts.transparent = e.target.checked; refresh(); };
+    const stat = document.createElement('span'); stat.className = 'stat'; foot.appendChild(stat);
+    const b = document.createElement('button'); b.className = 'btn primary'; b.textContent = T('saveSvg');
+    b.onclick = async () => { const blob = await renderSVG(imgOpts.sel, imgOpts.transparent); if (blob) saveFile(slug(doc.name) + '.svg', blob); };
     foot.appendChild(b); refresh(); return;
   }
   let text, hint, ext;
@@ -2324,8 +2436,11 @@ if (doc.view) Object.assign(view, doc.view); else fit();
 fontsReady.then(() => { LC.clear(); draw(); });
 setTimeout(() => { LC.clear(); draw(); }, 1500);
 persistNow();
+// Phones (touch device whose shorter screen side is under 600 px) get a warning; tablets are not affected.
+const isPhone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
+function mobileNotice(){ modalRender = mobileNotice; dialog(T('mobTitle'), [el('p', 'hint', T('mobBody'))], [{label: T('mobOk'), primary: true, onClick: closeModal}]); }
 let tourSeen = true; try { tourSeen = !!localStorage.getItem(TOUR_KEY); } catch(e){}
-if (!tourSeen) setTimeout(startTour, 600);
+if (isPhone) mobileNotice(); else if (!tourSeen) setTimeout(startTour, 600);
 // expose for testing
 window.__diagramico = { exportAI: () => exportAI(doc), exportMermaid: () => exportMermaid(doc), state: S, view, doc: () => doc };
 })();
