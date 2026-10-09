@@ -140,6 +140,16 @@ button{font:inherit;color:inherit}
 .toast{position:fixed;left:50%;bottom:calc(64px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100vw - 32px)}
 .toast.show{opacity:1}
 
+/* Guided tour */
+.tour-block{position:fixed;inset:0;z-index:50}
+.tour-hl{position:fixed;z-index:51;border-radius:10px;pointer-events:none;box-shadow:0 0 0 9999px rgba(10,12,20,.55);outline:2px solid var(--accent);transition:all .2s}
+.tour-card{position:fixed;z-index:52;width:min(340px,calc(100vw - 20px));padding:14px 16px}
+.tour-card h3{margin:0 0 6px;font-size:14px}
+.tour-card p{margin:0 0 12px;line-height:1.5}
+.tour-card .row{display:flex;align-items:center;gap:6px}
+.tour-card .row .n{flex:1;font:11px var(--mono);color:var(--muted)}
+.tour-card b{font-weight:600}
+@media (prefers-reduced-motion:reduce){.tour-hl{transition:none}}
 @media (max-width:700px){
   .tools{top:auto;transform:none;left:10px;right:10px;bottom:calc(54px + env(safe-area-inset-bottom,0px));flex-direction:row;overflow-x:auto}
   .tools .hsep{width:1px;height:22px;margin:auto 4px}
@@ -181,11 +191,12 @@ button{font:inherit;color:inherit}
   <button class="ibtn" id="zIn" data-i18n-title="zoomIn" data-i18n-aria="zoomIn"></button>
   <span class="sep"></span>
   <button class="ibtn" id="zFit" data-i18n-title="fitAll" data-i18n-aria="fitAll"></button>
+  <button class="ibtn" id="bLayout" data-i18n-title="autoLayout" data-i18n-aria="autoLayout"></button>
   <span class="sep"></span>
   <button class="ibtn" id="bUndo" data-i18n-title="undo" data-i18n-aria="undo"></button>
   <button class="ibtn" id="bRedo" data-i18n-title="redo" data-i18n-aria="redo"></button>
 </div>
-<div class="panel helpbtn"><button class="ibtn" id="btnHelp" data-i18n-title="help" data-i18n-aria="help">?</button></div>
+<div class="panel helpbtn"><button class="ibtn" id="btnHelp" data-i18n-title="help" data-i18n-aria="help">?</button><button class="ibtn" id="btnTour" data-i18n-title="tourBtn" data-i18n-aria="tourBtn"></button></div>
 
 <div class="panel help" id="help" hidden data-i18n-html="helpHtml"></div>
 
@@ -263,6 +274,8 @@ const ICON = {
   aNone: I('<path d="M4 12h16"/>'),
   aBoth: I('<path d="M5 12h14M9 7l-5 5 5 5M15 7l5 5-5 5"/>'),
   dash: I('<path d="M3 12h3M10 12h4M18 12h3"/>'),
+  layout: I('<rect x="3" y="4" width="6" height="5" rx="1"/><rect x="15" y="3" width="6" height="5" rx="1"/><rect x="15" y="16" width="6" height="5" rx="1"/><path d="M9 6.5h3M12 5.5v11h3M12 5.5h3"/>'),
+  tour: I('<circle cx="12" cy="12" r="8.5"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'),
   route: I('<path d="M5 19V9a3 3 0 013-3h11"/><path d="M16 3l3 3-3 3"/><circle cx="5" cy="19" r="1.4"/>'),
 };
 
@@ -337,6 +350,20 @@ pt: {
   imported1:'Diagrama importado', importedN:n=>`${n} diagramas importados`, importFail:'Ficheiro não reconhecido. Use um backup ou JSON exportado pelo Diagramico.',
   th_auto:'Automático (sistema)', th_light:'Claro', th_dark:'Escuro', theme:'Tema', themeTitle:(a,b)=>`Tema: ${a} · clique para ${b}`,
   langTitle:'Idioma: Português · mudar para English', langToast:'Idioma: Português',
+  autoLayout:'Organizar automaticamente (Shift A)', layoutDone:'Diagrama organizado. Ctrl Z para desfazer.', layoutEmpty:'Não há formas para organizar.',
+  tourBtn:'Visita guiada', tourNext:'Seguinte', tourBack:'Anterior', tourSkip:'Saltar', tourDone:'Começar', tourOf:(a,b)=>`${a} de ${b}`,
+  tourSteps:[
+    {t:'Bem-vindo ao Diagramico', d:'Um quadro infinito para desenhar diagramas lógicos e user flows. Em 1 minuto fica a saber o essencial. Já abri um diagrama de exemplo para explorar.'},
+    {t:'Formas e eventos', d:'Cada botão desta barra cria uma forma: passos, decisões, ecrãs, eventos de início/fim, notas, swimlanes e conectores. A letra no canto é o atalho (R, D, E…). Clique numa e depois no quadro.'},
+    {t:'Criar depressa', d:'Duplo clique no vazio cria um passo; duplo clique numa forma edita o texto. Com uma forma selecionada, Tab cria a seguinte já ligada. Escreva **negrito** e *itálico* diretamente no texto.'},
+    {t:'Ligar formas', d:'Ao passar o rato sobre uma forma aparecem pontos nos lados: arraste para outra forma para a ligar, ou clique para criar a seguinte. Cada lado cria a sua seta. Com o conector (C) também pode desenhar setas soltas. Selecione uma seta para mudar o percurso, a seta, o tracejado e o rótulo.'},
+    {t:'Swimlanes', d:'Use lanes para pessoas, equipas ou sistemas. Mover uma lane leva as formas que estão dentro, e na exportação para IA cada forma fica associada à lane onde está.'},
+    {t:'Navegar no quadro', d:'Roda do rato ou pinça para zoom; Espaço + arrastar (ou H) para mover. Shift 1 mostra tudo, Shift 0 repõe 100%. Shift A organiza o diagrama automaticamente. Ctrl Z desfaz.'},
+    {t:'Os seus diagramas', d:'Tudo é gravado automaticamente neste browser. Aqui cria novos diagramas, faz cópias de segurança e importa de draw.io ou Visio (ou largue o ficheiro no quadro).'},
+    {t:'Exportar', d:'Texto compacto para IA (poucos tokens), Mermaid, JSON ou PNG. O texto para IA é ideal para colar num chat e pedir documentação ou explicação da lógica.'},
+    {t:'Tema e idioma', d:'Claro, escuro ou automático (Shift T) e português ou inglês (Shift L).'},
+    {t:'Pronto!', d:'O botão ? mostra todos os atalhos e a bússola repete esta visita. Apague o exemplo quando quiser e comece o seu diagrama.'},
+  ],
   helpHtml:`<h3>Criar</h3><dl>
     <dt>R · U · D</dt><dd>Passo · Ação do utilizador · Decisão</dd>
     <dt>E · F · B</dt><dd>Ecrã · Documento · Dados</dd>
@@ -344,7 +371,9 @@ pt: {
     <dt>N · L · C</dt><dd>Nota · Swimlane · Conector</dd>
     <dt>Duplo clique</dt><dd>No vazio cria um passo; numa forma edita o texto</dd>
     <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
-    <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte</dd>
+    <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte. Cada lado cria a sua própria seta, por isso duas formas podem ligar-se por vários lados; as setas que saem do mesmo lado partilham o tronco</dd>
+    <dt>C · Alt</dt><dd>Seta solta: com o conector, arraste de uma forma ou do vazio e largue onde quiser (ou prima Alt ao largar um ponto lateral no vazio)</dd>
+    <dt>Pontas da seta</dt><dd>Selecione uma seta e arraste uma ponta para uma forma (liga) ou para o vazio (desliga)</dd>
     <dt>Largar ficheiro</dt><dd>Importa .drawio, .vsdx ou .json para um novo diagrama</dd></dl>
   <h3>Texto</h3><dl>
     <dt>[ · ]</dt><dd>Diminuir · aumentar texto (a caixa acompanha)</dd>
@@ -355,6 +384,7 @@ pt: {
     <dt>Espaço + arrastar</dt><dd>Mover o quadro (ou botão do meio, ou H)</dd>
     <dt>Roda · pinça</dt><dd>Zoom; trackpad com dois dedos desloca</dd>
     <dt>Shift 1 · Shift 0</dt><dd>Ver tudo · 100%</dd>
+    <dt>Shift A</dt><dd>Organizar o diagrama automaticamente (da esquerda para a direita, respeitando as lanes)</dd>
     <dt>Shift T</dt><dd>Alternar tema: automático · claro · escuro</dd>
     <dt>Shift L</dt><dd>Mudar idioma: português · inglês</dd>
     <dt>Ctrl C · V · D</dt><dd>Copiar · colar · duplicar</dd>
@@ -433,6 +463,20 @@ en: {
   imported1:'Diagram imported', importedN:n=>`${n} diagrams imported`, importFail:'File not recognised. Use a backup or JSON exported by Diagramico.',
   th_auto:'Automatic (system)', th_light:'Light', th_dark:'Dark', theme:'Theme', themeTitle:(a,b)=>`Theme: ${a} · click for ${b}`,
   langTitle:'Language: English · switch to Português', langToast:'Language: English',
+  autoLayout:'Auto-arrange (Shift A)', layoutDone:'Diagram arranged. Ctrl Z to undo.', layoutEmpty:'There are no shapes to arrange.',
+  tourBtn:'Guided tour', tourNext:'Next', tourBack:'Back', tourSkip:'Skip', tourDone:'Get started', tourOf:(a,b)=>`${a} of ${b}`,
+  tourSteps:[
+    {t:'Welcome to Diagramico', d:'An infinite board for drawing logic diagrams and user flows. One minute is enough to learn the basics. An example diagram is already open to explore.'},
+    {t:'Shapes and events', d:'Each button here creates a shape: steps, decisions, screens, start/end events, notes, swimlanes and connectors. The letter in the corner is the shortcut (R, D, E…). Click one, then click the board.'},
+    {t:'Create quickly', d:'Double-click empty space to create a step; double-click a shape to edit its text. With a shape selected, Tab creates the next one already connected. Type **bold** and *italic* right in the text.'},
+    {t:'Connecting shapes', d:'Hover a shape to see dots on its sides: drag to another shape to connect them, or click to create the next one. Each side makes its own arrow. With the connector (C) you can also draw loose arrows. Select an arrow to change its route, arrow, dashes and label.'},
+    {t:'Swimlanes', d:'Use lanes for people, teams or systems. Moving a lane carries the shapes inside it, and the AI export assigns each shape to the lane it sits in.'},
+    {t:'Moving around', d:'Mouse wheel or pinch to zoom; Space + drag (or H) to pan. Shift 1 fits everything, Shift 0 resets to 100%. Shift A arranges the diagram automatically. Ctrl Z undoes.'},
+    {t:'Your diagrams', d:'Everything is saved automatically in this browser. Here you create new diagrams, make backups and import from draw.io or Visio (or drop the file on the board).'},
+    {t:'Export', d:'Compact text for AI (few tokens), Mermaid, JSON or PNG. The AI text is ideal to paste into a chat and ask for documentation or an explanation of the logic.'},
+    {t:'Theme and language', d:'Light, dark or automatic (Shift T), and Portuguese or English (Shift L).'},
+    {t:'All set!', d:'The ? button lists every shortcut and the compass replays this tour. Delete the example whenever you like and start your own diagram.'},
+  ],
   helpHtml:`<h3>Create</h3><dl>
     <dt>R · U · D</dt><dd>Step · User action · Decision</dd>
     <dt>E · F · B</dt><dd>Screen · Document · Data</dd>
@@ -440,7 +484,9 @@ en: {
     <dt>N · L · C</dt><dd>Note · Swimlane · Connector</dd>
     <dt>Double-click</dt><dd>On empty space creates a step; on a shape edits its text</dd>
     <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
-    <dt>Side dots</dt><dd>Drag to connect; click to create the next shape</dd>
+    <dt>Side dots</dt><dd>Drag to connect; click to create the next shape. Each side makes its own arrow, so two shapes can be linked from several sides; arrows leaving the same side share a trunk</dd>
+    <dt>C · Alt</dt><dd>Loose arrow: with the connector tool, drag from a shape or empty space and release anywhere (or hold Alt when releasing a side dot on empty space)</dd>
+    <dt>Arrow ends</dt><dd>Select an arrow and drag an end onto a shape to attach it, or onto empty space to detach it</dd>
     <dt>Drop a file</dt><dd>Imports .drawio, .vsdx or .json into a new diagram</dd></dl>
   <h3>Text</h3><dl>
     <dt>[ · ]</dt><dd>Smaller · larger text (the box follows)</dd>
@@ -451,6 +497,7 @@ en: {
     <dt>Space + drag</dt><dd>Pan the board (or middle button, or H)</dd>
     <dt>Wheel · pinch</dt><dd>Zoom; two-finger trackpad scroll pans</dd>
     <dt>Shift 1 · Shift 0</dt><dd>Fit all · 100%</dd>
+    <dt>Shift A</dt><dd>Auto-arrange the whole diagram (left to right, respecting lanes)</dd>
     <dt>Shift T</dt><dd>Switch theme: automatic · light · dark</dd>
     <dt>Shift L</dt><dd>Switch language: Portuguese · English</dd>
     <dt>Ctrl C · V · D</dt><dd>Copy · paste · duplicate</dd>
@@ -623,6 +670,7 @@ function drawText(c, L, x, cy, fs, mono, align, color){
 const MAXW = {step:15, action:14, decision:10, screen:15, doc:15, data:13, note:16};
 function geom(n){
   const fs = n.fs || 14;
+  if (n.type === 'point') return {w:0, h:0, fs};
   if (n.type === 'lane'){ const hw = 44*fs/14; return {w:n.w, h:n.h, hw, fs}; }
   if (EVENTS.has(n.type)){
     const r = fs*1.25, maxW = fs*10;
@@ -645,6 +693,7 @@ function geom(n){
   return Object.assign({w, h, L, maxW, fs, tox, toy, mono}, extra);
 }
 function bbox(n){
+  if (n.type === 'point') return {x0:n.x, y0:n.y, x1:n.x, y1:n.y};
   if (n.type === 'lane') return {x0:n.x, y0:n.y, x1:n.x+n.w, y1:n.y+n.h};
   const g = geom(n);
   if (EVENTS.has(n.type)){
@@ -654,6 +703,7 @@ function bbox(n){
   return {x0:n.x-g.w/2, y0:n.y-g.h/2, x1:n.x+g.w/2, y1:n.y+g.h/2};
 }
 function anchor(n, side){
+  if (n.type === 'point') return {x:n.x, y:n.y};
   const g = geom(n);
   if (EVENTS.has(n.type)){ const r = g.r; return side==='top'?{x:n.x,y:n.y-r}:side==='bottom'?{x:n.x,y:n.y+r}:side==='left'?{x:n.x-r,y:n.y}:{x:n.x+r,y:n.y}; }
   let inset = 0, bottomIn = 0;
@@ -686,16 +736,27 @@ function routeMode(e, a, b){
   return 'z';
 }
 const ROUTES = ['auto','hv','vh','h','v'];
+// An edge end is either a shape (from/to = id) or a loose point (fx,fy / tx,ty). sa/sb force the side an end leaves/enters from.
+const endNode = (e, k) => k === 'from' ? (e.from ? N(e.from) : {type:'point', x:e.fx, y:e.fy}) : (e.to ? N(e.to) : {type:'point', x:e.tx, y:e.ty});
 function route(e){
-  const a = N(e.from), b = N(e.to); if (!a || !b) return null;
-  const mode = routeMode(e, a, b), {dx, dy} = gaps(a, b);
+  const a = endNode(e, 'from'), b = endNode(e, 'to'); if (!a || !b || !isFinite(a.x + a.y + b.x + b.y)) return null;
+  const forced = !!(e.sa || e.sb) && a.type !== 'point' || !!e.sb && b.type !== 'point';
+  const mode = forced ? 'z' : routeMode(e, a, b), {dx, dy} = gaps(a, b);
   let s1, s2;
   if (mode === 'hv'){ s1 = dx >= 0 ? 'right' : 'left'; s2 = dy >= 0 ? 'top' : 'bottom'; }
   else if (mode === 'vh'){ s1 = dy >= 0 ? 'bottom' : 'top'; s2 = dx >= 0 ? 'left' : 'right'; }
   else if (mode === 'h'){ s1 = dx >= 0 ? 'right' : 'left'; s2 = dx >= 0 ? 'left' : 'right'; }
   else if (mode === 'v'){ s1 = dy >= 0 ? 'bottom' : 'top'; s2 = dy >= 0 ? 'top' : 'bottom'; }
   else [s1, s2] = pickSides(a, b);
+  if (forced){
+    if (e.sa && a.type !== 'point') s1 = e.sa; if (e.sb && b.type !== 'point') s2 = e.sb;
+    if (e.sa && !e.sb) s2 = pickSidesTo(b, anchor(a, s1)); else if (e.sb && !e.sa) s1 = pickSidesTo(a, anchor(b, s2));
+  }
   const p1 = anchor(a, s1), p2 = anchor(b, s2);
+  if (forced && e.style === 'elbow'){
+    const h1 = s1 === 'left' || s1 === 'right', h2 = s2 === 'left' || s2 === 'right';
+    if (h1 !== h2) return {pts: h1 ? [p1,{x:p2.x,y:p1.y},p2] : [p1,{x:p1.x,y:p2.y},p2], s1, s2};
+  }
   if (mode === 'hv' && e.style === 'elbow') return {pts:[p1,{x:p2.x,y:p1.y},p2], s1, s2};
   if (mode === 'vh' && e.style === 'elbow') return {pts:[p1,{x:p1.x,y:p2.y},p2], s1, s2};
   if (e.style === 'straight') return {pts:[p1,p2], s1, s2};
@@ -705,8 +766,11 @@ function route(e){
     return {pts:[p1,p2], c1, c2, s1, s2, curve:true};
   }
   let pts;
-  if (s1==='left'||s1==='right'){ const mx = (p1.x+p2.x)/2; pts = Math.abs(p1.y-p2.y) < 0.5 ? [p1,p2] : [p1,{x:mx,y:p1.y},{x:mx,y:p2.y},p2]; }
-  else { const my = (p1.y+p2.y)/2; pts = Math.abs(p1.x-p2.x) < 0.5 ? [p1,p2] : [p1,{x:p1.x,y:my},{x:p2.x,y:my},p2]; }
+  // arrows leaving the same side of a shape bend at the same distance, so they share one trunk
+  const shared = !!e.from && doc.edges.some(o => o !== e && o.from === e.from && (o.sa || null) === (e.sa || null));
+  const bend = (p, q) => shared ? p + Math.sign(q-p)*Math.min(Math.abs(q-p)/2, 36) : (p+q)/2;
+  if (s1==='left'||s1==='right'){ const mx = bend(p1.x, p2.x); pts = Math.abs(p1.y-p2.y) < 0.5 ? [p1,p2] : [p1,{x:mx,y:p1.y},{x:mx,y:p2.y},p2]; }
+  else { const my = bend(p1.y, p2.y); pts = Math.abs(p1.x-p2.x) < 0.5 ? [p1,p2] : [p1,{x:p1.x,y:my},{x:p2.x,y:my},p2]; }
   return {pts, s1, s2};
 }
 function bez(r, t){ const [p1,p2]=r.pts, a=r.c1, b=r.c2, u=1-t; return {x:u*u*u*p1.x+3*u*u*t*a.x+3*u*t*t*b.x+t*t*t*p2.x, y:u*u*u*p1.y+3*u*u*t*a.y+3*u*t*t*b.y+t*t*t*p2.y}; }
@@ -853,7 +917,10 @@ function drawOverlay(c){
   if (S.hover && !S.sel.has(S.hover) && !S.drag){ const n = N(S.hover); if (n && n.type !== 'lane'){ const b = bbox(n); c.strokeStyle = A; c.globalAlpha = .45; c.lineWidth = 1.5/z; c.strokeRect(b.x0-3/z, b.y0-3/z, b.x1-b.x0+6/z, b.y1-b.y0+6/z); c.globalAlpha = 1; } }
   // selection
   for (const id of S.sel){
-    const n = N(id); if (!n) continue;
+    const n = N(id);
+    if (!n){ const e1 = S.sel.size === 1 && E(id), r = e1 && route(e1);
+      if (r) for (const q of [r.pts[0], r.pts[r.pts.length-1]]){ c.beginPath(); c.arc(q.x, q.y, 5/z, 0, Math.PI*2); c.fillStyle = P.bg; c.fill(); c.strokeStyle = A; c.lineWidth = 1.8/z; c.stroke(); }
+      continue; }
     const b = bbox(n), p = 4/z;
     c.strokeStyle = A; c.lineWidth = 1.5/z; c.strokeRect(b.x0-p, b.y0-p, b.x1-b.x0+2*p, b.y1-b.y0+2*p);
     if (n.type === 'lane' && S.sel.size === 1) for (const h of laneHandles(n)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
@@ -867,9 +934,9 @@ function drawOverlay(c){
   }
   // connecting preview
   if (S.connect){
-    const a = N(S.connect.from), t = S.connect.target ? N(S.connect.target) : null;
+    const a = S.connect.from ? N(S.connect.from) : null, t = S.connect.target ? N(S.connect.target) : null;
     if (t){ const b = bbox(t); c.strokeStyle = A; c.lineWidth = 2/z; c.strokeRect(b.x0-4/z,b.y0-4/z,b.x1-b.x0+8/z,b.y1-b.y0+8/z); }
-    const p1 = anchor(a, S.connect.side || pickSidesTo(a, S.connect.p)), p2 = S.connect.p;
+    const p1 = a ? anchor(a, S.connect.side || pickSidesTo(a, S.connect.p)) : S.connect.start, p2 = S.connect.p;
     c.strokeStyle = A; c.lineWidth = 1.6/z; c.setLineDash([5/z,4/z]); c.beginPath(); c.moveTo(p1.x,p1.y); c.lineTo(p2.x,p2.y); c.stroke(); c.setLineDash([]);
   }
   // guides
@@ -942,9 +1009,17 @@ function addNode(type, x, y, extra={}){
 }
 function addEdge(from, to, extra={}){
   if (from === to) return null;
-  if (doc.edges.some(e=>e.from===from && e.to===to)) return null;
+  // the same pair may be linked again only from a different side of the source shape
+  if (doc.edges.some(e=>e.from===from && e.to===to && (e.sa||null) === (extra.sa||null))) return null;
   const a = N(from), b = N(to); const assoc = a.type === 'note' || b.type === 'note';
   const e = Object.assign({id:uid('e'), from, to, label:'', style: assoc ? 'straight' : 'elbow', arrow: assoc ? 'none' : 'end', dash: assoc}, extra);
+  doc.edges.push(e); return e;
+}
+// Arrow with at least one end not attached to a shape. c = {from, target, side, start}; p = release point.
+function addLooseEdge(c, p){
+  const e = {id:uid('e'), from:c.from || null, to:c.target || null, label:'', style:'straight', arrow:'end', dash:false};
+  if (!e.from){ e.fx = Math.round(c.start.x); e.fy = Math.round(c.start.y); } else if (c.side) e.sa = c.side;
+  if (!e.to){ e.tx = Math.round(p.x); e.ty = Math.round(p.y); }
   doc.edges.push(e); return e;
 }
 function laneChildren(lane){ return doc.nodes.filter(n => n.type !== 'lane' && n.x >= lane.x && n.x <= lane.x+lane.w && n.y >= lane.y && n.y <= lane.y+lane.h); }
@@ -981,14 +1056,15 @@ function ensureVisible(n){ const b = bbox(n), a = toScreen(b.x0,b.y0), c = toScr
 let clip = null;
 function expandSel(){ const ids = new Set(S.sel); for (const id of S.sel){ const n = N(id); if (n && n.type === 'lane') for (const c of laneChildren(n)) ids.add(c.id); } return ids; }
 function copySel(){ const ids = expandSel(); const nodes = doc.nodes.filter(n=>ids.has(n.id)); if (!nodes.length) return false;
-  clip = {nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(doc.edges.filter(e=>ids.has(e.from)&&ids.has(e.to))))}; return true; }
+  clip = {nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(doc.edges.filter(e=>(!e.from||ids.has(e.from)) && (!e.to||ids.has(e.to)) && (e.from||e.to||ids.has(e.id)))))}; return true; }
 function paste(offset=28){
   if (!clip) return; checkpoint();
   const map = {}, newSel = new Set();
   for (const n of clip.nodes){ const c = {...n, id:uid('n'), x:n.x+offset, y:n.y+offset}; map[n.id] = c.id; if (c.type==='lane') doc.nodes.unshift(c); else doc.nodes.push(c); newSel.add(c.id); }
   reindex();
-  for (const e of clip.edges) if (map[e.from] && map[e.to]) doc.edges.push({...e, id:uid('e'), from:map[e.from], to:map[e.to]});
-  clip = {nodes: clip.nodes.map(n=>({...n, x:n.x+offset, y:n.y+offset})), edges: clip.edges};
+  const mv = e => { const c = {...e, id:uid('e'), from:e.from ? map[e.from] : null, to:e.to ? map[e.to] : null}; if (!e.from){ c.fx += offset; c.fy += offset; } if (!e.to){ c.tx += offset; c.ty += offset; } return c; };
+  for (const e of clip.edges) if ((!e.from || map[e.from]) && (!e.to || map[e.to])) doc.edges.push(mv(e));
+  clip = {nodes: clip.nodes.map(n=>({...n, x:n.x+offset, y:n.y+offset})), edges: clip.edges.map(e => ({...e, ...(e.from ? {} : {fx:e.fx+offset, fy:e.fy+offset}), ...(e.to ? {} : {tx:e.tx+offset, ty:e.ty+offset})}))};
   S.sel = newSel; changed();
 }
 
@@ -1083,11 +1159,15 @@ function onDown(e){
   if (S.sel.size === 1){ const n = N([...S.sel][0]); if (n && n.type === 'lane'){ const h = laneHandles(n).find(h => Math.abs(h.x-p.x) <= 7/view.z && Math.abs(h.y-p.y) <= 7/view.z);
     if (h){ S.drag = {kind:'resize', id:n.id, k:h.k, start:p, orig:{x:n.x,y:n.y,w:n.w,h:n.h}, moved:false}; return; } } }
   // connection handle
-  if (S.hoverHandle){ const n = N(S.hoverHandle.id); S.connect = {from:n.id, side:S.hoverHandle.side, p, target:null}; S.drag = {kind:'connect', start:p, moved:false}; return; }
+  if (S.hoverHandle){ const n = N(S.hoverHandle.id); S.connect = {from:n.id, side:S.hoverHandle.side, p, start:p, target:null}; S.drag = {kind:'connect', start:p, moved:false}; return; }
+  // drag an end of the selected arrow to reattach or detach it
+  if (S.sel.size === 1){ const e1 = E([...S.sel][0]); const r = e1 && route(e1);
+    if (r){ const end = [['from', r.pts[0]], ['to', r.pts[r.pts.length-1]]].find(([, q]) => Math.hypot(q.x-p.x, q.y-p.y) <= 8/view.z);
+      if (end){ S.drag = {kind:'endpoint', id:e1.id, end:end[0], moved:false}; return; } } }
 
   const hit = hitTest(p);
-  if (S.tool === 'connector' && hit && hit.kind === 'node' && N(hit.id).type !== 'lane'){
-    S.connect = {from:hit.id, side:null, p, target:null}; S.drag = {kind:'connect', start:p, moved:false}; return;
+  if (S.tool === 'connector' && (!hit || (hit.kind === 'node' && N(hit.id).type !== 'lane'))){
+    S.connect = {from:hit ? hit.id : null, side:null, p, start:p, target:null}; S.drag = {kind:'connect', start:p, moved:false}; return;
   }
   if (hit && hit.kind === 'node'){
     const was = S.sel.has(hit.id);
@@ -1150,6 +1230,16 @@ function onMove(e){
     if (d.k === 't'){ const nh = Math.max(80, Math.round(d.orig.h - dy)); n.y = d.orig.y + d.orig.h - nh; n.h = nh; }
     draw(); return;
   }
+  if (d.kind === 'endpoint'){
+    const e1 = E(d.id); if (!e1) return;
+    if (!d.moved){ d.moved = true; checkpoint(); }
+    const other = d.end === 'from' ? e1.to : e1.from, hit = hitTest(p);
+    const tgt = hit && hit.kind === 'node' && N(hit.id).type !== 'lane' && hit.id !== other ? hit.id : null;
+    const [kk, kx, ky, ks] = d.end === 'from' ? ['from','fx','fy','sa'] : ['to','tx','ty','sb'];
+    e1[kk] = tgt; delete e1[ks];
+    if (tgt){ delete e1[kx]; delete e1[ky]; } else { e1[kx] = Math.round(p.x); e1[ky] = Math.round(p.y); }
+    draw(); return;
+  }
   if (d.kind === 'connect'){
     d.moved = d.moved || Math.hypot(p.x-d.start.x, p.y-d.start.y)*view.z > 4;
     S.connect.p = p; const hit = hitTest(p);
@@ -1202,12 +1292,14 @@ function onUp(e){
     else if (d.wasSel && !d.shift && S.sel.size > 1){ S.sel = new Set([d.clickId]); draw(); }
     return;
   }
-  if (d.kind === 'resize'){ if (d.moved) changed(); return; }
+  if (d.kind === 'resize' || d.kind === 'endpoint'){ if (d.moved) changed(); return; }
   if (d.kind === 'connect'){
-    const c = S.connect; S.connect = null; const src = N(c.from);
-    if (!d.moved){ if (c.side) quickAdd(src, c.side); else draw(); return; }
+    const c = S.connect; S.connect = null; const src = c.from ? N(c.from) : null;
+    if (!d.moved){ if (src && c.side) quickAdd(src, c.side); else draw(); return; }
     checkpoint();
-    if (c.target){ const ed = addEdge(c.from, c.target); if (!ed) undoS.pop(); S.sel = ed ? new Set([ed.id]) : S.sel; changed(); return; }
+    if (c.target && src){ const ed = addEdge(c.from, c.target, c.side ? {sa:c.side} : {}); if (!ed) undoS.pop(); S.sel = ed ? new Set([ed.id]) : S.sel; changed(); return; }
+    // loose arrow: connector tool, Alt while releasing, or starting from empty space
+    if (!src || S.tool === 'connector' || e.altKey){ const ed = addLooseEdge(c, p); S.sel = new Set([ed.id]); changed(); return; }
     const t = nextType(src.type); const n = addNode(t, Math.round(p.x), Math.round(p.y));
     const g = geom(n), side = c.side || pickSidesTo(src, p);
     n.x += Math.round(DIR[side].x * g.w/2); n.y += Math.round(DIR[side].y * g.h/2);
@@ -1254,6 +1346,7 @@ window.addEventListener('keydown', e => {
   if (e.shiftKey && e.code === 'Digit0'){ setZoom(1); return; }
   if (e.shiftKey && k === 't'){ $('#btnTheme').click(); return; }
   if (e.shiftKey && k === 'l'){ $('#btnLang').click(); return; }
+  if (e.shiftKey && k === 'a'){ runAutoLayout(); return; }
   if (e.key === 'Escape'){ if (S.tool !== 'select') setTool('select'); else { S.sel = new Set(); } closePopovers(); draw(); return; }
   if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); deleteSel(); return; }
   if (e.key === 'Enter' && S.sel.size === 1){ e.preventDefault(); startEdit([...S.sel][0]); return; }
@@ -1384,11 +1477,101 @@ function buildCtx(ns, es){
     ctxEl.appendChild(btn(ICON.aNone, T('aNone'), () => setProp(es,'arrow','none'), ar==='none'));
     ctxEl.appendChild(btn(ICON.dash, T('dash'), () => setProp(es,'dash',!es.every(e=>e.dash)), es.every(e=>e.dash)));
     ctxEl.appendChild(sepEl());
-    ctxEl.appendChild(btn(ICON.swap, T('swap'), () => { checkpoint(); es.forEach(e => { const t = e.from; e.from = e.to; e.to = t; }); changed(); }));
+    ctxEl.appendChild(btn(ICON.swap, T('swap'), () => { checkpoint(); es.forEach(e => { [e.from, e.to] = [e.to, e.from]; [e.fx, e.tx] = [e.tx, e.fx]; [e.fy, e.ty] = [e.ty, e.fy]; [e.sa, e.sb] = [e.sb, e.sa]; }); changed(); }));
     if (es.length === 1) ctxEl.appendChild(btn(ICON.edit, T('edgeLabel'), () => startEdit(es[0].id)));
   }
   ctxEl.appendChild(btn(ICON.copy, T('duplicate'), () => { if (copySel()) paste(); }));
   ctxEl.appendChild(btn(ICON.trash, T('delete'), deleteSel));
+}
+
+/* ---------- auto layout ---------- */
+// Layered left-to-right layout: cycle breaking → longest-path layers → barycenter ordering → coordinates.
+// With swimlanes each shape stays in its lane and lanes are resized to fit; without lanes columns are centred on their predecessors.
+function autoLayout(){
+  const lanes = doc.nodes.filter(n=>n.type==='lane').sort((a,b)=>a.y-b.y||a.x-b.x);
+  const notes = doc.nodes.filter(n=>n.type==='note');
+  const items = doc.nodes.filter(n=>n.type!=='lane' && n.type!=='note');
+  if (!items.length) return false;
+  const GAPX = 90, GAPY = 50;
+  const byId = new Map(items.map(n=>[n.id,n]));
+  const lane = new Map(items.map(n=>[n.id, lanes.indexOf(laneOf(n, lanes))]));
+  const noteLane = new Map(notes.map(n=>[n.id, lanes.indexOf(laneOf(n, lanes))]));
+  const old = new Map(doc.nodes.map(n=>[n.id,{x:n.x,y:n.y}]));
+  const fp = new Map(items.map(n=>{ const b = bbox(n); return [n.id, {w:b.x1-b.x0, h:b.y1-b.y0, ox:(b.x0+b.x1)/2-n.x, oy:n.y-b.y0}]; }));
+  const cy0 = items.reduce((a,n)=>a+n.y,0)/items.length;
+  const links = doc.edges.filter(e=>byId.has(e.from) && byId.has(e.to) && e.from !== e.to);
+  const out = new Map(items.map(n=>[n.id,[]])), nb = new Map(items.map(n=>[n.id,new Set()])), indeg = new Map(items.map(n=>[n.id,0]));
+  for (const e of links){ nb.get(e.from).add(e.to); nb.get(e.to).add(e.from); if (!e.dash){ out.get(e.from).push(e.to); indeg.set(e.to, indeg.get(e.to)+1); } }
+  // 1. break cycles: edges that close a loop are ignored for layering
+  const roots = [...items].sort((a,b)=> (b.type==='start')-(a.type==='start') || ((indeg.get(a.id)>0)-(indeg.get(b.id)>0)) || a.x-b.x || a.y-b.y);
+  const state = new Map(), fwd = new Map(items.map(n=>[n.id,[]]));
+  const dfs = id => { state.set(id,1); for (const t of out.get(id)){ const s = state.get(t); if (s === 1) continue; fwd.get(id).push(t); if (!s) dfs(t); } state.set(id,2); };
+  for (const n of roots) if (!state.get(n.id)) dfs(n.id);
+  // 2. layers by longest path
+  const layer = new Map(items.map(n=>[n.id,0])), deg = new Map(items.map(n=>[n.id,0]));
+  for (const ts of fwd.values()) for (const t of ts) deg.set(t, deg.get(t)+1);
+  const q = items.filter(n=>!deg.get(n.id)).map(n=>n.id);
+  while (q.length){ const u = q.shift(); for (const t of fwd.get(u)){ layer.set(t, Math.max(layer.get(t), layer.get(u)+1)); deg.set(t, deg.get(t)-1); if (!deg.get(t)) q.push(t); } }
+  // shapes with only dashed links join the column of the shape they connect to
+  for (const n of items){ if (indeg.get(n.id) || out.get(n.id).length) continue; const m = [...nb.get(n.id)].find(id => indeg.get(id) || out.get(id).length); if (m) layer.set(n.id, layer.get(m)); }
+  const nL = Math.max(...layer.values()) + 1, cols = Array.from({length:nL}, () => []);
+  for (const n of [...items].sort((a,b)=>a.y-b.y||a.x-b.x)) cols[layer.get(n.id)].push(n);
+  // 3. order inside columns (barycenter sweeps reduce crossings)
+  const pos = new Map(), setPos = () => cols.forEach(c => c.forEach((n,i) => pos.set(n.id, i/Math.max(1,c.length))));
+  const bary = (n, dl) => { const l = layer.get(n.id)+dl, ps = [...nb.get(n.id)].filter(id => layer.get(id) === l).map(id => pos.get(id)); return ps.length ? ps.reduce((a,b)=>a+b)/ps.length : pos.get(n.id); };
+  setPos();
+  for (let it = 0; it < 4; it++){
+    for (let l = 1; l < nL; l++){ cols[l].sort((a,b)=>bary(a,-1)-bary(b,-1)); setPos(); }
+    for (let l = nL-2; l >= 0; l--){ cols[l].sort((a,b)=>bary(a,1)-bary(b,1)); setPos(); }
+  }
+  // 4. coordinates
+  const colW = cols.map(c => Math.max(0, ...c.map(n=>fp.get(n.id).w)));
+  const laneX = lanes.length ? Math.min(...lanes.map(l=>l.x)) : Math.min(...items.map(n=>bbox(n).x0));
+  let cx = lanes.length ? laneX + 44*(lanes[0].fs||14)/14 + 70 : laneX;
+  const colC = colW.map(w => { const c = cx + w/2; cx += w + GAPX; return c; }), right = cx - GAPX;
+  for (const n of items) n.x = colC[layer.get(n.id)] - fp.get(n.id).ox;
+  const setY = (n, c) => { const f = fp.get(n.id); n.y = c - f.h/2 + f.oy; };
+  const span = c => c.reduce((a,n)=>a+fp.get(n.id).h,0) + GAPY*Math.max(0,c.length-1);
+  if (!lanes.length){
+    const centers = new Map();
+    cols.forEach((c,l) => {
+      const hs = c.map(n=>fp.get(n.id).h); let y = -span(c)/2; let ys = c.map((n,i) => { const v = y + hs[i]/2; y += hs[i] + GAPY; return v; });
+      if (l){
+        const des = c.map((n,i) => { const ps = [...nb.get(n.id)].filter(id => centers.has(id)).map(id => centers.get(id)); return ps.length ? ps.reduce((a,b)=>a+b)/ps.length : ys[i]; });
+        const res = []; c.forEach((n,i) => res.push(i ? Math.max(des[i], res[i-1] + hs[i-1]/2 + GAPY + hs[i]/2) : des[i]));
+        const sh = res.reduce((a,v,i)=>a+des[i]-v, 0)/res.length; ys = res.map(v=>v+sh);
+      }
+      c.forEach((n,i) => centers.set(n.id, ys[i]));
+    });
+    for (const n of items) setY(n, centers.get(n.id) + cy0);
+  } else {
+    const L = lanes.length, band = id => lane.get(id) < 0 ? L : lane.get(id);
+    const bands = L + (items.some(n=>lane.get(n.id) < 0) ? 1 : 0);
+    const stacks = Array.from({length:bands}, () => cols.map(() => []));
+    cols.forEach((c,l) => c.forEach(n => stacks[band(n.id)][l].push(n)));
+    const bandH = stacks.map((s,b) => Math.max(b < L ? 180 : 0, Math.max(0, ...s.map(span)) + 90));
+    const w = Math.max(...lanes.map(l=>l.w), right + 70 - laneX);
+    let y = lanes[0].y;
+    stacks.forEach((s,b) => {
+      s.forEach(c => { let t = y + (bandH[b] - span(c))/2; for (const n of c){ setY(n, t + fp.get(n.id).h/2); t += fp.get(n.id).h + GAPY; } });
+      if (b < L){ Object.assign(lanes[b], {x:laneX, y, w, h:bandH[b]}); }
+      y += bandH[b];
+    });
+  }
+  // notes follow the shape they are attached to (or their lane)
+  for (const n of notes){
+    const e = doc.edges.find(e => (e.from === n.id && byId.has(e.to)) || (e.to === n.id && byId.has(e.from)));
+    const o = e && byId.get(e.from === n.id ? e.to : e.from), lk = noteLane.get(n.id);
+    if (o){ const p = old.get(o.id); n.x += o.x - p.x; n.y += o.y - p.y; }
+    else if (lk >= 0){ n.x += lanes[lk].x - old.get(lanes[lk].id).x; n.y += lanes[lk].y - old.get(lanes[lk].id).y; }
+  }
+  for (const e of links) delete e.route;
+  return true;
+}
+function runAutoLayout(){
+  endEdit();
+  if (!doc.nodes.some(n => n.type !== 'lane' && n.type !== 'note')){ toast(T('layoutEmpty')); return; }
+  checkpoint(); autoLayout(); changed(); fit(); toast(T('layoutDone'));
 }
 
 /* ---------- AI text export ---------- */
@@ -2070,12 +2253,65 @@ $('#btnHelp').onclick = e => { e.stopPropagation(); $('#help').hidden = !$('#hel
 $('#btnExport').onclick = () => openExport(modalTab);
 $('#zIn').innerHTML = ICON.plus; $('#zOut').innerHTML = ICON.minus; $('#zFit').innerHTML = ICON.fit; $('#bUndo').innerHTML = ICON.undo; $('#bRedo').innerHTML = ICON.redo;
 $('#zIn').onclick = () => zoomAt(W/2, H/2, 1.25); $('#zOut').onclick = () => zoomAt(W/2, H/2, 0.8); $('#zFit').onclick = fit; $('#zoomPct').onclick = () => setZoom(1);
+$('#bLayout').innerHTML = ICON.layout; $('#bLayout').onclick = runAutoLayout;
 $('#bUndo').onclick = undo; $('#bRedo').onclick = redo;
 window.addEventListener('resize', resize);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { ctxKey = ''; draw(); });
 new MutationObserver(() => { ctxKey = ''; draw(); }).observe(document.documentElement, {attributes:true, attributeFilter:['data-theme','class','style']});
 window.addEventListener('beforeunload', () => { if (S.editing) endEdit(); clearTimeout(saveTimer); try { doc.view = {...view}; localStorage.setItem(KEY, JSON.stringify(store)); } catch(e){} });
 document.addEventListener('visibilitychange', () => { if (document.hidden){ clearTimeout(saveTimer); try { doc.view = {...view}; localStorage.setItem(KEY, JSON.stringify(store)); } catch(e){} } });
+
+/* ---------- guided tour ---------- */
+const TOUR_KEY = 'diagramico.tour';
+const TOUR_TARGETS = [null, '#tools', null, null, null, '.zoom', '#btnMenu', '#btnExport', '#btnTheme', '#btnHelp'];
+let tour = null;
+const mdInline = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>');
+function tourEnd(){
+  if (!tour) return; tour.els.forEach(e => e.remove()); tour = null;
+  try { localStorage.setItem(TOUR_KEY, '1'); } catch(e){}
+  cv.focus({preventScroll:true});
+}
+function tourShow(){
+  const steps = T('tourSteps'), s = steps[tour.i], last = tour.i === steps.length - 1;
+  let tg = TOUR_TARGETS[tour.i] && $(TOUR_TARGETS[tour.i]);
+  if (tg && tg.closest('[hidden]')) tg = null;
+  const hl = tour.hl, card = tour.card;
+  if (tg){ const r = tg.getBoundingClientRect(), p = 6; Object.assign(hl.style, {display:'block', left:(r.left-p)+'px', top:(r.top-p)+'px', width:(r.width+2*p)+'px', height:(r.height+2*p)+'px'}); }
+  else Object.assign(hl.style, {display:'block', left:'50%', top:'50%', width:'0px', height:'0px'});
+  card.innerHTML = `<h3></h3><p>${mdInline(s.d)}</p><div class="row"><span class="n">${T('tourOf', tour.i+1, steps.length)}</span></div>`;
+  card.querySelector('h3').textContent = s.t;
+  const row = card.querySelector('.row');
+  const mk = (txt, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = txt; b.onclick = fn; row.appendChild(b); return b; };
+  if (!last) mk(T('tourSkip'), '', tourEnd);
+  if (tour.i) mk(T('tourBack'), '', () => { tour.i--; tourShow(); });
+  const nb = mk(last ? T('tourDone') : T('tourNext'), 'primary', () => { if (last) tourEnd(); else { tour.i++; tourShow(); } });
+  nb.focus();
+  const cw = card.offsetWidth, ch = card.offsetHeight, m = 12;
+  let x = (W - cw) / 2, y = (H - ch) / 2;
+  if (tg){ const r = tg.getBoundingClientRect();
+    if (r.right + m + cw < W) { x = r.right + m; y = r.top + r.height/2 - ch/2; }
+    else if (r.bottom + m + ch < H) { x = r.left + r.width/2 - cw/2; y = r.bottom + m; }
+    else { x = r.left + r.width/2 - cw/2; y = r.top - m - ch; } }
+  card.style.left = clamp(x, 10, W - cw - 10) + 'px'; card.style.top = clamp(y, 10, H - ch - 10) + 'px';
+}
+function startTour(){
+  tourEnd(); endEdit(); closePopovers(); closeDrawer(); if (!$('#modal').hidden) closeModal();
+  const block = el('div', 'tour-block'), hl = el('div', 'tour-hl'), card = el('div', 'panel tour-card');
+  card.setAttribute('role', 'dialog'); card.setAttribute('aria-live', 'polite');
+  document.body.append(block, hl, card);
+  tour = {i:0, els:[block, hl, card], hl, card}; tourShow();
+}
+window.addEventListener('keydown', e => {
+  if (!tour) return;
+  const n = T('tourSteps').length;
+  if (e.key === 'Escape') tourEnd();
+  else if (e.key === 'ArrowRight'){ if (tour.i < n-1){ tour.i++; tourShow(); } }
+  else if (e.key === 'ArrowLeft'){ if (tour.i > 0){ tour.i--; tourShow(); } }
+  else if (e.key === 'Enter' || e.key === 'Tab') return;
+  e.stopImmediatePropagation();
+}, true);
+window.addEventListener('resize', () => { if (tour) tourShow(); });
+$('#btnTour').innerHTML = ICON.tour; $('#btnTour').onclick = e => { e.stopPropagation(); startTour(); };
 
 /* ---------- boot ---------- */
 const FONT_FACES = ['400 14px "IBM Plex Sans"','600 14px "IBM Plex Sans"','italic 400 14px "IBM Plex Sans"','italic 600 14px "IBM Plex Sans"','400 14px "IBM Plex Mono"','600 14px "IBM Plex Mono"','italic 400 14px "IBM Plex Mono"','italic 600 14px "IBM Plex Mono"'];
@@ -2088,8 +2324,10 @@ if (doc.view) Object.assign(view, doc.view); else fit();
 fontsReady.then(() => { LC.clear(); draw(); });
 setTimeout(() => { LC.clear(); draw(); }, 1500);
 persistNow();
+let tourSeen = true; try { tourSeen = !!localStorage.getItem(TOUR_KEY); } catch(e){}
+if (!tourSeen) setTimeout(startTour, 600);
 // expose for testing
-window.__diagramico = { exportAI: () => exportAI(doc), exportMermaid: () => exportMermaid(doc), state: S, doc: () => doc };
+window.__diagramico = { exportAI: () => exportAI(doc), exportMermaid: () => exportMermaid(doc), state: S, view, doc: () => doc };
 })();
 </script>
 </body>

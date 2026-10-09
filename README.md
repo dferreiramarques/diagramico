@@ -12,6 +12,17 @@ Aplicação de ficheiro único (`index.html`): HTML, CSS e JavaScript sem depend
 
 Para usar localmente basta abrir `index.html` no browser.
 
+## Primeiros passos
+
+Na primeira visita abre uma **visita guiada** de 10 passos sobre um diagrama de exemplo (ferramentas, criar e ligar formas, lanes, navegação, diagramas, exportação, tema e idioma). Pode saltá-la com `Esc` e repeti-la a qualquer momento no botão da bússola, junto ao `?`.
+
+Arranque rápido:
+
+1. Escolha uma forma na barra à esquerda (ou prima `R`) e clique no quadro; ou faça duplo clique no vazio.
+2. Escreva o texto e prima `Esc`. Com a forma selecionada, `Tab` cria a seguinte já ligada.
+3. Para ligar formas, arraste a partir dos pontos que aparecem nos lados.
+4. Use **Exportar → Texto para IA** para copiar o diagrama em poucos tokens.
+
 ## Funcionalidades (MVP)
 
 - **Formas**: Passo / processo, Ação do utilizador (trapézio inclinado), Decisão, Ecrã, Documento, Dados.
@@ -21,6 +32,9 @@ Para usar localmente basta abrir `index.html` no browser.
 - **Texto** que ajusta o tamanho da caixa; o tamanho de letra controla o tamanho da forma. Regular, **negrito** e *itálico* por forma ou inline (`**negrito**`, `*itálico*`).
 - **Conectores** ligados às formas: cotovelo (com escolha de percurso), reta ou curva; seta no fim, nos dois lados ou nenhuma; tracejado; rótulos.
 - **Quadro infinito** com zoom, pinça, alinhamento automático, seleção por área, copiar/colar, desfazer/refazer.
+- **Organização automática** (`Shift A` ou botão no canto inferior direito): reorganiza o diagrama da esquerda para a direita, reduz cruzamentos, mantém cada forma na sua lane (ajustando a altura das lanes) e leva as notas junto das formas a que estão ligadas. Desfazível com `Ctrl Z`.
+- **Várias setas entre as mesmas formas**: cada ponto lateral cria a sua seta (duas formas podem ligar-se por cima, por baixo, etc.). Setas que saem do mesmo lado partilham o tronco; ligar duas vezes pelo mesmo lado não duplica.
+- **Setas soltas**: com o conector (`C`), arraste de uma forma ou do vazio e largue onde quiser. Também se larga um ponto lateral no vazio com `Alt` premido. Arrastando uma ponta de uma seta selecionada, liga-se a uma forma ou desliga-se. Setas soltas não entram no texto para IA nem no Mermaid.
 - **Tema** automático, claro ou escuro (botão na barra superior ou `Shift T`).
 - **Idioma** português ou inglês (botão PT/EN ou `Shift L`). Na primeira visita segue a língua do browser.
 - **Gravação automática** no `localStorage` do browser, lista de diagramas, cópia de segurança e importação em JSON.
@@ -91,6 +105,7 @@ LO2: O stock é verificado em tempo real.
 | `Ctrl Z` / `Ctrl Shift Z` | Desfazer / refazer |
 | `Ctrl C` `V` `D` | Copiar, colar, duplicar |
 | `Shift 1` / `Shift 0` | Ver tudo / 100% |
+| `Shift A` | Organizar o diagrama automaticamente |
 | `Shift T` | Alternar tema |
 | `Shift L` | Mudar idioma (PT/EN) |
 | `Espaço` + arrastar | Mover o quadro |
@@ -106,6 +121,10 @@ Os diagramas ficam guardados apenas no browser onde foram criados (`localStorage
 - Importar texto IA / Mermaid para gerar o diagrama
 - Importação direta de Lucidchart (CSV) e de PNG/SVG com diagrama draw.io embebido
 - Conectores que contornam formas
+
+## Documentação para programadores
+
+[docs/ARQUITETURA.md](docs/ARQUITETURA.md): modelo de dados, mapa do código, fluxo de alteração, exportação, i18n, visita guiada e limitações.
 
 ## Licença
 
