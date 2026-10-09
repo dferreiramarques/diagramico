@@ -757,6 +757,13 @@ function routeMode(e, a, b){
   return 'z';
 }
 const ROUTES = ['auto','hv','vh','h','v'];
+// When only one end has a fixed side s at point q: the other shape faces it if it lies beyond q in that direction, otherwise the arrow loops around (same side, U shape).
+const OPP = {top:'bottom', bottom:'top', left:'right', right:'left'};
+function autoOther(s, q, y){
+  if (y.type === 'point') return OPP[s];
+  const b = bbox(y), ahead = s === 'top' ? b.y1 < q.y : s === 'bottom' ? b.y0 > q.y : s === 'left' ? b.x1 < q.x : b.x0 > q.x;
+  return ahead ? OPP[s] : s;
+}
 // An edge end is either a shape (from/to = id) or a loose point (fx,fy / tx,ty). sa/sb force the side an end leaves/enters from.
 const endNode = (e, k) => k === 'from' ? (e.from ? N(e.from) : {type:'point', x:e.fx, y:e.fy}) : (e.to ? N(e.to) : {type:'point', x:e.tx, y:e.ty});
 function route(e){
@@ -771,10 +778,15 @@ function route(e){
   else [s1, s2] = pickSides(a, b);
   if (forced){
     if (e.sa && a.type !== 'point') s1 = e.sa; if (e.sb && b.type !== 'point') s2 = e.sb;
-    if (e.sa && !e.sb) s2 = pickSidesTo(b, anchor(a, s1)); else if (e.sb && !e.sa) s1 = pickSidesTo(a, anchor(b, s2));
+    if (e.sa && !e.sb) s2 = autoOther(s1, anchor(a, s1), b); else if (e.sb && !e.sa) s1 = autoOther(s2, anchor(b, s2), a);
   }
   const p1 = anchor(a, s1), p2 = anchor(b, s2);
   if (forced && e.style === 'elbow'){
+    if (s1 === s2){ // same side on both shapes: U-shaped loop around them
+      const d = 28, v = s1 === 'top' || s1 === 'bottom';
+      const k = v ? (s1 === 'top' ? Math.min(p1.y, p2.y) - d : Math.max(p1.y, p2.y) + d) : (s1 === 'left' ? Math.min(p1.x, p2.x) - d : Math.max(p1.x, p2.x) + d);
+      return {pts: v ? [p1,{x:p1.x,y:k},{x:p2.x,y:k},p2] : [p1,{x:k,y:p1.y},{x:k,y:p2.y},p2], s1, s2};
+    }
     const h1 = s1 === 'left' || s1 === 'right', h2 = s2 === 'left' || s2 === 'right';
     if (h1 !== h2) return {pts: h1 ? [p1,{x:p2.x,y:p1.y},p2] : [p1,{x:p1.x,y:p2.y},p2], s1, s2};
   }
@@ -947,17 +959,20 @@ function drawOverlay(c){
     if (n.type === 'lane' && S.sel.size === 1) for (const h of laneHandles(n)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
   }
   // connection handles
-  const hn = handleNode();
-  if (hn){
-    for (const s of SIDES){ const h = handlePos(hn, s); const on = S.hoverHandle && S.hoverHandle.side === s;
+  const drawHandles = (n, active, plus) => {
+    for (const s of SIDES){ const h = handlePos(n, s); const on = active === s;
       c.beginPath(); c.arc(h.x, h.y, (on?7:5)/z, 0, Math.PI*2); c.fillStyle = on ? A : P.bg; c.fill(); c.strokeStyle = A; c.lineWidth = 1.5/z; c.stroke();
-      if (on){ c.strokeStyle = P.bg; c.lineWidth = 1.6/z; c.beginPath(); c.moveTo(h.x-3/z,h.y); c.lineTo(h.x+3/z,h.y); c.moveTo(h.x,h.y-3/z); c.lineTo(h.x,h.y+3/z); c.stroke(); } }
-  }
+      if (on && plus){ c.strokeStyle = P.bg; c.lineWidth = 1.6/z; c.beginPath(); c.moveTo(h.x-3/z,h.y); c.lineTo(h.x+3/z,h.y); c.moveTo(h.x,h.y-3/z); c.lineTo(h.x,h.y+3/z); c.stroke(); } }
+  };
+  const hn = handleNode();
+  if (hn && !S.connect) drawHandles(hn, S.hoverHandle && S.hoverHandle.side, true);
+  // while dragging an arrow end, the shape under the pointer shows its side dots: release on one to choose the side
+  if (S.drag && S.drag.kind === 'endpoint' && S.drag.tgt && N(S.drag.tgt)) drawHandles(N(S.drag.tgt), S.drag.side, false);
   // connecting preview
   if (S.connect){
     const a = S.connect.from ? N(S.connect.from) : null, t = S.connect.target ? N(S.connect.target) : null;
-    if (t){ const b = bbox(t); c.strokeStyle = A; c.lineWidth = 2/z; c.strokeRect(b.x0-4/z,b.y0-4/z,b.x1-b.x0+8/z,b.y1-b.y0+8/z); }
-    const p1 = a ? anchor(a, S.connect.side || pickSidesTo(a, S.connect.p)) : S.connect.start, p2 = S.connect.p;
+    if (t){ const b = bbox(t); c.strokeStyle = A; c.lineWidth = 2/z; c.strokeRect(b.x0-4/z,b.y0-4/z,b.x1-b.x0+8/z,b.y1-b.y0+8/z); drawHandles(t, S.connect.targetSide, false); }
+    const p1 = a ? anchor(a, S.connect.side || pickSidesTo(a, S.connect.p)) : S.connect.start, p2 = t && S.connect.targetSide ? anchor(t, S.connect.targetSide) : S.connect.p;
     c.strokeStyle = A; c.lineWidth = 1.6/z; c.setLineDash([5/z,4/z]); c.beginPath(); c.moveTo(p1.x,p1.y); c.lineTo(p2.x,p2.y); c.stroke(); c.setLineDash([]);
   }
   // guides
@@ -1031,7 +1046,7 @@ function addNode(type, x, y, extra={}){
 function addEdge(from, to, extra={}){
   if (from === to) return null;
   // the same pair may be linked again only from a different side of the source shape
-  if (doc.edges.some(e=>e.from===from && e.to===to && (e.sa||null) === (extra.sa||null))) return null;
+  if (doc.edges.some(e=>e.from===from && e.to===to && (e.sa||null) === (extra.sa||null) && (e.sb||null) === (extra.sb||null))) return null;
   const a = N(from), b = N(to); const assoc = a.type === 'note' || b.type === 'note';
   const e = Object.assign({id:uid('e'), from, to, label:'', style: assoc ? 'straight' : 'elbow', arrow: assoc ? 'none' : 'end', dash: assoc}, extra);
   doc.edges.push(e); return e;
@@ -1210,6 +1225,13 @@ function onDown(e){
   if (!e.shiftKey) S.sel = new Set();
   S.drag = {kind:'marquee', start:p, base:new Set(S.sel)}; S.marquee = {a:p, b:p}; draw();
 }
+// Shape under the pointer while dragging an arrow, plus the side whose dot the pointer is on (dots sit just outside the shape, so keep the previous target alive over them).
+function handleAt(n, p, r = 12){ return SIDES.find(s => { const h = handlePos(n, s); return Math.hypot(h.x-p.x, h.y-p.y) <= r/view.z; }) || null; }
+function dropTarget(p, prev, ok){
+  const hit = hitTest(p); let id = hit && hit.kind === 'node' && N(hit.id).type !== 'lane' && ok(hit.id) ? hit.id : null;
+  if (!id && prev && N(prev) && handleAt(N(prev), p, 24)) id = prev; // keep the shape while the pointer travels over its side dots
+  return [id, id ? handleAt(N(id), p) : null];
+}
 function onMove(e){
   if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
   if (pinch && ptrs.size === 2){
@@ -1255,17 +1277,19 @@ function onMove(e){
   if (d.kind === 'endpoint'){
     const e1 = E(d.id); if (!e1) return;
     if (!d.moved){ d.moved = true; checkpoint(); }
-    const other = d.end === 'from' ? e1.to : e1.from, hit = hitTest(p);
-    const tgt = hit && hit.kind === 'node' && N(hit.id).type !== 'lane' && hit.id !== other ? hit.id : null;
+    const other = d.end === 'from' ? e1.to : e1.from;
+    const [tgt, side] = dropTarget(p, d.tgt, id => id !== other);
+    d.tgt = tgt; d.side = side;
     const [kk, kx, ky, ks] = d.end === 'from' ? ['from','fx','fy','sa'] : ['to','tx','ty','sb'];
-    e1[kk] = tgt; delete e1[ks];
+    e1[kk] = tgt; if (side) e1[ks] = side; else delete e1[ks];
     if (tgt){ delete e1[kx]; delete e1[ky]; } else { e1[kx] = Math.round(p.x); e1[ky] = Math.round(p.y); }
     draw(); return;
   }
   if (d.kind === 'connect'){
     d.moved = d.moved || Math.hypot(p.x-d.start.x, p.y-d.start.y)*view.z > 4;
-    S.connect.p = p; const hit = hitTest(p);
-    S.connect.target = hit && hit.kind === 'node' && hit.id !== S.connect.from && N(hit.id).type !== 'lane' ? hit.id : null;
+    S.connect.p = p;
+    const [tg, side] = dropTarget(p, S.connect.target, id => id !== S.connect.from);
+    S.connect.target = tg; S.connect.targetSide = side;
     draw(); return;
   }
   if (d.kind === 'marquee'){
@@ -1319,7 +1343,7 @@ function onUp(e){
     const c = S.connect; S.connect = null; const src = c.from ? N(c.from) : null;
     if (!d.moved){ if (src && c.side) quickAdd(src, c.side); else draw(); return; }
     checkpoint();
-    if (c.target && src){ const ed = addEdge(c.from, c.target, c.side ? {sa:c.side} : {}); if (!ed) undoS.pop(); S.sel = ed ? new Set([ed.id]) : S.sel; changed(); return; }
+    if (c.target && src){ const ed = addEdge(c.from, c.target, {...(c.side ? {sa:c.side} : {}), ...(c.targetSide ? {sb:c.targetSide} : {})}); if (!ed) undoS.pop(); S.sel = ed ? new Set([ed.id]) : S.sel; changed(); return; }
     // loose arrow: connector tool, Alt while releasing, or starting from empty space
     if (!src || S.tool === 'connector' || e.altKey){ const ed = addLooseEdge(c, p); S.sel = new Set([ed.id]); changed(); return; }
     const t = nextType(src.type); const n = addNode(t, Math.round(p.x), Math.round(p.y));

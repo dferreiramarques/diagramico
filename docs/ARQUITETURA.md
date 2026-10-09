@@ -62,6 +62,8 @@ As secções de `app/index.html` estão marcadas com comentários `/* ----------
 
 - Cada ponta é uma forma (`from`/`to` = id) ou um ponto solto (`from: null` + `fx`,`fy`; `to: null` + `tx`,`ty`). `endNode(e, 'from'|'to')` devolve a forma ou um pseudo-nó `{type:'point'}`, e `route()` trata-o como uma forma sem tamanho.
 - `sa` / `sb` (opcionais) fixam o lado da forma de onde a seta sai / onde entra. Com `sa`/`sb`, o percurso em cotovelo é derivado dos lados (L se um é horizontal e o outro vertical, Z nos restantes).
+- Ao arrastar uma seta (ou uma ponta), a forma sob o rato mostra os seus pontos laterais; largar sobre um ponto fixa `sb` (`dropTarget` / `handleAt`; a forma continua "viva" enquanto o rato passa pelos pontos, que ficam fora dela). Largar no corpo da forma deixa `sb` automático.
+- Mesmo lado nas duas pontas (`s1 === s2`) desenha um U à volta das formas. Com só um lado fixo, `autoOther` escolhe o outro: a forma de destino fica virada para a origem se estiver à frente do lado escolhido, senão a seta contorna-a (U).
 - `addEdge` só rejeita a ligação se já existir outra com os mesmos `from`, `to` e `sa`; lados diferentes criam setas diferentes.
 - Setas do mesmo `from` e `sa` dobram a uma distância fixa da origem (máx. 36 px), o que as faz partilhar o tronco.
 - Setas com uma ponta solta ignoram-se na exportação para IA/Mermaid, no auto-layout e na cópia (a menos que a outra ponta esteja selecionada).

@@ -35,7 +35,7 @@ Arranque rápido:
 - **Conectores** ligados às formas: cotovelo (com escolha de percurso), reta ou curva; seta no fim, nos dois lados ou nenhuma; tracejado; rótulos.
 - **Quadro infinito** com zoom, pinça, alinhamento automático, seleção por área, copiar/colar, desfazer/refazer.
 - **Organização automática** (`Shift A` ou botão no canto inferior direito): reorganiza o diagrama da esquerda para a direita, reduz cruzamentos, mantém cada forma na sua lane (ajustando a altura das lanes) e leva as notas junto das formas a que estão ligadas. Desfazível com `Ctrl Z`.
-- **Várias setas entre as mesmas formas**: cada ponto lateral cria a sua seta (duas formas podem ligar-se por cima, por baixo, etc.). Setas que saem do mesmo lado partilham o tronco; ligar duas vezes pelo mesmo lado não duplica.
+- **Várias setas entre as mesmas formas**: cada ponto lateral cria a sua seta (duas formas podem ligar-se por cima, por baixo, etc.). Ao arrastar, a forma de destino mostra os seus pontos laterais: largar sobre um deles escolhe o lado (por exemplo cima com cima desenha um U invertido). Setas que saem do mesmo lado partilham o tronco; ligar duas vezes pelo mesmo lado não duplica.
 - **Setas soltas**: com o conector (`C`), arraste de uma forma ou do vazio e largue onde quiser. Também se larga um ponto lateral no vazio com `Alt` premido. Arrastando uma ponta de uma seta selecionada, liga-se a uma forma ou desliga-se. Setas soltas não entram no texto para IA nem no Mermaid.
 - **Tema** automático, claro ou escuro (botão na barra superior ou `Shift T`).
 - **Idioma** português ou inglês (botão PT/EN ou `Shift L`). Na primeira visita segue a língua do browser.
