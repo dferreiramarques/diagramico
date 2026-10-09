@@ -22,14 +22,17 @@ Para usar localmente basta abrir `index.html` no browser.
 - **Conectores** ligados às formas: cotovelo (com escolha de percurso), reta ou curva; seta no fim, nos dois lados ou nenhuma; tracejado; rótulos.
 - **Quadro infinito** com zoom, pinça, alinhamento automático, seleção por área, copiar/colar, desfazer/refazer.
 - **Tema** automático, claro ou escuro (botão na barra superior ou `Shift T`).
+- **Idioma** português ou inglês (botão PT/EN ou `Shift L`). Na primeira visita segue a língua do browser.
 - **Gravação automática** no `localStorage` do browser, lista de diagramas, cópia de segurança e importação em JSON.
 
 ## Exportação
 
+Tudo sai pelo botão **Exportar**, com um separador por formato.
+
 | Formato | Uso |
 |---|---|
 | Texto para IA | Formato compacto (ver abaixo), várias vezes menos tokens do que JSON |
-| Mermaid | Renderiza no GitHub, Notion, Obsidian; lanes passam a `subgraph` |
+| Mermaid | Linguagem de texto para diagramas; o GitHub, Notion, Obsidian e GitLab desenham-na automaticamente. Lanes passam a `subgraph` |
 | JSON completo | Todos os dados, para reimportar |
 | PNG | 1×, 2× ou 3×, com fundo branco ou transparente, diagrama inteiro ou seleção |
 
@@ -79,6 +82,7 @@ LO2: O stock é verificado em tempo real.
 | `Ctrl C` `V` `D` | Copiar, colar, duplicar |
 | `Shift 1` / `Shift 0` | Ver tudo / 100% |
 | `Shift T` | Alternar tema |
+| `Shift L` | Mudar idioma (PT/EN) |
 | `Espaço` + arrastar | Mover o quadro |
 
 ## Dados

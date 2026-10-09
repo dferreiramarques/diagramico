@@ -146,88 +146,57 @@ button{font:inherit;color:inherit}
 </style>
 </head>
 <body>
-<canvas id="cv" tabindex="0" aria-label="Quadro do diagrama"></canvas>
-<textarea id="ta" hidden spellcheck="false" aria-label="Editar texto"></textarea>
+<canvas id="cv" tabindex="0" data-i18n-aria="board"></canvas>
+<textarea id="ta" hidden spellcheck="false" data-i18n-aria="editText"></textarea>
 
 <div class="topbar">
   <div class="panel docbox">
-    <button class="ibtn" id="btnMenu" title="Diagramas e cópias de segurança" aria-label="Diagramas"></button>
+    <button class="ibtn" id="btnMenu" data-i18n-title="menuTitle" data-i18n-aria="diagrams"></button>
     <span class="brand">Diagram<b>ico</b></span>
     <span class="sep"></span>
-    <input id="docName" aria-label="Nome do diagrama" spellcheck="false">
-    <span id="saveState">Gravado</span>
+    <input id="docName" data-i18n-aria="docName" spellcheck="false">
+    <span id="saveState"></span>
   </div>
   <div class="spacer"></div>
   <div class="panel exportbox">
-    <button class="ibtn" id="btnTheme" title="Tema" aria-label="Tema"></button>
-    <button class="btn" id="btnImg" title="Exportar imagem PNG"><span class="lbl">Exportar </span>imagem</button>
-    <button class="btn primary" id="btnText" title="Exportar texto estruturado para IA">Texto para IA</button>
+    <button class="ibtn" id="btnLang"></button>
+    <button class="ibtn" id="btnTheme"></button>
+    <button class="btn primary" id="btnExport" data-i18n="export" data-i18n-title="exportTitle"></button>
   </div>
 </div>
 
-<nav class="panel tools" id="tools" aria-label="Ferramentas"></nav>
+<nav class="panel tools" id="tools" data-i18n-aria="tools"></nav>
 <div class="panel ctxbar" id="ctx" hidden></div>
 
 <div class="panel zoom">
-  <button class="ibtn" id="zOut" title="Afastar (Ctrl −)" aria-label="Afastar"></button>
-  <button class="ibtn" id="zoomPct" title="Repor 100% (Shift 0)">100%</button>
-  <button class="ibtn" id="zIn" title="Aproximar (Ctrl +)" aria-label="Aproximar"></button>
+  <button class="ibtn" id="zOut" data-i18n-title="zoomOut" data-i18n-aria="zoomOut"></button>
+  <button class="ibtn" id="zoomPct" data-i18n-title="zoom100">100%</button>
+  <button class="ibtn" id="zIn" data-i18n-title="zoomIn" data-i18n-aria="zoomIn"></button>
   <span class="sep"></span>
-  <button class="ibtn" id="zFit" title="Ver tudo (Shift 1)" aria-label="Ver tudo"></button>
+  <button class="ibtn" id="zFit" data-i18n-title="fitAll" data-i18n-aria="fitAll"></button>
   <span class="sep"></span>
-  <button class="ibtn" id="bUndo" title="Desfazer (Ctrl Z)" aria-label="Desfazer"></button>
-  <button class="ibtn" id="bRedo" title="Refazer (Ctrl Shift Z)" aria-label="Refazer"></button>
+  <button class="ibtn" id="bUndo" data-i18n-title="undo" data-i18n-aria="undo"></button>
+  <button class="ibtn" id="bRedo" data-i18n-title="redo" data-i18n-aria="redo"></button>
 </div>
-<div class="panel helpbtn"><button class="ibtn" id="btnHelp" title="Atalhos e ajuda" aria-label="Ajuda">?</button></div>
+<div class="panel helpbtn"><button class="ibtn" id="btnHelp" data-i18n-title="help" data-i18n-aria="help">?</button></div>
 
-<div class="panel help" id="help" hidden>
-  <h3>Criar</h3>
-  <dl>
-    <dt>R · U · D</dt><dd>Passo · Ação do utilizador · Decisão</dd>
-    <dt>E · F · B</dt><dd>Ecrã · Documento · Dados</dd>
-    <dt>1 · 2 · 3 · 4</dt><dd>Início · Fim · Pausa · Mudança de lane</dd>
-    <dt>N · L · C</dt><dd>Nota · Swimlane · Conector</dd>
-    <dt>Duplo clique</dt><dd>No vazio cria um passo; numa forma edita o texto</dd>
-    <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
-    <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte</dd>
-  </dl>
-  <h3>Texto</h3>
-  <dl>
-    <dt>[ · ]</dt><dd>Diminuir · aumentar texto (a caixa acompanha)</dd>
-    <dt>Ctrl B · Ctrl I</dt><dd>Negrito · itálico (forma inteira ou seleção de texto)</dd>
-    <dt>Markdown</dt><dd><code>**negrito**</code> e <code>*itálico*</code> dentro do texto</dd>
-    <dt>Esc · Ctrl Enter</dt><dd>Terminar edição</dd>
-  </dl>
-  <h3>Navegar e editar</h3>
-  <dl>
-    <dt>Espaço + arrastar</dt><dd>Mover o quadro (ou botão do meio, ou H)</dd>
-    <dt>Roda · pinça</dt><dd>Zoom; trackpad com dois dedos desloca</dd>
-    <dt>Shift 1 · Shift 0</dt><dd>Ver tudo · 100%</dd>
-    <dt>Shift T</dt><dd>Alternar tema: automático · claro · escuro</dd>
-    <dt>Ctrl C · V · D</dt><dd>Copiar · colar · duplicar</dd>
-    <dt>Ctrl Z · Ctrl Shift Z</dt><dd>Desfazer · refazer</dd>
-    <dt>Alt ao arrastar</dt><dd>Desliga o alinhamento automático</dd>
-    <dt>Setas</dt><dd>Mover 1 px (Shift: 10 px)</dd>
-  </dl>
-  <h3>Swimlanes</h3>
-  <p style="margin:0;line-height:1.5;color:var(--muted)">Selecione pela faixa do título. Mover uma lane leva as formas que estão dentro. Na exportação para IA, cada forma pertence à lane onde está o seu centro.</p>
-</div>
+<div class="panel help" id="help" hidden data-i18n-html="helpHtml"></div>
 
 <div class="scrim" id="scrim" hidden></div>
-<aside class="drawer" id="drawer" hidden aria-label="Diagramas">
-  <header><h2>Diagramas</h2><button class="btn primary" id="btnNew">Novo</button><button class="ibtn" id="btnCloseDrawer" aria-label="Fechar"></button></header>
+<aside class="drawer" id="drawer" hidden data-i18n-aria="diagrams">
+  <header><h2 data-i18n="diagrams"></h2><button class="btn primary" id="btnNew" data-i18n="new"></button><button class="ibtn" id="btnCloseDrawer" data-i18n-aria="close"></button></header>
   <div class="doclist" id="doclist"></div>
   <footer>
-    <p>Tudo é gravado automaticamente neste browser. Guarde um pacote de cópia de segurança para mover ou proteger os diagramas.</p>
-    <button class="btn" id="btnBackup">Guardar cópia de segurança</button>
-    <button class="btn" id="btnImport">Importar…</button>
+    <p data-i18n="drawerNote"></p>
+    <button class="btn" id="btnBackup" data-i18n="backup"></button>
+    <button class="btn" id="btnImport" data-i18n="import"></button>
     <input type="file" id="fileIn" accept=".json,application/json" hidden>
   </footer>
 </aside>
 
 <div class="modal" id="modal" hidden>
   <div class="card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-    <header><h2 id="mTitle">Exportar</h2><button class="ibtn" id="mClose" aria-label="Fechar"></button></header>
+    <header><h2 id="mTitle"></h2><button class="ibtn" id="mClose" data-i18n-aria="close"></button></header>
     <div class="tabs" id="mTabs"></div>
     <div class="body" id="mBody"></div>
     <footer id="mFoot"></footer>
@@ -286,6 +255,126 @@ const ICON = {
   route: I('<path d="M5 19V9a3 3 0 013-3h11"/><path d="M16 3l3 3-3 3"/><circle cx="5" cy="19" r="1.4"/>'),
 };
 
+/* ---------- i18n ---------- */
+const I18N = {
+pt: {
+  board:'Quadro do diagrama', editText:'Editar texto', menuTitle:'Diagramas e cópias de segurança', diagrams:'Diagramas', docName:'Nome do diagrama',
+  saved:'Gravado', saving:'A gravar…', notSaved:'Não gravado', storageFail:'Este browser não permite gravar localmente. Guarde uma cópia de segurança.',
+  export:'Exportar', exportTitle:'Exportar texto para IA, Mermaid, JSON ou imagem', tools:'Ferramentas',
+  zoomOut:'Afastar (Ctrl −)', zoom100:'Repor 100% (Shift 0)', zoomIn:'Aproximar (Ctrl +)', fitAll:'Ver tudo (Shift 1)', undo:'Desfazer (Ctrl Z)', redo:'Refazer (Ctrl Shift Z)', help:'Atalhos e ajuda',
+  new:'Novo', close:'Fechar', drawerNote:'Tudo é gravado automaticamente neste browser. Guarde um pacote de cópia de segurança para mover ou proteger os diagramas.',
+  backup:'Guardar cópia de segurança', import:'Importar…', untitled:'Sem título', newLane:'Nova lane', lane:'Lane', copySuffix:' (cópia)', importedSuffix:' (importado)',
+  t_step:'Passo / processo', t_action:'Ação do utilizador', t_decision:'Decisão', t_screen:'Ecrã / interface', t_doc:'Documento', t_data:'Dados',
+  t_start:'Início', t_end:'Fim', t_pause:'Pausa / espera', t_handoff:'Mudança de lane', t_note:'Nota', t_lane:'Swimlane',
+  t_select:'Selecionar', t_hand:'Mover quadro', t_connector:'Conector',
+  l_pessoa:'Pessoa', l_equipa:'Equipa', l_departamento:'Departamento', l_sistema:'Sistema',
+  c_none:'Neutro', c_blue:'Azul', c_green:'Verde', c_yellow:'Amarelo', c_red:'Vermelho', c_violet:'Violeta', c_grey:'Cinza', color:'Cor',
+  r_auto:'automático', r_hv:'horizontal → vertical', r_vh:'vertical → horizontal', r_h:'em Z horizontal', r_v:'em Z vertical',
+  route:(a,b)=>`Percurso: ${a} (clique: ${b})`,
+  shapeType:'Tipo de forma', eventType:'Tipo de evento', laneType:'Tipo de lane', various:'Vários', addLaneBelow:'Adicionar lane por baixo',
+  smaller:'Texto menor ( [ )', bigger:'Texto maior ( ] )', bold:'Negrito (Ctrl B)', italic:'Itálico (Ctrl I)', editTextBtn:'Editar texto (Enter)',
+  sElbow:'Linha em cotovelo', sStraight:'Linha reta', sCurve:'Linha curva', aEnd:'Seta no fim', aBoth:'Setas nos dois lados', aNone:'Sem seta (associação)', dash:'Tracejado',
+  swap:'Inverter direção', edgeLabel:'Rótulo da ligação (Enter)', duplicate:'Duplicar (Ctrl D)', delete:'Apagar (Delete)',
+  copied:'Copiado', copiedClip:'Copiado para a área de transferência', selectedCopy:'Texto selecionado. Use Ctrl C para copiar.',
+  fileSaved:'Ficheiro guardado', fileFail:'Não foi possível guardar o ficheiro',
+  exportOf:'Exportar · ', tabAi:'Texto para IA', tabMermaid:'Mermaid', tabJson:'JSON completo', tabPng:'Imagem PNG',
+  onlySel:'Só a seleção', transparent:'Fundo transparente', resolution:'Resolução', preparing:'A preparar…', empty:'O diagrama está vazio.', preview:'Pré-visualização',
+  savePng:'Guardar PNG', copy:'Copiar', saveFile:'Guardar ficheiro', chars:'caracteres', tokens:'tokens',
+  hintAi:'Formato compacto para colar numa conversa com IA ou guardar como documentação. Cada forma tem um ID com o prefixo da lane, o tipo e o texto; o fluxo encadeia os IDs. Gasta muito menos tokens do que JSON.',
+  hintMermaid:'Mermaid é uma linguagem de texto para diagramas: o GitHub, Notion, Obsidian e GitLab desenham-na automaticamente e a maioria dos modelos de IA lê-a. As lanes passam a subgraphs.',
+  hintJson:'Todos os dados, incluindo posições e estilos. Use para reimportar no Diagramico.',
+  shapes:'formas', dupDiagram:'Duplicar diagrama', delDiagram:'Apagar diagrama', confirmDel:'Confirmar apagar', clickAgainDel:n=>`Clique outra vez para apagar “${n}”`,
+  imported1:'Diagrama importado', importedN:n=>`${n} diagramas importados`, importFail:'Ficheiro não reconhecido. Use um backup ou JSON exportado pelo Diagramico.',
+  th_auto:'Automático (sistema)', th_light:'Claro', th_dark:'Escuro', theme:'Tema', themeTitle:(a,b)=>`Tema: ${a} · clique para ${b}`,
+  langTitle:'Idioma: Português · mudar para English', langToast:'Idioma: Português',
+  helpHtml:`<h3>Criar</h3><dl>
+    <dt>R · U · D</dt><dd>Passo · Ação do utilizador · Decisão</dd>
+    <dt>E · F · B</dt><dd>Ecrã · Documento · Dados</dd>
+    <dt>1 · 2 · 3 · 4</dt><dd>Início · Fim · Pausa · Mudança de lane</dd>
+    <dt>N · L · C</dt><dd>Nota · Swimlane · Conector</dd>
+    <dt>Duplo clique</dt><dd>No vazio cria um passo; numa forma edita o texto</dd>
+    <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
+    <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte</dd></dl>
+  <h3>Texto</h3><dl>
+    <dt>[ · ]</dt><dd>Diminuir · aumentar texto (a caixa acompanha)</dd>
+    <dt>Ctrl B · Ctrl I</dt><dd>Negrito · itálico (forma inteira ou seleção de texto)</dd>
+    <dt>Markdown</dt><dd><code>**negrito**</code> e <code>*itálico*</code> dentro do texto</dd>
+    <dt>Esc · Ctrl Enter</dt><dd>Terminar edição</dd></dl>
+  <h3>Navegar e editar</h3><dl>
+    <dt>Espaço + arrastar</dt><dd>Mover o quadro (ou botão do meio, ou H)</dd>
+    <dt>Roda · pinça</dt><dd>Zoom; trackpad com dois dedos desloca</dd>
+    <dt>Shift 1 · Shift 0</dt><dd>Ver tudo · 100%</dd>
+    <dt>Shift T</dt><dd>Alternar tema: automático · claro · escuro</dd>
+    <dt>Shift L</dt><dd>Mudar idioma: português · inglês</dd>
+    <dt>Ctrl C · V · D</dt><dd>Copiar · colar · duplicar</dd>
+    <dt>Ctrl Z · Ctrl Shift Z</dt><dd>Desfazer · refazer</dd>
+    <dt>Alt ao arrastar</dt><dd>Desliga o alinhamento automático</dd>
+    <dt>Setas</dt><dd>Mover 1 px (Shift: 10 px)</dd></dl>
+  <h3>Swimlanes</h3>
+  <p style="margin:0;line-height:1.5;color:var(--muted)">Selecione pela faixa do título. Mover uma lane leva as formas que estão dentro. Na exportação para IA, cada forma pertence à lane onde está o seu centro.</p>`,
+},
+en: {
+  board:'Diagram board', editText:'Edit text', menuTitle:'Diagrams and backups', diagrams:'Diagrams', docName:'Diagram name',
+  saved:'Saved', saving:'Saving…', notSaved:'Not saved', storageFail:'This browser does not allow local saving. Download a backup.',
+  export:'Export', exportTitle:'Export AI text, Mermaid, JSON or image', tools:'Tools',
+  zoomOut:'Zoom out (Ctrl −)', zoom100:'Reset to 100% (Shift 0)', zoomIn:'Zoom in (Ctrl +)', fitAll:'Fit all (Shift 1)', undo:'Undo (Ctrl Z)', redo:'Redo (Ctrl Shift Z)', help:'Shortcuts and help',
+  new:'New', close:'Close', drawerNote:'Everything is saved automatically in this browser. Download a backup package to move or protect your diagrams.',
+  backup:'Download backup', import:'Import…', untitled:'Untitled', newLane:'New lane', lane:'Lane', copySuffix:' (copy)', importedSuffix:' (imported)',
+  t_step:'Step / process', t_action:'User action', t_decision:'Decision', t_screen:'Screen / interface', t_doc:'Document', t_data:'Data',
+  t_start:'Start', t_end:'End', t_pause:'Pause / wait', t_handoff:'Lane handoff', t_note:'Note', t_lane:'Swimlane',
+  t_select:'Select', t_hand:'Pan board', t_connector:'Connector',
+  l_pessoa:'Person', l_equipa:'Team', l_departamento:'Department', l_sistema:'System',
+  c_none:'Neutral', c_blue:'Blue', c_green:'Green', c_yellow:'Yellow', c_red:'Red', c_violet:'Violet', c_grey:'Grey', color:'Colour',
+  r_auto:'automatic', r_hv:'horizontal → vertical', r_vh:'vertical → horizontal', r_h:'Z horizontal', r_v:'Z vertical',
+  route:(a,b)=>`Route: ${a} (click: ${b})`,
+  shapeType:'Shape type', eventType:'Event type', laneType:'Lane type', various:'Mixed', addLaneBelow:'Add lane below',
+  smaller:'Smaller text ( [ )', bigger:'Larger text ( ] )', bold:'Bold (Ctrl B)', italic:'Italic (Ctrl I)', editTextBtn:'Edit text (Enter)',
+  sElbow:'Elbow line', sStraight:'Straight line', sCurve:'Curved line', aEnd:'Arrow at end', aBoth:'Arrows both ends', aNone:'No arrow (association)', dash:'Dashed',
+  swap:'Reverse direction', edgeLabel:'Connector label (Enter)', duplicate:'Duplicate (Ctrl D)', delete:'Delete (Delete)',
+  copied:'Copied', copiedClip:'Copied to clipboard', selectedCopy:'Text selected. Press Ctrl C to copy.',
+  fileSaved:'File saved', fileFail:'Could not save the file',
+  exportOf:'Export · ', tabAi:'AI text', tabMermaid:'Mermaid', tabJson:'Full JSON', tabPng:'PNG image',
+  onlySel:'Selection only', transparent:'Transparent background', resolution:'Resolution', preparing:'Preparing…', empty:'The diagram is empty.', preview:'Preview',
+  savePng:'Save PNG', copy:'Copy', saveFile:'Save file', chars:'characters', tokens:'tokens',
+  hintAi:'Compact format to paste into an AI chat or keep as documentation. Each shape has an ID with its lane prefix, a type and its text; the flow chains the IDs. Uses far fewer tokens than JSON.',
+  hintMermaid:'Mermaid is a text language for diagrams: GitHub, Notion, Obsidian and GitLab draw it automatically, and most AI models read it. Lanes become subgraphs.',
+  hintJson:'All data, including positions and styles. Use it to re-import into Diagramico.',
+  shapes:'shapes', dupDiagram:'Duplicate diagram', delDiagram:'Delete diagram', confirmDel:'Confirm delete', clickAgainDel:n=>`Click again to delete “${n}”`,
+  imported1:'Diagram imported', importedN:n=>`${n} diagrams imported`, importFail:'File not recognised. Use a backup or JSON exported by Diagramico.',
+  th_auto:'Automatic (system)', th_light:'Light', th_dark:'Dark', theme:'Theme', themeTitle:(a,b)=>`Theme: ${a} · click for ${b}`,
+  langTitle:'Language: English · switch to Português', langToast:'Language: English',
+  helpHtml:`<h3>Create</h3><dl>
+    <dt>R · U · D</dt><dd>Step · User action · Decision</dd>
+    <dt>E · F · B</dt><dd>Screen · Document · Data</dd>
+    <dt>1 · 2 · 3 · 4</dt><dd>Start · End · Pause · Lane handoff</dd>
+    <dt>N · L · C</dt><dd>Note · Swimlane · Connector</dd>
+    <dt>Double-click</dt><dd>On empty space creates a step; on a shape edits its text</dd>
+    <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
+    <dt>Side dots</dt><dd>Drag to connect; click to create the next shape</dd></dl>
+  <h3>Text</h3><dl>
+    <dt>[ · ]</dt><dd>Smaller · larger text (the box follows)</dd>
+    <dt>Ctrl B · Ctrl I</dt><dd>Bold · italic (whole shape or selected text)</dd>
+    <dt>Markdown</dt><dd><code>**bold**</code> and <code>*italic*</code> inside the text</dd>
+    <dt>Esc · Ctrl Enter</dt><dd>Finish editing</dd></dl>
+  <h3>Navigate and edit</h3><dl>
+    <dt>Space + drag</dt><dd>Pan the board (or middle button, or H)</dd>
+    <dt>Wheel · pinch</dt><dd>Zoom; two-finger trackpad scroll pans</dd>
+    <dt>Shift 1 · Shift 0</dt><dd>Fit all · 100%</dd>
+    <dt>Shift T</dt><dd>Switch theme: automatic · light · dark</dd>
+    <dt>Shift L</dt><dd>Switch language: Portuguese · English</dd>
+    <dt>Ctrl C · V · D</dt><dd>Copy · paste · duplicate</dd>
+    <dt>Ctrl Z · Ctrl Shift Z</dt><dd>Undo · redo</dd>
+    <dt>Alt while dragging</dt><dd>Turns off smart alignment</dd>
+    <dt>Arrows</dt><dd>Move 1 px (Shift: 10 px)</dd></dl>
+  <h3>Swimlanes</h3>
+  <p style="margin:0;line-height:1.5;color:var(--muted)">Select a lane by its title band. Moving a lane carries the shapes inside it. In the AI export, each shape belongs to the lane that contains its centre.</p>`,
+}};
+const LANG_KEY = 'diagramico.lang';
+let lang = 'pt';
+try { lang = localStorage.getItem(LANG_KEY) || ((navigator.language||'').toLowerCase().startsWith('pt') ? 'pt' : 'en'); } catch(e){ lang = (navigator.language||'').toLowerCase().startsWith('pt') ? 'pt' : 'en'; }
+if (!I18N[lang]) lang = 'en';
+const T = (k, ...a) => { const v = I18N[lang][k] ?? I18N.pt[k] ?? k; return typeof v === 'function' ? v(...a) : v; };
+
 /* ---------- model ---------- */
 const TYPES = {
   step:{name:'Passo / processo', key:'r'},
@@ -303,10 +392,9 @@ const TYPES = {
 };
 const EVENTS = new Set(['start','end','pause','handoff']);
 const BOXES = ['step','action','decision','screen','doc','data'];
-const LANE_TYPES = {pessoa:'Pessoa', equipa:'Equipa', departamento:'Departamento', sistema:'Sistema'};
+const LANE_TYPES = {pessoa:'person', equipa:'team', departamento:'department', sistema:'system'};
 const FS = [10,12,14,16,18,20,24,28,32,40,48,64,80];
 const COLORS = ['none','blue','green','yellow','red','violet','grey'];
-const COLOR_NAMES = {none:'Neutro',blue:'Azul',green:'Verde',yellow:'Amarelo',red:'Vermelho',violet:'Violeta',grey:'Cinza'};
 const PAL = {
   light:{ bg:'#f3f4f7', dot:'#c5cad6', ink:'#1b1f2a', muted:'#646b7b', edge:'#3b4252', accent:'#3347d4', accentSoft:'rgba(51,71,212,.12)',
     laneBody:'rgba(40,52,90,.035)', laneHead:'rgba(40,52,90,.075)', laneLine:'#c3c9d6', labelBg:'#f3f4f7', noteShadow:'rgba(30,30,10,.14)',
@@ -331,29 +419,31 @@ if (!store || !store.docs) { store = {docs:{}, current:null}; }
 let doc = null;
 
 function sampleDoc(){
-  const d = {id:uid('d'), name:'Exemplo · Compra na loja online', created:Date.now(), updated:Date.now(), nodes:[], edges:[], view:null};
+  const en = lang === 'en';
+  const X = (pt, eng) => en ? eng : pt;
+  const d = {id:uid('d'), name:X('Exemplo · Compra na loja online','Example · Online store purchase'), created:Date.now(), updated:Date.now(), nodes:[], edges:[], view:null};
   const L = (id,name,lt,y)=>d.nodes.push({id,type:'lane',x:0,y,w:1320,h:180,text:name,laneType:lt,fs:14,color:'none'});
-  L('l1','Cliente','pessoa',0); L('l2','Loja online','sistema',180); L('l3','Armazém','equipa',360);
+  L('l1',X('Cliente','Customer'),'pessoa',0); L('l2',X('Loja online','Online store'),'sistema',180); L('l3',X('Armazém','Warehouse'),'equipa',360);
   const N=(id,type,x,y,text,extra={})=>d.nodes.push(Object.assign({id,type,x,y,text,fs:14,b:false,i:false,color:'none'},extra));
-  N('a','start',110,90,'Abre a app');
-  N('b','action',270,90,'Pesquisa **produto**');
-  N('c','step',450,270,'Mostra resultados');
-  N('d','action',630,90,'Adiciona ao carrinho');
-  N('e','decision',810,270,'Há stock?');
-  N('f','screen',1010,90,'Pagamento');
-  N('g','end',1200,90,'Compra concluída');
-  N('h','handoff',810,450,'Pedido ao armazém');
-  N('i','pause',1010,450,'Aguarda reposição\n*até 24 h*');
-  N('m','doc',1190,270,'Email de\nproduto reposto');
-  N('j','data',450,450,'Inventário');
-  N('k','note',1000,-120,'Exemplo. O stock é verificado em tempo real contra o **Inventário**.',{fs:12});
+  N('a','start',110,90,X('Abre a app','Opens the app'));
+  N('b','action',270,90,X('Pesquisa **produto**','Searches **product**'));
+  N('c','step',450,270,X('Mostra resultados','Shows results'));
+  N('d','action',630,90,X('Adiciona ao carrinho','Adds to cart'));
+  N('e','decision',810,270,X('Há stock?','In stock?'));
+  N('f','screen',1010,90,X('Pagamento','Checkout'));
+  N('g','end',1200,90,X('Compra concluída','Purchase complete'));
+  N('h','handoff',810,450,X('Pedido ao armazém','Request to warehouse'));
+  N('i','pause',1010,450,X('Aguarda reposição\n*até 24 h*','Waits for restock\n*up to 24 h*'));
+  N('m','doc',1190,270,X('Email de\nproduto reposto','Back-in-stock\nemail'));
+  N('j','data',450,450,X('Inventário','Inventory'));
+  N('k','note',1000,-120,X('Exemplo. O stock é verificado em tempo real contra o **Inventário**.','Example. Stock is checked in real time against the **Inventory**.'),{fs:12});
   const E=(from,to,label='',o={})=>d.edges.push(Object.assign({id:uid('e'),from,to,label,style:'elbow',arrow:'end',dash:false},o));
-  E('a','b'); E('b','c'); E('c','d'); E('d','e'); E('e','f','sim'); E('f','g'); E('e','h','não'); E('h','i'); E('i','m','reposto');
-  E('c','j','consulta',{dash:true,arrow:'none'}); E('k','e','',{dash:true,arrow:'none',style:'straight'});
+  E('a','b'); E('b','c'); E('c','d'); E('d','e'); E('e','f',X('sim','yes')); E('f','g'); E('e','h',X('não','no')); E('h','i'); E('i','m',X('reposto','restocked'));
+  E('c','j',X('consulta','reads'),{dash:true,arrow:'none'}); E('k','e','',{dash:true,arrow:'none',style:'straight'});
   return d;
 }
 function newDoc(name){
-  const d = {id:uid('d'), name:name||'Sem título', created:Date.now(), updated:Date.now(), nodes:[], edges:[], view:null};
+  const d = {id:uid('d'), name:name||T('untitled'), created:Date.now(), updated:Date.now(), nodes:[], edges:[], view:null};
   store.docs[d.id] = d; return d;
 }
 if (!Object.keys(store.docs).length) { const s = sampleDoc(); store.docs[s.id] = s; store.current = s.id; }
@@ -361,10 +451,10 @@ if (!store.docs[store.current]) store.current = Object.values(store.docs).sort((
 
 let saveTimer = null;
 function persistNow(){
-  try { localStorage.setItem(KEY, JSON.stringify(store)); storageOk = true; $('#saveState').textContent = 'Gravado'; }
-  catch(e){ storageOk = false; $('#saveState').textContent = 'Não gravado'; toast('Este browser não permite gravar localmente. Guarde uma cópia de segurança.'); }
+  try { localStorage.setItem(KEY, JSON.stringify(store)); storageOk = true; $('#saveState').textContent = T('saved'); }
+  catch(e){ storageOk = false; $('#saveState').textContent = T('notSaved'); toast(T('storageFail')); }
 }
-function scheduleSave(){ $('#saveState').textContent = 'A gravar…'; clearTimeout(saveTimer); saveTimer = setTimeout(persistNow, 450); }
+function scheduleSave(){ $('#saveState').textContent = T('saving'); clearTimeout(saveTimer); saveTimer = setTimeout(persistNow, 450); }
 
 /* ---------- state ---------- */
 const S = { tool:'select', sel:new Set(), hover:null, hoverHandle:null, editing:null, space:false, guides:[], connect:null, marquee:null };
@@ -505,7 +595,6 @@ function routeMode(e, a, b){
   return 'z';
 }
 const ROUTES = ['auto','hv','vh','h','v'];
-const ROUTE_NAMES = {auto:'automático', hv:'horizontal → vertical', vh:'vertical → horizontal', h:'em Z horizontal', v:'em Z vertical'};
 function route(e){
   const a = N(e.from), b = N(e.to); if (!a || !b) return null;
   const mode = routeMode(e, a, b), {dx, dy} = gaps(a, b);
@@ -575,7 +664,7 @@ function drawLane(c, n, pal, opts){
   if (opts.editing !== n.id){
     c.save(); c.translate(n.x + g.hw/2, n.y + n.h/2); c.rotate(-Math.PI/2);
     const L = layoutText(n.text||'', fs, true, n.i, false, Math.max(40, n.h - fs*2));
-    const cap = LANE_TYPES[n.laneType] ? LANE_TYPES[n.laneType].toUpperCase() : '';
+    const cap = LANE_TYPES[n.laneType] ? T('l_'+n.laneType).toUpperCase() : '';
     drawText(c, L, 0, cap ? -fs*0.45 : 0, fs, false, 'center', pal.ink);
     if (cap){ c.font = `500 ${fs*0.62}px ${MONO}`; c.fillStyle = pal.muted; c.textAlign='center'; c.textBaseline='middle'; c.fillText(cap.split('').join(' '), 0, L.h/2 + fs*0.2); }
     c.restore();
@@ -754,7 +843,7 @@ function handleNode(){
 /* ---------- mutations ---------- */
 function addNode(type, x, y, extra={}){
   const n = type === 'lane'
-    ? {id:uid('n'), type, x, y, w:1100, h:180, text:'Nova lane', laneType:'pessoa', fs:14, color:'none'}
+    ? {id:uid('n'), type, x, y, w:1100, h:180, text:T('newLane'), laneType:'pessoa', fs:14, color:'none'}
     : {id:uid('n'), type, x, y, text:'', fs: type === 'note' ? 12 : 14, b:false, i:false, color:'none'};
   Object.assign(n, extra);
   if (type === 'lane') doc.nodes.unshift(n); else doc.nodes.push(n);
@@ -845,7 +934,7 @@ function endEdit(){
   const n = N(ed.id), e = n ? null : E(ed.id);
   const now = n ? n.text : e ? e.label : null;
   if (now === ed.before) undoS.pop();
-  if (n && n.type === 'lane' && !n.text.trim()) n.text = 'Lane';
+  if (n && n.type === 'lane' && !n.text.trim()) n.text = T('lane');
   changed(); cv.focus({preventScroll:true});
 }
 ta.addEventListener('input', () => {
@@ -1061,7 +1150,7 @@ window.addEventListener('keydown', e => {
   if (mod && k === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (mod && k === 'y'){ e.preventDefault(); redo(); return; }
   if (mod && k === 'a'){ e.preventDefault(); S.sel = new Set([...doc.nodes.map(n=>n.id), ...doc.edges.map(x=>x.id)]); draw(); return; }
-  if (mod && k === 'c'){ if (copySel()) { e.preventDefault(); toast('Copiado'); } return; }
+  if (mod && k === 'c'){ if (copySel()) { e.preventDefault(); toast(T('copied')); } return; }
   if (mod && k === 'x'){ if (copySel()){ e.preventDefault(); deleteSel(); } return; }
   if (mod && k === 'v'){ if (clip){ e.preventDefault(); paste(); } return; }
   if (mod && k === 'd'){ e.preventDefault(); if (copySel()) paste(); return; }
@@ -1073,6 +1162,7 @@ window.addEventListener('keydown', e => {
   if (e.shiftKey && e.code === 'Digit1'){ fit(); return; }
   if (e.shiftKey && e.code === 'Digit0'){ setZoom(1); return; }
   if (e.shiftKey && k === 't'){ $('#btnTheme').click(); return; }
+  if (e.shiftKey && k === 'l'){ $('#btnLang').click(); return; }
   if (e.key === 'Escape'){ if (S.tool !== 'select') setTool('select'); else { S.sel = new Set(); } closePopovers(); draw(); return; }
   if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); deleteSel(); return; }
   if (e.key === 'Enter' && S.sel.size === 1){ e.preventDefault(); startEdit([...S.sel][0]); return; }
@@ -1101,13 +1191,13 @@ function setProp(list, prop, val){ checkpoint(); list.forEach(x => x[prop] = val
 
 /* ---------- tool rail ---------- */
 const TOOL_GROUPS = [['select','hand'],['step','action','decision','screen','doc','data'],['start','end','pause','handoff'],['note','lane','connector']];
-const TOOL_LABEL = {select:['Selecionar','V'], hand:['Mover quadro','H'], connector:['Conector','C']};
+const TOOL_KEY = {select:'V', hand:'H', connector:'C'};
 function buildTools(){
   const el = $('#tools'); el.innerHTML = '';
   TOOL_GROUPS.forEach((g, gi) => {
     if (gi) { const s = document.createElement('div'); s.className = 'hsep'; el.appendChild(s); }
     for (const t of g){
-      const [label, key] = TYPES[t] ? [TYPES[t].name, TYPES[t].key.toUpperCase()] : TOOL_LABEL[t];
+      const label = T('t_'+t), key = TYPES[t] ? TYPES[t].key.toUpperCase() : TOOL_KEY[t];
       const b = document.createElement('button'); b.className = 'ibtn'; b.dataset.tool = t; b.setAttribute('aria-label', `${label} (${key})`);
       b.innerHTML = ICON[t] + `<span class="k">${key}</span>`;
       b.onclick = () => setTool(t);
@@ -1129,7 +1219,7 @@ function sepEl(){ const s = document.createElement('span'); s.className = 'sep';
 function swatches(list){
   const row = document.createElement('div'); row.className = 'swrow';
   const cur = list.length && list.every(n => (n.color||'none') === (list[0].color||'none')) ? (list[0].color||'none') : null;
-  for (const c of COLORS){ const s = document.createElement('button'); s.className = 'sw' + (cur === c ? ' on' : ''); s.title = COLOR_NAMES[c]; s.setAttribute('aria-label', 'Cor ' + COLOR_NAMES[c]);
+  for (const c of COLORS){ const s = document.createElement('button'); s.className = 'sw' + (cur === c ? ' on' : ''); s.title = T('c_'+c); s.setAttribute('aria-label', T('color') + ' ' + T('c_'+c));
     s.style.background = c === 'none' ? P.fill.none : P.fill[c]; s.style.borderColor = c === 'none' ? P.stroke.none : P.stroke[c];
     s.onclick = () => setProp(list, 'color', c); row.appendChild(s); }
   return row;
@@ -1157,57 +1247,57 @@ function buildCtx(ns, es){
   const shapes = ns.filter(n => n.type !== 'lane'), lanes = ns.filter(n => n.type === 'lane');
   if (ns.length){
     if (shapes.length && shapes.every(n => BOXES.includes(n.type) || n.type === 'note') ){
-      const s = document.createElement('select'); s.title = 'Tipo de forma'; s.setAttribute('aria-label','Tipo de forma');
+      const s = document.createElement('select'); s.title = T('shapeType'); s.setAttribute('aria-label',T('shapeType'));
       const cur = shapes.every(n=>n.type===shapes[0].type) ? shapes[0].type : '';
-      if (!cur){ const o = document.createElement('option'); o.textContent = 'Vários'; o.value = ''; s.appendChild(o); }
-      for (const t of [...BOXES,'note']){ const o = document.createElement('option'); o.value = t; o.textContent = TYPES[t].name; if (t === cur) o.selected = true; s.appendChild(o); }
+      if (!cur){ const o = document.createElement('option'); o.textContent = T('various'); o.value = ''; s.appendChild(o); }
+      for (const t of [...BOXES,'note']){ const o = document.createElement('option'); o.value = t; o.textContent = T('t_'+t); if (t === cur) o.selected = true; s.appendChild(o); }
       s.onchange = () => { if (s.value) setProp(shapes, 'type', s.value); };
       ctxEl.appendChild(s); ctxEl.appendChild(sepEl());
     } else if (shapes.length && shapes.every(n => EVENTS.has(n.type))){
-      const s = document.createElement('select'); s.title = 'Tipo de evento'; s.setAttribute('aria-label','Tipo de evento');
+      const s = document.createElement('select'); s.title = T('eventType'); s.setAttribute('aria-label',T('eventType'));
       const cur = shapes.every(n=>n.type===shapes[0].type) ? shapes[0].type : '';
-      for (const t of EVENTS){ const o = document.createElement('option'); o.value = t; o.textContent = TYPES[t].name; if (t === cur) o.selected = true; s.appendChild(o); }
+      for (const t of EVENTS){ const o = document.createElement('option'); o.value = t; o.textContent = T('t_'+t); if (t === cur) o.selected = true; s.appendChild(o); }
       s.onchange = () => setProp(shapes, 'type', s.value);
       ctxEl.appendChild(s); ctxEl.appendChild(sepEl());
     }
     if (lanes.length && !shapes.length){
-      const s = document.createElement('select'); s.title = 'Tipo de lane'; s.setAttribute('aria-label','Tipo de lane');
-      for (const [v,l] of Object.entries(LANE_TYPES)){ const o = document.createElement('option'); o.value = v; o.textContent = l; if (lanes[0].laneType === v) o.selected = true; s.appendChild(o); }
+      const s = document.createElement('select'); s.title = T('laneType'); s.setAttribute('aria-label',T('laneType'));
+      for (const v of Object.keys(LANE_TYPES)){ const o = document.createElement('option'); o.value = v; o.textContent = T('l_'+v); if (lanes[0].laneType === v) o.selected = true; s.appendChild(o); }
       s.onchange = () => setProp(lanes, 'laneType', s.value);
       ctxEl.appendChild(s);
-      if (lanes.length === 1) ctxEl.appendChild(btn(ICON.laneAdd, 'Adicionar lane por baixo', () => { const l = lanes[0]; checkpoint(); const n = addNode('lane', l.x, l.y + l.h, {w:l.w, h:l.h, laneType:l.laneType}); S.sel = new Set([n.id]); changed(); startEdit(n.id); }));
+      if (lanes.length === 1) ctxEl.appendChild(btn(ICON.laneAdd, T('addLaneBelow'), () => { const l = lanes[0]; checkpoint(); const n = addNode('lane', l.x, l.y + l.h, {w:l.w, h:l.h, laneType:l.laneType}); S.sel = new Set([n.id]); changed(); startEdit(n.id); }));
       ctxEl.appendChild(sepEl());
     }
-    ctxEl.appendChild(btn(ICON.minus, 'Texto menor ( [ )', () => bumpFont(-1)));
+    ctxEl.appendChild(btn(ICON.minus, T('smaller'), () => bumpFont(-1)));
     const f = document.createElement('span'); f.className = 'fs'; f.textContent = ns.every(n => (n.fs||14) === (ns[0].fs||14)) ? (ns[0].fs||14) : '–'; ctxEl.appendChild(f);
-    ctxEl.appendChild(btn(ICON.plus, 'Texto maior ( ] )', () => bumpFont(1)));
+    ctxEl.appendChild(btn(ICON.plus, T('bigger'), () => bumpFont(1)));
     if (shapes.length){
-      ctxEl.appendChild(btn(ICON.bold, 'Negrito (Ctrl B)', () => toggleStyle('b'), shapes.every(n=>n.b)));
-      ctxEl.appendChild(btn(ICON.italic, 'Itálico (Ctrl I)', () => toggleStyle('i'), shapes.every(n=>n.i)));
+      ctxEl.appendChild(btn(ICON.bold, T('bold'), () => toggleStyle('b'), shapes.every(n=>n.b)));
+      ctxEl.appendChild(btn(ICON.italic, T('italic'), () => toggleStyle('i'), shapes.every(n=>n.i)));
     }
     ctxEl.appendChild(sepEl());
     ctxEl.appendChild(swatches(ns));
     ctxEl.appendChild(sepEl());
-    if (ns.length === 1) ctxEl.appendChild(btn(ICON.edit, 'Editar texto (Enter)', () => startEdit(ns[0].id)));
+    if (ns.length === 1) ctxEl.appendChild(btn(ICON.edit, T('editTextBtn'), () => startEdit(ns[0].id)));
   }
   if (es.length && !ns.length){
     const st = es[0].style, ar = es[0].arrow;
-    ctxEl.appendChild(btn(ICON.sElbow, 'Linha em cotovelo', () => setProp(es,'style','elbow'), st==='elbow'));
-    ctxEl.appendChild(btn(ICON.sStraight, 'Linha reta', () => setProp(es,'style','straight'), st==='straight'));
-    ctxEl.appendChild(btn(ICON.sCurve, 'Linha curva', () => setProp(es,'style','curve'), st==='curve'));
+    ctxEl.appendChild(btn(ICON.sElbow, T('sElbow'), () => setProp(es,'style','elbow'), st==='elbow'));
+    ctxEl.appendChild(btn(ICON.sStraight, T('sStraight'), () => setProp(es,'style','straight'), st==='straight'));
+    ctxEl.appendChild(btn(ICON.sCurve, T('sCurve'), () => setProp(es,'style','curve'), st==='curve'));
     if (st === 'elbow'){ const cur = es[0].route || 'auto', nx = ROUTES[(ROUTES.indexOf(cur)+1) % ROUTES.length];
-      ctxEl.appendChild(btn(ICON.route, `Percurso: ${ROUTE_NAMES[cur]} (clique: ${ROUTE_NAMES[nx]})`, () => setProp(es,'route',nx), cur !== 'auto')); }
+      ctxEl.appendChild(btn(ICON.route, T('route', T('r_'+cur), T('r_'+nx)), () => setProp(es,'route',nx), cur !== 'auto')); }
     ctxEl.appendChild(sepEl());
-    ctxEl.appendChild(btn(ICON.aEnd, 'Seta no fim', () => setProp(es,'arrow','end'), ar==='end'));
-    ctxEl.appendChild(btn(ICON.aBoth, 'Setas nos dois lados', () => setProp(es,'arrow','both'), ar==='both'));
-    ctxEl.appendChild(btn(ICON.aNone, 'Sem seta (associação)', () => setProp(es,'arrow','none'), ar==='none'));
-    ctxEl.appendChild(btn(ICON.dash, 'Tracejado', () => setProp(es,'dash',!es.every(e=>e.dash)), es.every(e=>e.dash)));
+    ctxEl.appendChild(btn(ICON.aEnd, T('aEnd'), () => setProp(es,'arrow','end'), ar==='end'));
+    ctxEl.appendChild(btn(ICON.aBoth, T('aBoth'), () => setProp(es,'arrow','both'), ar==='both'));
+    ctxEl.appendChild(btn(ICON.aNone, T('aNone'), () => setProp(es,'arrow','none'), ar==='none'));
+    ctxEl.appendChild(btn(ICON.dash, T('dash'), () => setProp(es,'dash',!es.every(e=>e.dash)), es.every(e=>e.dash)));
     ctxEl.appendChild(sepEl());
-    ctxEl.appendChild(btn(ICON.swap, 'Inverter direção', () => { checkpoint(); es.forEach(e => { const t = e.from; e.from = e.to; e.to = t; }); changed(); }));
-    if (es.length === 1) ctxEl.appendChild(btn(ICON.edit, 'Rótulo da ligação (Enter)', () => startEdit(es[0].id)));
+    ctxEl.appendChild(btn(ICON.swap, T('swap'), () => { checkpoint(); es.forEach(e => { const t = e.from; e.from = e.to; e.to = t; }); changed(); }));
+    if (es.length === 1) ctxEl.appendChild(btn(ICON.edit, T('edgeLabel'), () => startEdit(es[0].id)));
   }
-  ctxEl.appendChild(btn(ICON.copy, 'Duplicar (Ctrl D)', () => { if (copySel()) paste(); }));
-  ctxEl.appendChild(btn(ICON.trash, 'Apagar (Delete)', deleteSel));
+  ctxEl.appendChild(btn(ICON.copy, T('duplicate'), () => { if (copySel()) paste(); }));
+  ctxEl.appendChild(btn(ICON.trash, T('delete'), deleteSel));
 }
 
 /* ---------- AI text export ---------- */
@@ -1236,7 +1326,7 @@ function exportAI(d){
   const out = [];
   out.push(`DIAGRAM: ${clean(d.name)}`);
   out.push(`SYNTAX: node = "ID type: text"; ID prefix = lane. Flow: "A > B" directed, "A > B [x]" labelled branch, "A <> B" both ways, "A - B" link, "A ~> B" / "A ~ B" dashed = indirect or data access. **bold** *italic* = emphasis. " | " = line break.`);
-  if (lanes.length){ out.push('', 'LANES:'); for (const l of lanes) out.push(`${laneCode.get(l.id)} = ${clean(l.text)} (${l.laneType ? (LANE_TYPES[l.laneType]||l.laneType).toLowerCase() : 'lane'})`); }
+  if (lanes.length){ out.push('', 'LANES:'); for (const l of lanes) out.push(`${laneCode.get(l.id)} = ${clean(l.text)} (${l.laneType ? (LANE_TYPES[l.laneType]||l.laneType) : 'lane'})`); }
   out.push('', 'NODES:');
   const order = [...lanes.map(l=>l.id), '_'];
   for (const key of order){ const list = groups.get(key); if (!list) continue; for (const n of list) out.push(`${ids.get(n.id)} ${AI_TYPE[n.type]}${n.text && clean(n.text) ? ': ' + clean(n.text) : ''}`); }
@@ -1279,7 +1369,7 @@ function exportMermaid(d){
   const {lanes, laneCode, groups, ids} = buildIds(d);
   const sh = (n) => { const t = mmEsc(n.text); switch (n.type){
     case 'step': return `["${t}"]`; case 'action': return `[/"${t}"/]`; case 'decision': return `{"${t}"}`; case 'screen': return `[["${t}"]]`;
-    case 'doc': return `>"${t}"]`; case 'data': return `[("${t}")]`; case 'start': return `(("${t === ' ' ? 'início' : t}"))`; case 'end': return `((("${t === ' ' ? 'fim' : t}")))`;
+    case 'doc': return `>"${t}"]`; case 'data': return `[("${t}")]`; case 'start': return `(("${t === ' ' ? T('t_start').toLowerCase() : t}"))`; case 'end': return `((("${t === ' ' ? T('t_end').toLowerCase() : t}")))`;
     case 'pause': return `(("⏸ ${t}"))`; case 'handoff': return `(("⇄ ${t}"))`; default: return `["${t}"]`; } };
   const out = ['flowchart LR'];
   for (const l of lanes){ const list = groups.get(l.id); if (!list) continue; out.push(`  subgraph ${laneCode.get(l.id)}["${mmEsc(l.text)}"]`); out.push('    direction LR'); for (const n of list) out.push(`    ${ids.get(n.id)}${sh(n)}`); out.push('  end'); }
@@ -1320,13 +1410,13 @@ async function renderPNG(onlySel, scale, transparent){
 const dlP = (window.claude && window.claude.use) ? Promise.resolve(window.claude.use('downloads')).catch(()=>null) : Promise.resolve(null);
 async function saveFile(name, data){
   const dl = await dlP;
-  if (dl){ try { await dl.save({filename:name, data}); toast('Ficheiro guardado'); } catch(err){ if (err && err.code === 'declined') return; toast('Não foi possível guardar o ficheiro' + (err && err.message ? ': ' + err.message : '')); } return; }
+  if (dl){ try { await dl.save({filename:name, data}); toast(T('fileSaved')); } catch(err){ if (err && err.code === 'declined') return; toast(T('fileFail') + (err && err.message ? ': ' + err.message : '')); } return; }
   const blob = data instanceof Blob ? data : new Blob([data], {type:'application/octet-stream'});
   const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 3000);
 }
 const slug = s => (clean(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'diagrama').slice(0,60);
 const today = () => new Date().toISOString().slice(0,10);
-async function copyText(t){ try { await navigator.clipboard.writeText(t); toast('Copiado para a área de transferência'); } catch(e){ const pre = $('#mBody pre'); if (pre){ const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } toast('Texto selecionado. Use Ctrl C para copiar.'); } }
+async function copyText(t){ try { await navigator.clipboard.writeText(t); toast(T('copiedClip')); } catch(e){ const pre = $('#mBody pre'); if (pre){ const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } toast(T('selectedCopy')); } }
 
 /* ---------- modal ---------- */
 let modalTab = 'ai';
@@ -1336,36 +1426,36 @@ function openExport(tab){
 function closeModal(){ $('#modal').hidden = true; if (lastImgUrl){ URL.revokeObjectURL(lastImgUrl); lastImgUrl = null; } cv.focus({preventScroll:true}); }
 let lastImgUrl = null, imgOpts = {sel:false, scale:2, transparent:false};
 function renderModal(){
-  const tabs = [['ai','Texto para IA'],['mermaid','Mermaid'],['json','JSON completo'],['png','Imagem PNG']];
-  $('#mTitle').textContent = 'Exportar · ' + doc.name;
-  const T = $('#mTabs'); T.innerHTML = '';
-  for (const [k,l] of tabs){ const b = document.createElement('button'); b.textContent = l; b.className = modalTab === k ? 'on' : ''; b.onclick = () => { modalTab = k; renderModal(); }; T.appendChild(b); }
+  const tabs = [['ai',T('tabAi')],['mermaid',T('tabMermaid')],['json',T('tabJson')],['png',T('tabPng')]];
+  $('#mTitle').textContent = T('exportOf') + doc.name;
+  const tabsEl = $('#mTabs'); tabsEl.innerHTML = '';
+  for (const [k,l] of tabs){ const b = document.createElement('button'); b.textContent = l; b.className = modalTab === k ? 'on' : ''; b.onclick = () => { modalTab = k; renderModal(); }; tabsEl.appendChild(b); }
   const body = $('#mBody'), foot = $('#mFoot'); body.innerHTML = ''; foot.innerHTML = '';
   if (modalTab === 'png'){
     const o = document.createElement('div'); o.className = 'opts';
-    o.innerHTML = `<label><input type="checkbox" id="oSel" ${imgOpts.sel?'checked':''} ${S.sel.size?'':'disabled'}> Só a seleção</label>
-      <label><input type="checkbox" id="oTr" ${imgOpts.transparent?'checked':''}> Fundo transparente</label>
-      <label>Resolução <select id="oSc"><option value="1">1×</option><option value="2">2×</option><option value="3">3×</option></select></label>`;
+    o.innerHTML = `<label><input type="checkbox" id="oSel" ${imgOpts.sel?'checked':''} ${S.sel.size?'':'disabled'}> ${T('onlySel')}</label>
+      <label><input type="checkbox" id="oTr" ${imgOpts.transparent?'checked':''}> ${T('transparent')}</label>
+      <label>${T('resolution')} <select id="oSc"><option value="1">1×</option><option value="2">2×</option><option value="3">3×</option></select></label>`;
     body.appendChild(o); $('#oSc').value = String(imgOpts.scale);
-    const pv = document.createElement('div'); pv.className = 'preview'; pv.innerHTML = '<span style="color:var(--muted)">A preparar…</span>'; body.appendChild(pv);
-    const refresh = async () => { const blob = await renderPNG(imgOpts.sel, imgOpts.scale, imgOpts.transparent); if (!blob){ pv.textContent = 'O diagrama está vazio.'; return; } if (lastImgUrl) URL.revokeObjectURL(lastImgUrl); lastImgUrl = URL.createObjectURL(blob); pv.innerHTML = `<img alt="Pré-visualização" src="${lastImgUrl}">`; stat.textContent = `${Math.round(blob.size/1024)} KB`; };
+    const pv = document.createElement('div'); pv.className = 'preview'; pv.innerHTML = '<span style="color:var(--muted)">' + T('preparing') + '</span>'; body.appendChild(pv);
+    const refresh = async () => { const blob = await renderPNG(imgOpts.sel, imgOpts.scale, imgOpts.transparent); if (!blob){ pv.textContent = T('empty'); return; } if (lastImgUrl) URL.revokeObjectURL(lastImgUrl); lastImgUrl = URL.createObjectURL(blob); pv.innerHTML = `<img alt="${T('preview')}" src="${lastImgUrl}">`; stat.textContent = `${Math.round(blob.size/1024)} KB`; };
     $('#oSel').onchange = e => { imgOpts.sel = e.target.checked; refresh(); };
     $('#oTr').onchange = e => { imgOpts.transparent = e.target.checked; refresh(); };
     $('#oSc').onchange = e => { imgOpts.scale = +e.target.value; refresh(); };
     const stat = document.createElement('span'); stat.className = 'stat'; foot.appendChild(stat);
-    const b = document.createElement('button'); b.className = 'btn primary'; b.textContent = 'Guardar PNG';
+    const b = document.createElement('button'); b.className = 'btn primary'; b.textContent = T('savePng');
     b.onclick = async () => { const blob = await renderPNG(imgOpts.sel, imgOpts.scale, imgOpts.transparent); if (blob) saveFile(slug(doc.name) + '.png', blob); };
     foot.appendChild(b); refresh(); return;
   }
   let text, hint, ext;
-  if (modalTab === 'ai'){ text = exportAI(doc); ext = 'txt'; hint = 'Formato compacto para colar numa conversa com IA ou guardar como documentação. Cada forma tem um ID com o prefixo da lane, o tipo e o texto; o fluxo encadeia os IDs. Gasta muito menos tokens do que JSON.'; }
-  else if (modalTab === 'mermaid'){ text = exportMermaid(doc); ext = 'md'; hint = 'Sintaxe Mermaid. Renderiza no GitHub, Notion, Obsidian e é lida pela maioria dos modelos. As lanes passam a subgraphs.'; }
-  else { text = JSON.stringify({app:'diagramico', version:1, doc}, null, 1); ext = 'json'; hint = 'Todos os dados, incluindo posições e estilos. Use para reimportar no Diagramico.'; }
+  if (modalTab === 'ai'){ text = exportAI(doc); ext = 'txt'; hint = T('hintAi'); }
+  else if (modalTab === 'mermaid'){ text = exportMermaid(doc); ext = 'md'; hint = T('hintMermaid'); }
+  else { text = JSON.stringify({app:'diagramico', version:1, doc}, null, 1); ext = 'json'; hint = T('hintJson'); }
   const p = document.createElement('p'); p.className = 'hint'; p.textContent = hint; body.appendChild(p);
   const pre = document.createElement('pre'); pre.textContent = text; body.appendChild(pre);
-  const stat = document.createElement('span'); stat.className = 'stat'; stat.textContent = `${text.length.toLocaleString('pt-PT')} caracteres · ~${tokEst(text).toLocaleString('pt-PT')} tokens`; foot.appendChild(stat);
-  const c = document.createElement('button'); c.className = 'btn'; c.textContent = 'Copiar'; c.onclick = () => copyText(modalTab === 'mermaid' ? text : text); foot.appendChild(c);
-  const s = document.createElement('button'); s.className = 'btn primary'; s.textContent = 'Guardar ficheiro';
+  const stat = document.createElement('span'); stat.className = 'stat'; stat.textContent = `${text.length.toLocaleString(LOC())} ${T('chars')} · ~${tokEst(text).toLocaleString(LOC())} ${T('tokens')}`; foot.appendChild(stat);
+  const c = document.createElement('button'); c.className = 'btn'; c.textContent = T('copy'); c.onclick = () => copyText(modalTab === 'mermaid' ? text : text); foot.appendChild(c);
+  const s = document.createElement('button'); s.className = 'btn primary'; s.textContent = T('saveFile');
   s.onclick = () => saveFile(slug(doc.name) + (modalTab === 'ai' ? '.flow.txt' : modalTab === 'mermaid' ? '.mermaid.md' : '.diagramico.json'), modalTab === 'mermaid' ? '```mermaid\n' + text + '\n```\n' : text);
   foot.appendChild(s);
 }
@@ -1375,7 +1465,8 @@ $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') 
 /* ---------- drawer / portfolio ---------- */
 function openDrawer(){ endEdit(); renderDocs(); $('#drawer').hidden = false; $('#scrim').hidden = false; }
 function closeDrawer(){ $('#drawer').hidden = true; $('#scrim').hidden = true; }
-const fmtDate = t => new Date(t).toLocaleString('pt-PT', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+const LOC = () => lang === 'pt' ? 'pt-PT' : 'en-GB';
+const fmtDate = t => new Date(t).toLocaleString(LOC(), {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
 let confirmDel = null;
 function renderDocs(){
   const list = $('#doclist'); list.innerHTML = '';
@@ -1383,11 +1474,11 @@ function renderDocs(){
   for (const d of docs){
     const it = document.createElement('div'); it.className = 'docitem' + (d.id === doc.id ? ' cur' : ''); it.tabIndex = 0;
     const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = d.name;
-    const meta = document.createElement('div'); meta.className = 'meta'; const cnt = d.nodes.filter(n=>n.type!=='lane').length; meta.textContent = `${cnt} formas · ${fmtDate(d.updated)}`;
+    const meta = document.createElement('div'); meta.className = 'meta'; const cnt = d.nodes.filter(n=>n.type!=='lane').length; meta.textContent = `${cnt} ${T('shapes')} · ${fmtDate(d.updated)}`;
     const acts = document.createElement('div'); acts.className = 'acts';
-    const dup = btn(ICON.copy, 'Duplicar diagrama', ev => { ev.stopPropagation(); const c = JSON.parse(JSON.stringify(d)); c.id = uid('d'); c.name = d.name + ' (cópia)'; c.created = c.updated = Date.now(); store.docs[c.id] = c; persistNow(); renderDocs(); });
-    const del = btn(ICON.trash, confirmDel === d.id ? 'Confirmar apagar' : 'Apagar diagrama', ev => { ev.stopPropagation();
-      if (confirmDel !== d.id){ confirmDel = d.id; renderDocs(); toast('Clique outra vez para apagar “' + d.name + '”'); setTimeout(() => { if (confirmDel === d.id){ confirmDel = null; if (!$('#drawer').hidden) renderDocs(); } }, 4000); return; }
+    const dup = btn(ICON.copy, T('dupDiagram'), ev => { ev.stopPropagation(); const c = JSON.parse(JSON.stringify(d)); c.id = uid('d'); c.name = d.name + T('copySuffix'); c.created = c.updated = Date.now(); store.docs[c.id] = c; persistNow(); renderDocs(); });
+    const del = btn(ICON.trash, confirmDel === d.id ? T('confirmDel') : T('delDiagram'), ev => { ev.stopPropagation();
+      if (confirmDel !== d.id){ confirmDel = d.id; renderDocs(); toast(T('clickAgainDel', d.name)); setTimeout(() => { if (confirmDel === d.id){ confirmDel = null; if (!$('#drawer').hidden) renderDocs(); } }, 4000); return; }
       confirmDel = null; delete store.docs[d.id];
       if (!Object.keys(store.docs).length){ const n = newDoc(); store.current = n.id; }
       if (d.id === doc.id) openDoc(Object.values(store.docs).sort((a,b)=>b.updated-a.updated)[0].id); persistNow(); renderDocs(); });
@@ -1407,7 +1498,7 @@ function openDoc(id){
 $('#btnMenu').innerHTML = ICON.menu; $('#btnCloseDrawer').innerHTML = ICON.close; $('#mClose').innerHTML = ICON.close;
 $('#btnMenu').onclick = openDrawer; $('#btnCloseDrawer').onclick = closeDrawer; $('#scrim').onclick = closeDrawer;
 $('#btnNew').onclick = () => { const d = newDoc(); openDoc(d.id); closeDrawer(); setTimeout(() => { $('#docName').focus(); $('#docName').select(); }, 50); };
-$('#docName').addEventListener('input', e => { doc.name = e.target.value || 'Sem título'; scheduleSave(); });
+$('#docName').addEventListener('input', e => { doc.name = e.target.value || T('untitled'); scheduleSave(); });
 $('#docName').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Escape') e.target.blur(); });
 $('#btnBackup').onclick = () => saveFile(`diagramico-backup-${today()}.json`, JSON.stringify({app:'diagramico', version:1, kind:'backup', exported:new Date().toISOString(), docs:Object.values(store.docs)}));
 $('#btnImport').onclick = () => $('#fileIn').click();
@@ -1418,33 +1509,46 @@ $('#fileIn').onchange = async e => {
     const list = o.docs ? o.docs : o.doc ? [o.doc] : (o.nodes ? [o] : null);
     if (!list) throw new Error('formato');
     let n = 0, last = null;
-    for (const d of list){ if (!d || !Array.isArray(d.nodes)) continue; const c = JSON.parse(JSON.stringify(d)); if (!c.id || store.docs[c.id]){ c.id = uid('d'); if (store.docs[d.id]) c.name = (c.name||'Importado') + ' (importado)'; } c.edges = c.edges || []; c.updated = c.updated || Date.now(); store.docs[c.id] = c; n++; last = c.id; }
+    for (const d of list){ if (!d || !Array.isArray(d.nodes)) continue; const c = JSON.parse(JSON.stringify(d)); if (!c.id || store.docs[c.id]){ c.id = uid('d'); if (store.docs[d.id]) c.name = (c.name||'Import') + T('importedSuffix'); } c.edges = c.edges || []; c.updated = c.updated || Date.now(); store.docs[c.id] = c; n++; last = c.id; }
     if (!n) throw new Error('vazio');
-    persistNow(); if (n === 1) openDoc(last); renderDocs(); toast(n === 1 ? 'Diagrama importado' : `${n} diagramas importados`);
-  } catch(err){ toast('Ficheiro não reconhecido. Use um backup ou JSON exportado pelo Diagramico.'); }
+    persistNow(); if (n === 1) openDoc(last); renderDocs(); toast(n === 1 ? T('imported1') : T('importedN', n));
+  } catch(err){ toast(T('importFail')); }
 };
 
 /* ---------- theme ---------- */
 const THEME_KEY = 'diagramico.theme', hostTheme = document.documentElement.getAttribute('data-theme');
-const THEME_NEXT = {auto:'light', light:'dark', dark:'auto'}, THEME_NAME = {auto:'Automático (sistema)', light:'Claro', dark:'Escuro'};
+const THEME_NEXT = {auto:'light', light:'dark', dark:'auto'};
 let themePref = 'auto'; try { themePref = localStorage.getItem(THEME_KEY) || 'auto'; } catch(e){}
 function applyTheme(){
   const r = document.documentElement;
   if (themePref === 'auto'){ if (hostTheme) r.setAttribute('data-theme', hostTheme); else r.removeAttribute('data-theme'); }
   else r.setAttribute('data-theme', themePref);
   const b = $('#btnTheme'); b.innerHTML = ICON['th_' + themePref];
-  const t = `Tema: ${THEME_NAME[themePref]} · clique para ${THEME_NAME[THEME_NEXT[themePref]].toLowerCase()}`; b.title = t; b.setAttribute('aria-label', t);
+  const t = T('themeTitle', T('th_'+themePref), T('th_'+THEME_NEXT[themePref]).toLowerCase()); b.title = t; b.setAttribute('aria-label', t);
   ctxKey = ''; draw();
 }
-$('#btnTheme').onclick = () => { themePref = THEME_NEXT[themePref]; try { localStorage.setItem(THEME_KEY, themePref); } catch(e){} applyTheme(); toast('Tema: ' + THEME_NAME[themePref]); };
+$('#btnTheme').onclick = () => { themePref = THEME_NEXT[themePref]; try { localStorage.setItem(THEME_KEY, themePref); } catch(e){} applyTheme(); toast(T('theme') + ': ' + T('th_'+themePref)); };
+
+/* ---------- language ---------- */
+function applyLang(){
+  document.documentElement.lang = lang === 'pt' ? 'pt-PT' : 'en';
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = T(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = T(el.dataset.i18nTitle));
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', T(el.dataset.i18nAria)));
+  document.querySelectorAll('[data-i18n-html]').forEach(el => el.innerHTML = T(el.dataset.i18nHtml));
+  const b = $('#btnLang'); b.textContent = lang.toUpperCase(); b.title = T('langTitle'); b.setAttribute('aria-label', T('langTitle'));
+  $('#saveState').textContent = storageOk ? T('saved') : T('notSaved');
+  buildTools(); setTool(S.tool); applyTheme();
+  ctxKey = ''; if (!$('#modal').hidden) renderModal(); if (!$('#drawer').hidden) renderDocs(); draw();
+}
+$('#btnLang').onclick = () => { lang = lang === 'pt' ? 'en' : 'pt'; try { localStorage.setItem(LANG_KEY, lang); } catch(e){} applyLang(); toast(T('langToast')); };
 
 /* ---------- misc UI ---------- */
 let toastT = null;
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2600); }
 function closePopovers(){ $('#help').hidden = true; hideTip(); }
 $('#btnHelp').onclick = e => { e.stopPropagation(); $('#help').hidden = !$('#help').hidden; };
-$('#btnImg').onclick = () => openExport('png');
-$('#btnText').onclick = () => openExport('ai');
+$('#btnExport').onclick = () => openExport(modalTab);
 $('#zIn').innerHTML = ICON.plus; $('#zOut').innerHTML = ICON.minus; $('#zFit').innerHTML = ICON.fit; $('#bUndo').innerHTML = ICON.undo; $('#bRedo').innerHTML = ICON.redo;
 $('#zIn').onclick = () => zoomAt(W/2, H/2, 1.25); $('#zOut').onclick = () => zoomAt(W/2, H/2, 0.8); $('#zFit').onclick = fit; $('#zoomPct').onclick = () => setZoom(1);
 $('#bUndo').onclick = undo; $('#bRedo').onclick = redo;
@@ -1457,7 +1561,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden){ clea
 /* ---------- boot ---------- */
 const FONT_FACES = ['400 14px "IBM Plex Sans"','600 14px "IBM Plex Sans"','italic 400 14px "IBM Plex Sans"','italic 600 14px "IBM Plex Sans"','400 14px "IBM Plex Mono"','600 14px "IBM Plex Mono"','italic 400 14px "IBM Plex Mono"','italic 600 14px "IBM Plex Mono"'];
 const fontsReady = (document.fonts ? Promise.all(FONT_FACES.map(f => document.fonts.load(f).catch(()=>null))).then(() => document.fonts.ready) : Promise.resolve()).catch(()=>{});
-buildTools(); setTool('select'); applyTheme();
+setTool('select'); applyLang();
 doc = store.docs[store.current]; reindex();
 $('#docName').value = doc.name;
 resize();
