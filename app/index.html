@@ -142,6 +142,19 @@ button{font:inherit;color:inherit}
 .toast{position:fixed;left:50%;bottom:calc(64px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100vw - 32px)}
 .toast.show{opacity:1}
 
+/* Gateway menu (right-click on a decision) */
+.gatemenu{position:fixed;z-index:30;width:min(300px,calc(100vw - 16px));padding:6px;display:flex;flex-direction:column;gap:2px}
+.gatemenu .gh{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:6px 8px 4px}
+.gatemenu .gi{display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;border-radius:7px;padding:7px 8px;cursor:pointer}
+.gatemenu .gi:hover,.gatemenu .gi:focus-visible{background:var(--panel-2);outline:none}
+.gatemenu .gi.on{background:var(--accent-soft)}
+.gatemenu .gi svg{width:26px;height:26px;flex:none;color:var(--ink)}
+.gatemenu .gi.on svg{color:var(--accent)}
+.gatemenu .gi span{display:flex;flex-direction:column;min-width:0}
+.gatemenu .gi b{font-weight:500}
+.gatemenu .gi small{color:var(--muted);font-size:12px;line-height:1.35}
+/* Drawer: one full-width button per line */
+.drawer footer .btn{flex:1 1 100%;text-align:left}
 /* Embedded demo (landing page) */
 .embed .topbar,.embed .tools,.embed .zoom,.embed .helpbtn,.embed .ctxbar,.embed .toast{display:none!important}
 .embed #cv{cursor:grab}
@@ -366,6 +379,9 @@ pt: {
   th_auto:'Automático (sistema)', th_light:'Claro', th_dark:'Escuro', theme:'Tema', themeTitle:(a,b)=>`Tema: ${a} · clique para ${b}`,
   langTitle:'Idioma: Português · mudar para English', langToast:'Idioma: Português',
   autoLayout:'Organizar automaticamente (Shift A)', layoutDone:'Diagrama organizado. Ctrl Z para desfazer.', layoutEmpty:'Não há formas para organizar.',
+  gate_title:'Tipo de decisão (BPMN)', gate_plain:'Decisão simples', gate_plain_d:'Escolha, com o texto dentro da forma',
+  gate_exclusive:'Exclusiva (XOR)', gate_exclusive_d:'Só um dos caminhos é seguido', gate_parallel:'Paralela (AND)', gate_parallel_d:'Todos os caminhos ao mesmo tempo; ao juntar, espera por todos',
+  gate_inclusive:'Inclusiva (OR)', gate_inclusive_d:'Um ou mais caminhos são seguidos', gate_complex:'Complexa', gate_complex_d:'Os caminhos dependem de uma regra própria',
   tourBtn:'Visita guiada', tourNext:'Seguinte', tourBack:'Anterior', tourSkip:'Saltar', tourDone:'Começar', tourOf:(a,b)=>`${a} de ${b}`,
   tourSteps:[
     {t:'Bem-vindo ao Diagramico', d:'Um quadro infinito para desenhar diagramas lógicos e user flows. Em 1 minuto fica a saber o essencial. Já abri um diagrama de exemplo para explorar.'},
@@ -388,6 +404,7 @@ pt: {
     <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
     <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte. Cada lado cria a sua própria seta, por isso duas formas podem ligar-se por vários lados; as setas que saem do mesmo lado partilham o tronco</dd>
     <dt>C · Alt</dt><dd>Seta solta: com o conector, arraste de uma forma ou do vazio e largue onde quiser (ou prima Alt ao largar um ponto lateral no vazio)</dd>
+    <dt>Botão direito</dt><dd>Numa decisão: escolher o tipo BPMN (exclusiva XOR, paralela AND, inclusiva OR, complexa)</dd>
     <dt>Pontas da seta</dt><dd>Selecione uma seta e arraste uma ponta para uma forma (liga) ou para o vazio (desliga)</dd>
     <dt>Largar ficheiro</dt><dd>Importa .drawio, .vsdx ou .json para um novo diagrama</dd></dl>
   <h3>Texto</h3><dl>
@@ -484,6 +501,9 @@ en: {
   th_auto:'Automatic (system)', th_light:'Light', th_dark:'Dark', theme:'Theme', themeTitle:(a,b)=>`Theme: ${a} · click for ${b}`,
   langTitle:'Language: English · switch to Português', langToast:'Language: English',
   autoLayout:'Auto-arrange (Shift A)', layoutDone:'Diagram arranged. Ctrl Z to undo.', layoutEmpty:'There are no shapes to arrange.',
+  gate_title:'Decision type (BPMN)', gate_plain:'Plain decision', gate_plain_d:'A choice, with the text inside the shape',
+  gate_exclusive:'Exclusive (XOR)', gate_exclusive_d:'Only one of the paths is followed', gate_parallel:'Parallel (AND)', gate_parallel_d:'All paths at once; when joining, waits for all of them',
+  gate_inclusive:'Inclusive (OR)', gate_inclusive_d:'One or more paths are followed', gate_complex:'Complex', gate_complex_d:'The paths depend on a custom rule',
   tourBtn:'Guided tour', tourNext:'Next', tourBack:'Back', tourSkip:'Skip', tourDone:'Get started', tourOf:(a,b)=>`${a} of ${b}`,
   tourSteps:[
     {t:'Welcome to Diagramico', d:'An infinite board for drawing logic diagrams and user flows. One minute is enough to learn the basics. An example diagram is already open to explore.'},
@@ -506,6 +526,7 @@ en: {
     <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
     <dt>Side dots</dt><dd>Drag to connect; click to create the next shape. Each side makes its own arrow, so two shapes can be linked from several sides; arrows leaving the same side share a trunk</dd>
     <dt>C · Alt</dt><dd>Loose arrow: with the connector tool, drag from a shape or empty space and release anywhere (or hold Alt when releasing a side dot on empty space)</dd>
+    <dt>Right-click</dt><dd>On a decision: choose its BPMN type (exclusive XOR, parallel AND, inclusive OR, complex)</dd>
     <dt>Arrow ends</dt><dd>Select an arrow and drag an end onto a shape to attach it, or onto empty space to detach it</dd>
     <dt>Drop a file</dt><dd>Imports .drawio, .vsdx or .json into a new diagram</dd></dl>
   <h3>Text</h3><dl>
@@ -550,6 +571,9 @@ const TYPES = {
   lane:{name:'Swimlane', key:'l'},
 };
 const EVENTS = new Set(['start','end','pause','handoff']);
+// BPMN gateway kinds a decision can take (n.gate); unset = plain decision with the text inside.
+const GATES = ['exclusive','parallel','inclusive','complex'];
+const GATE_SYM = {exclusive:'✕', parallel:'＋', inclusive:'○', complex:'✱'};
 const BOXES = ['step','action','decision','screen','doc','data'];
 const LANE_TYPES = {pessoa:'person', equipa:'team', departamento:'department', sistema:'system'};
 const FS = [10,12,14,16,18,20,24,28,32,40,48,64,80];
@@ -703,7 +727,10 @@ function geom(n){
   const px = fs*1.05, py = fs*0.7;
   let w, h, tox = 0, toy = 0, extra = {};
   switch (n.type){
-    case 'decision': w = Math.max(L.w*2 + px*1.5, fs*7); h = Math.max(L.h*2 + py*1.6, fs*4.2); break;
+    case 'decision': // regular rhombus (equal diagonals). BPMN gateways keep the symbol inside and the label below, like events.
+      if (GATES.includes(n.gate)){ w = h = fs*4; extra.below = true; extra.ly = h/2 + fs*0.45 + L.h/2; }
+      else w = h = Math.max(L.w + L.h + fs*1.6, fs*5.2);
+      break;
     case 'action': { h = Math.max(L.h + py*2, fs*3); const sk = h*0.32; w = Math.max(L.w + px*2 + sk, fs*8); extra.sk = sk; break; }
     case 'screen': { const bar = fs*1.25; w = Math.max(L.w + px*2, fs*8); h = Math.max(L.h + py*2, fs*2.6) + bar; toy = bar/2; extra.bar = bar; break; }
     case 'doc': { const wave = fs*0.7; w = Math.max(L.w + px*2, fs*8); h = Math.max(L.h + py*2, fs*3) + wave; toy = -wave/2; extra.wave = wave; break; }
@@ -721,7 +748,9 @@ function bbox(n){
     const lw = Math.max(g.L.w, 0)/2;
     return {x0:Math.min(n.x-g.r, n.x-lw), y0:n.y-g.r, x1:Math.max(n.x+g.r, n.x+lw), y1:n.y + (n.text ? g.ly + g.L.h/2 : g.r)};
   }
-  return {x0:n.x-g.w/2, y0:n.y-g.h/2, x1:n.x+g.w/2, y1:n.y+g.h/2};
+  const b = {x0:n.x-g.w/2, y0:n.y-g.h/2, x1:n.x+g.w/2, y1:n.y+g.h/2};
+  if (g.below && n.text){ b.x0 = Math.min(b.x0, n.x-g.L.w/2); b.x1 = Math.max(b.x1, n.x+g.L.w/2); b.y1 = n.y + g.ly + g.L.h/2; }
+  return b;
 }
 function anchor(n, side){
   if (n.type === 'point') return {x:n.x, y:n.y};
@@ -889,7 +918,15 @@ function drawNode(c, n, pal, opts){
   if (n.type === 'screen'){ c.beginPath(); c.moveTo(-g.w/2, -g.h/2+g.bar); c.lineTo(g.w/2, -g.h/2+g.bar); c.lineWidth = lw*0.8; c.stroke();
     c.fillStyle = stroke; for (let k=0;k<3;k++){ c.beginPath(); c.arc(-g.w/2 + g.fs*(0.75+k*0.6), -g.h/2+g.bar/2, g.fs*0.14, 0, Math.PI*2); c.fill(); } }
   if (n.type === 'data'){ c.beginPath(); c.ellipse(0,-g.h/2+g.ry,g.w/2,g.ry,0,0,Math.PI,false); c.stroke(); }
-  if (opts.editing !== n.id) drawText(c, g.L, g.tox, g.toy, g.fs, false, 'center', pal.ink);
+  if (n.type === 'decision' && GATES.includes(n.gate)){ // BPMN gateway symbol
+    const m = g.w*0.17; c.lineWidth = Math.max(2, g.fs/5); c.lineCap = 'butt'; c.beginPath();
+    if (n.gate === 'exclusive'){ c.moveTo(-m,-m); c.lineTo(m,m); c.moveTo(m,-m); c.lineTo(-m,m); }
+    else if (n.gate === 'parallel'){ c.moveTo(-m*1.15,0); c.lineTo(m*1.15,0); c.moveTo(0,-m*1.15); c.lineTo(0,m*1.15); }
+    else if (n.gate === 'inclusive'){ c.arc(0, 0, m*1.15, 0, Math.PI*2); }
+    else { c.moveTo(-m*1.1,0); c.lineTo(m*1.1,0); c.moveTo(0,-m*1.1); c.lineTo(0,m*1.1); c.moveTo(-m*.8,-m*.8); c.lineTo(m*.8,m*.8); c.moveTo(m*.8,-m*.8); c.lineTo(-m*.8,m*.8); }
+    c.stroke();
+  }
+  if (opts.editing !== n.id) { if (g.below) drawText(c, g.L, 0, g.ly, g.fs, false, 'center', pal.ink); else drawText(c, g.L, g.tox, g.toy, g.fs, false, 'center', pal.ink); }
   c.restore();
 }
 function drawEdge(c, e, pal, opts, selected){
@@ -1011,7 +1048,7 @@ function insideNode(n, p){
   if (n.type === 'lane') return false;
   const g = geom(n), dx = p.x-n.x, dy = p.y-n.y;
   if (EVENTS.has(n.type)){ if (Math.hypot(dx,dy) <= g.r + 2) return true; if (n.text){ const lw = g.L.w/2 + 4; return Math.abs(dx) <= lw && dy >= g.ly - g.L.h/2 - 2 && dy <= g.ly + g.L.h/2 + 2; } return false; }
-  if (n.type === 'decision') return Math.abs(dx)/(g.w/2) + Math.abs(dy)/(g.h/2) <= 1.04;
+  if (n.type === 'decision') return Math.abs(dx)/(g.w/2) + Math.abs(dy)/(g.h/2) <= 1.04 || !!(g.below && n.text && Math.abs(dx) <= g.L.w/2 + 4 && dy >= g.ly - g.L.h/2 - 2 && dy <= g.ly + g.L.h/2 + 2);
   return Math.abs(dx) <= g.w/2 + 1 && Math.abs(dy) <= g.h/2 + 1;
 }
 function hitTest(p){
@@ -1120,7 +1157,7 @@ function placeTA(){
     const n = N(ed.id); if (!n){ endEdit(); return; } const g = geom(n); fs = n.fs||14; bold = !!n.b; ital = !!n.i;
     if (n.type === 'lane'){ bold = true; align = 'left'; w = Math.min(320, n.w - g.hw - 20); left = n.x + g.hw + 12; top = n.y + 10; }
     else if (n.type === 'note'){ mono = true; align = 'left'; w = g.maxW; left = n.x - g.w/2 + g.p; top = n.y - g.h/2 + g.p; }
-    else if (EVENTS.has(n.type)){ w = g.maxW; cx = n.x; cy = n.y + g.ly; }
+    else if (EVENTS.has(n.type) || g.below){ w = g.maxW; cx = n.x; cy = n.y + g.ly; }
     else { w = g.maxW; cx = n.x + g.tox; cy = n.y + g.toy; }
   }
   ta.style.font = `${ital?'italic ':''}${bold?600:400} ${fs*z}px ${mono?MONO:SANS}`;
@@ -1163,7 +1200,30 @@ ta.addEventListener('blur', () => setTimeout(() => { if (document.activeElement 
 /* ---------- pointer ---------- */
 const ptrs = new Map();
 let pinch = null, lastClick = {t:0, x:0, y:0};
-cv.addEventListener('contextmenu', e => e.preventDefault());
+// Right-click on a decision: choose its BPMN gateway type
+let gateMenu = null;
+function closeGateMenu(){ if (gateMenu){ gateMenu.remove(); gateMenu = null; } }
+const GATE_ICON = g => I('<path d="M12 3l9 9-9 9-9-9z"/>' + ({exclusive:'<path d="M9.3 9.3l5.4 5.4M14.7 9.3l-5.4 5.4"/>', parallel:'<path d="M12 8.3v7.4M8.3 12h7.4"/>', inclusive:'<circle cx="12" cy="12" r="3.3"/>', complex:'<path d="M12 8.2v7.6M8.2 12h7.6M9.5 9.5l5 5M14.5 9.5l-5 5"/>'}[g] || ''));
+function openGateMenu(x, y, n){
+  closeGateMenu(); closePopovers();
+  const m = document.createElement('div'); m.className = 'panel gatemenu'; m.setAttribute('role', 'menu');
+  const cur = GATES.includes(n.gate) ? n.gate : 'plain';
+  const h = document.createElement('div'); h.className = 'gh'; h.textContent = T('gate_title'); m.appendChild(h);
+  for (const g of ['plain', ...GATES]){
+    const b = document.createElement('button'); b.className = 'gi' + (g === cur ? ' on' : ''); b.setAttribute('role', 'menuitemradio'); b.setAttribute('aria-checked', String(g === cur));
+    b.innerHTML = `${GATE_ICON(g)}<span><b>${T('gate_' + g)}</b><small>${T('gate_' + g + '_d')}</small></span>`;
+    b.onclick = () => { checkpoint(); if (g === 'plain') delete n.gate; else n.gate = g; changed(); closeGateMenu(); };
+    m.appendChild(b);
+  }
+  document.body.appendChild(m);
+  const r = m.getBoundingClientRect(); m.style.left = clamp(x, 8, W - r.width - 8) + 'px'; m.style.top = clamp(y, 8, H - r.height - 8) + 'px';
+  gateMenu = m; (m.querySelector('.on') || m.querySelector('.gi')).focus();
+}
+cv.addEventListener('contextmenu', e => {
+  e.preventDefault(); closeGateMenu(); if (EMBED) return;
+  const hit = hitTest(evPt(e));
+  if (hit && hit.kind === 'node' && N(hit.id).type === 'decision'){ S.sel = new Set([hit.id]); draw(); openGateMenu(e.clientX, e.clientY, N(hit.id)); }
+});
 cv.addEventListener('pointerdown', onDown);
 window.addEventListener('pointermove', onMove);
 window.addEventListener('pointerup', onUp);
@@ -1647,11 +1707,11 @@ function exportAI(d){
   const nodeById = new Map(d.nodes.map(n=>[n.id,n]));
   const out = [];
   out.push(`DIAGRAM: ${clean(d.name)}`);
-  out.push(`SYNTAX: node = "ID type: text"; ID prefix = lane. Flow: "A > B" directed, "A > B [x]" labelled branch, "A <> B" both ways, "A - B" link, "A ~> B" / "A ~ B" dashed = indirect or data access. **bold** *italic* = emphasis. " | " = line break.`);
+  out.push(`SYNTAX: node = "ID type: text"; ID prefix = lane. Flow: "A > B" directed, "A > B [x]" labelled branch, "A <> B" both ways, "A - B" link, "A ~> B" / "A ~ B" dashed = indirect or data access. **bold** *italic* = emphasis. " | " = line break. decision = plain choice; decision_exclusive / decision_parallel / decision_inclusive / decision_complex = BPMN gateways (one path / all paths / one or more paths / custom rule).`);
   if (lanes.length){ out.push('', 'LANES:'); for (const l of lanes) out.push(`${laneCode.get(l.id)} = ${clean(l.text)} (${l.laneType ? (LANE_TYPES[l.laneType]||l.laneType) : 'lane'})`); }
   out.push('', 'NODES:');
   const order = [...lanes.map(l=>l.id), '_'];
-  for (const key of order){ const list = groups.get(key); if (!list) continue; for (const n of list) out.push(`${ids.get(n.id)} ${AI_TYPE[n.type]}${n.text && clean(n.text) ? ': ' + clean(n.text) : ''}`); }
+  for (const key of order){ const list = groups.get(key); if (!list) continue; for (const n of list) out.push(`${ids.get(n.id)} ${n.type === 'decision' && GATES.includes(n.gate) ? 'decision_' + n.gate : AI_TYPE[n.type]}${n.text && clean(n.text) ? ': ' + clean(n.text) : ''}`); }
   const flowEdges = d.edges.filter(e => ids.has(e.from) && ids.has(e.to));
   const opS = e => e.dash ? (e.arrow === 'both' ? '<~>' : e.arrow === 'none' ? '~' : '~>') : (e.arrow === 'both' ? '<>' : e.arrow === 'none' ? '-' : '>');
   const outs = new Map(), indeg = new Map();
@@ -1690,7 +1750,7 @@ function mmEsc(t){ return clean(t).replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+
 function exportMermaid(d){
   const {lanes, laneCode, groups, ids} = buildIds(d);
   const sh = (n) => { const t = mmEsc(n.text); switch (n.type){
-    case 'step': return `["${t}"]`; case 'action': return `[/"${t}"/]`; case 'decision': return `{"${t}"}`; case 'screen': return `[["${t}"]]`;
+    case 'step': return `["${t}"]`; case 'action': return `[/"${t}"/]`; case 'decision': return `{"${GATES.includes(n.gate) ? GATE_SYM[n.gate] + ' ' : ''}${t}"}`; case 'screen': return `[["${t}"]]`;
     case 'doc': return `>"${t}"]`; case 'data': return `[("${t}")]`; case 'start': return `(("${t === ' ' ? T('t_start').toLowerCase() : t}"))`; case 'end': return `((("${t === ' ' ? T('t_end').toLowerCase() : t}")))`;
     case 'pause': return `(("⏸ ${t}"))`; case 'handoff': return `(("⇄ ${t}"))`; default: return `["${t}"]`; } };
   const out = ['flowchart LR'];
@@ -2332,7 +2392,8 @@ function parseAIText(src){
       if (m) r.lanes.push({code:m[1], name:m[2].trim(), type:LANE_REV[(m[3]||'').trim()]}); else r.skipped.push(line);
     } else if (sec === 'NODES'){
       m = /^([A-Za-z]+\d+)\s+([a-z_]+)(?:\s*:\s*(.*))?$/.exec(line);
-      if (m && AI_REV[m[2]]) r.nodes.push({id:m[1], type:AI_REV[m[2]], text:(m[3]||'').trim().replace(/\s\|\s/g, '\n'), lane:null}); else r.skipped.push(line);
+      const gm = m && /^decision_(exclusive|parallel|inclusive|complex)$/.exec(m[2]);
+      if (m && (gm || AI_REV[m[2]])) r.nodes.push({id:m[1], type:gm ? 'decision' : AI_REV[m[2]], gate:gm ? gm[1] : undefined, text:(m[3]||'').trim().replace(/\s\|\s/g, '\n'), lane:null}); else r.skipped.push(line);
     } else if (sec === 'FLOW'){
       let label = ''; const lm = /\s*\[([^\]]*)\]\s*$/.exec(line), body = lm ? line.slice(0, lm.index) : line; if (lm) label = lm[1].trim();
       const parts = body.trim().split(/\s+(<~>|~>|<>|>|~|-)\s+/);
@@ -2406,7 +2467,8 @@ function parseMermaid(src){
     if (n.shape === 'circle' && /^⏸\s*/.test(n.text)){ t = 'pause'; n.text = n.text.replace(/^⏸\s*/, ''); }
     else if (n.shape === 'circle' && /^⇄\s*/.test(n.text)){ t = 'handoff'; n.text = n.text.replace(/^⇄\s*/, ''); }
     if ((t === 'start' || t === 'end') && n.text === n.id) n.text = '';
-    r.nodes.push({id:n.id, type:t, text:n.text, lane:n.lane});
+    let gate; if (t === 'decision'){ gate = GATES.find(g => n.text.startsWith(GATE_SYM[g])); if (gate) n.text = n.text.slice(GATE_SYM[gate].length).trim(); }
+    r.nodes.push({id:n.id, type:t, gate, text:n.text, lane:n.lane});
   }
   for (const l of links){
     if (noteOf.has(l.a) && !noteOf.has(l.b)) noteOf.get(l.a).targets.push(l.b);
@@ -2421,7 +2483,7 @@ function buildDocFromParsed(r){
   r.lanes.forEach((l, i) => { const n = {id:uid('n'), type:'lane', x:0, y:i*180, w:1320, h:180, text:l.name, fs:14, color:'none'}; if (l.type) n.laneType = l.type; laneNodes.set(l.code, n); nodes.push(n); });
   for (const s of r.nodes){
     const lane = s.lane ? laneNodes.get(s.lane) : null, k = count.get(s.lane || '_') || 0; count.set(s.lane || '_', k+1);
-    const n = mkNode(s.type, 150 + k*200, lane ? lane.y + 90 : r.lanes.length*180 + 90, s.text); byCode.set(s.id, n); nodes.push(n);
+    const n = mkNode(s.type, 150 + k*200, lane ? lane.y + 90 : r.lanes.length*180 + 90, s.text, s.gate ? {gate:s.gate} : {}); byCode.set(s.id, n); nodes.push(n);
   }
   let dropped = 0;
   for (const e of r.edges){ const a = byCode.get(e.a), b = byCode.get(e.b); if (a && b && a !== b) edges.push(mkEdge(a.id, b.id, {arrow:e.arrow, dash:e.dash, label:e.label || ''})); else dropped++; }
@@ -2559,7 +2621,7 @@ $('#btnLang').onclick = () => { lang = lang === 'pt' ? 'en' : 'pt'; try { localS
 /* ---------- misc UI ---------- */
 let toastT = null;
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2600); }
-function closePopovers(){ $('#help').hidden = true; hideTip(); }
+function closePopovers(){ $('#help').hidden = true; hideTip(); closeGateMenu(); }
 $('#btnHelp').onclick = e => { e.stopPropagation(); $('#help').hidden = !$('#help').hidden; };
 $('#btnExport').onclick = () => openExport(modalTab);
 $('#zIn').innerHTML = ICON.plus; $('#zOut').innerHTML = ICON.minus; $('#zFit').innerHTML = ICON.fit; $('#bUndo').innerHTML = ICON.undo; $('#bRedo').innerHTML = ICON.redo;

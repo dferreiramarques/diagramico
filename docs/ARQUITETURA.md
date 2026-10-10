@@ -58,6 +58,12 @@ As secções de `app/index.html` estão marcadas com comentários `/* ----------
 | guided tour | Visita guiada de primeira utilização (ver abaixo) |
 | boot | Inicialização; expõe `window.__diagramico` para testes |
 
+### Decisões e gateways BPMN
+
+- O losango é sempre regular (`w = h`, o necessário para o texto caber: `L.w + L.h + padding`).
+- `n.gate` (opcional) ∈ `GATES` (`exclusive`, `parallel`, `inclusive`, `complex`); sem `gate` é a decisão simples com o texto dentro. Com `gate`, a forma tem tamanho fixo (`4·fs`), desenha o símbolo no centro e o texto por baixo (`g.below`, `g.ly`, tratados em `bbox`, `insideNode`, `placeTA` e `drawNode` como nos eventos).
+- Botão direito numa decisão abre `openGateMenu`. Na exportação para IA o tipo vai no nome (`decision_parallel`…), no Mermaid como prefixo do texto (`GATE_SYM`); os dois importadores fazem o caminho inverso.
+
 ### Extremidades das setas
 
 - Cada ponta é uma forma (`from`/`to` = id) ou um ponto solto (`from: null` + `fx`,`fy`; `to: null` + `tx`,`ty`). `endNode(e, 'from'|'to')` devolve a forma ou um pseudo-nó `{type:'point'}`, e `route()` trata-o como uma forma sem tamanho.

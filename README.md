@@ -27,7 +27,8 @@ Arranque rápido:
 
 ## Funcionalidades (MVP)
 
-- **Formas**: Passo / processo, Ação do utilizador (trapézio inclinado), Decisão, Ecrã, Documento, Dados.
+- **Formas**: Passo / processo, Ação do utilizador (trapézio inclinado), Decisão (losango regular), Ecrã, Documento, Dados.
+- **Tipos de decisão BPMN**: botão direito numa decisão para escolher exclusiva (XOR), paralela (AND, todos os caminhos), inclusiva (OR) ou complexa. Com um tipo escolhido, o símbolo fica dentro do losango e o texto por baixo, como nos eventos.
 - **Eventos**: Início, Fim, Pausa / espera, Mudança de lane.
 - **Swimlanes** para pessoas, equipas, departamentos ou sistemas. Mover uma lane leva as formas que estão dentro.
 - **Notas** em IBM Plex Mono.
@@ -96,7 +97,7 @@ NOTES:
 LO2: O stock é verificado em tempo real.
 ```
 
-- Tipos: `start`, `end`, `wait`, `handoff`, `step`, `user_action`, `decision`, `screen`, `document`, `data`.
+- Tipos: `start`, `end`, `wait`, `handoff`, `step`, `user_action`, `decision`, `screen`, `document`, `data`. Gateways BPMN: `decision_exclusive`, `decision_parallel`, `decision_inclusive`, `decision_complex` (no Mermaid vão como prefixo `✕`, `＋`, `○`, `✱` no texto).
 - O ID de cada forma é o prefixo da lane onde está o seu centro mais a ordem da esquerda para a direita (`N` = fora de lanes).
 - `>` fluxo, `<>` dois sentidos, `-` ligação sem direção, `~>` / `~` tracejado (indireto, acesso a dados), `[x]` rótulo.
 - Sequências lineares são encadeadas numa só linha; o fluxo segue a ordem a partir dos eventos de início.
