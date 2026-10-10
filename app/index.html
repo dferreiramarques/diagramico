@@ -142,17 +142,6 @@ button{font:inherit;color:inherit}
 .toast{position:fixed;left:50%;bottom:calc(64px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100vw - 32px)}
 .toast.show{opacity:1}
 
-/* Gateway menu (right-click on a decision) */
-.gatemenu{position:fixed;z-index:30;width:min(300px,calc(100vw - 16px));padding:6px;display:flex;flex-direction:column;gap:2px}
-.gatemenu .gh{font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:6px 8px 4px}
-.gatemenu .gi{display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;border-radius:7px;padding:7px 8px;cursor:pointer}
-.gatemenu .gi:hover,.gatemenu .gi:focus-visible{background:var(--panel-2);outline:none}
-.gatemenu .gi.on{background:var(--accent-soft)}
-.gatemenu .gi svg{width:26px;height:26px;flex:none;color:var(--ink)}
-.gatemenu .gi.on svg{color:var(--accent)}
-.gatemenu .gi span{display:flex;flex-direction:column;min-width:0}
-.gatemenu .gi b{font-weight:500}
-.gatemenu .gi small{color:var(--muted);font-size:12px;line-height:1.35}
 /* Drawer: one full-width button per line */
 .drawer footer .btn{flex:1 1 100%;text-align:left}
 /* Embedded demo (landing page) */
@@ -379,9 +368,7 @@ pt: {
   th_auto:'Automático (sistema)', th_light:'Claro', th_dark:'Escuro', theme:'Tema', themeTitle:(a,b)=>`Tema: ${a} · clique para ${b}`,
   langTitle:'Idioma: Português · mudar para English', langToast:'Idioma: Português',
   autoLayout:'Organizar automaticamente (Shift A)', layoutDone:'Diagrama organizado. Ctrl Z para desfazer.', layoutEmpty:'Não há formas para organizar.',
-  gate_title:'Tipo de decisão (BPMN)', gate_plain:'Decisão simples', gate_plain_d:'Escolha, com o texto dentro da forma',
-  gate_exclusive:'Exclusiva (XOR)', gate_exclusive_d:'Só um dos caminhos é seguido', gate_parallel:'Paralela (AND)', gate_parallel_d:'Todos os caminhos ao mesmo tempo; ao juntar, espera por todos',
-  gate_inclusive:'Inclusiva (OR)', gate_inclusive_d:'Um ou mais caminhos são seguidos', gate_complex:'Complexa', gate_complex_d:'Os caminhos dependem de uma regra própria',
+  gateType:'Tipo de decisão (BPMN)', gate_plain:'Decisão simples', gate_exclusive:'Exclusiva (XOR): um caminho', gate_parallel:'Paralela (AND): todos', gate_inclusive:'Inclusiva (OR): um ou mais', gate_complex:'Complexa (regra própria)',
   tourBtn:'Visita guiada', tourNext:'Seguinte', tourBack:'Anterior', tourSkip:'Saltar', tourDone:'Começar', tourOf:(a,b)=>`${a} de ${b}`,
   tourSteps:[
     {t:'Bem-vindo ao Diagramico', d:'Um quadro infinito para desenhar diagramas lógicos e user flows. Em 1 minuto fica a saber o essencial. Já abri um diagrama de exemplo para explorar.'},
@@ -404,7 +391,7 @@ pt: {
     <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
     <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte. Cada lado cria a sua própria seta, por isso duas formas podem ligar-se por vários lados; as setas que saem do mesmo lado partilham o tronco</dd>
     <dt>C · Alt</dt><dd>Seta solta: com o conector, arraste de uma forma ou do vazio e largue onde quiser (ou prima Alt ao largar um ponto lateral no vazio)</dd>
-    <dt>Botão direito</dt><dd>Numa decisão: escolher o tipo BPMN (exclusiva XOR, paralela AND, inclusiva OR, complexa)</dd>
+    <dt>Decisão</dt><dd>Selecione-a e use a segunda lista da barra para escolher o tipo BPMN (exclusiva XOR, paralela AND, inclusiva OR, complexa)</dd>
     <dt>Pontas da seta</dt><dd>Selecione uma seta e arraste uma ponta para uma forma (liga) ou para o vazio (desliga)</dd>
     <dt>Largar ficheiro</dt><dd>Importa .drawio, .vsdx ou .json para um novo diagrama</dd></dl>
   <h3>Texto</h3><dl>
@@ -501,9 +488,7 @@ en: {
   th_auto:'Automatic (system)', th_light:'Light', th_dark:'Dark', theme:'Theme', themeTitle:(a,b)=>`Theme: ${a} · click for ${b}`,
   langTitle:'Language: English · switch to Português', langToast:'Language: English',
   autoLayout:'Auto-arrange (Shift A)', layoutDone:'Diagram arranged. Ctrl Z to undo.', layoutEmpty:'There are no shapes to arrange.',
-  gate_title:'Decision type (BPMN)', gate_plain:'Plain decision', gate_plain_d:'A choice, with the text inside the shape',
-  gate_exclusive:'Exclusive (XOR)', gate_exclusive_d:'Only one of the paths is followed', gate_parallel:'Parallel (AND)', gate_parallel_d:'All paths at once; when joining, waits for all of them',
-  gate_inclusive:'Inclusive (OR)', gate_inclusive_d:'One or more paths are followed', gate_complex:'Complex', gate_complex_d:'The paths depend on a custom rule',
+  gateType:'Decision type (BPMN)', gate_plain:'Plain decision', gate_exclusive:'Exclusive (XOR): one path', gate_parallel:'Parallel (AND): all paths', gate_inclusive:'Inclusive (OR): one or more', gate_complex:'Complex (custom rule)',
   tourBtn:'Guided tour', tourNext:'Next', tourBack:'Back', tourSkip:'Skip', tourDone:'Get started', tourOf:(a,b)=>`${a} of ${b}`,
   tourSteps:[
     {t:'Welcome to Diagramico', d:'An infinite board for drawing logic diagrams and user flows. One minute is enough to learn the basics. An example diagram is already open to explore.'},
@@ -526,7 +511,7 @@ en: {
     <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
     <dt>Side dots</dt><dd>Drag to connect; click to create the next shape. Each side makes its own arrow, so two shapes can be linked from several sides; arrows leaving the same side share a trunk</dd>
     <dt>C · Alt</dt><dd>Loose arrow: with the connector tool, drag from a shape or empty space and release anywhere (or hold Alt when releasing a side dot on empty space)</dd>
-    <dt>Right-click</dt><dd>On a decision: choose its BPMN type (exclusive XOR, parallel AND, inclusive OR, complex)</dd>
+    <dt>Decision</dt><dd>Select it and use the second drop-down in the bar to pick its BPMN type (exclusive XOR, parallel AND, inclusive OR, complex)</dd>
     <dt>Arrow ends</dt><dd>Select an arrow and drag an end onto a shape to attach it, or onto empty space to detach it</dd>
     <dt>Drop a file</dt><dd>Imports .drawio, .vsdx or .json into a new diagram</dd></dl>
   <h3>Text</h3><dl>
@@ -1200,30 +1185,7 @@ ta.addEventListener('blur', () => setTimeout(() => { if (document.activeElement 
 /* ---------- pointer ---------- */
 const ptrs = new Map();
 let pinch = null, lastClick = {t:0, x:0, y:0};
-// Right-click on a decision: choose its BPMN gateway type
-let gateMenu = null;
-function closeGateMenu(){ if (gateMenu){ gateMenu.remove(); gateMenu = null; } }
-const GATE_ICON = g => I('<path d="M12 3l9 9-9 9-9-9z"/>' + ({exclusive:'<path d="M9.3 9.3l5.4 5.4M14.7 9.3l-5.4 5.4"/>', parallel:'<path d="M12 8.3v7.4M8.3 12h7.4"/>', inclusive:'<circle cx="12" cy="12" r="3.3"/>', complex:'<path d="M12 8.2v7.6M8.2 12h7.6M9.5 9.5l5 5M14.5 9.5l-5 5"/>'}[g] || ''));
-function openGateMenu(x, y, n){
-  closeGateMenu(); closePopovers();
-  const m = document.createElement('div'); m.className = 'panel gatemenu'; m.setAttribute('role', 'menu');
-  const cur = GATES.includes(n.gate) ? n.gate : 'plain';
-  const h = document.createElement('div'); h.className = 'gh'; h.textContent = T('gate_title'); m.appendChild(h);
-  for (const g of ['plain', ...GATES]){
-    const b = document.createElement('button'); b.className = 'gi' + (g === cur ? ' on' : ''); b.setAttribute('role', 'menuitemradio'); b.setAttribute('aria-checked', String(g === cur));
-    b.innerHTML = `${GATE_ICON(g)}<span><b>${T('gate_' + g)}</b><small>${T('gate_' + g + '_d')}</small></span>`;
-    b.onclick = () => { checkpoint(); if (g === 'plain') delete n.gate; else n.gate = g; changed(); closeGateMenu(); };
-    m.appendChild(b);
-  }
-  document.body.appendChild(m);
-  const r = m.getBoundingClientRect(); m.style.left = clamp(x, 8, W - r.width - 8) + 'px'; m.style.top = clamp(y, 8, H - r.height - 8) + 'px';
-  gateMenu = m; (m.querySelector('.on') || m.querySelector('.gi')).focus();
-}
-cv.addEventListener('contextmenu', e => {
-  e.preventDefault(); closeGateMenu(); if (EMBED) return;
-  const hit = hitTest(evPt(e));
-  if (hit && hit.kind === 'node' && N(hit.id).type === 'decision'){ S.sel = new Set([hit.id]); draw(); openGateMenu(e.clientX, e.clientY, N(hit.id)); }
-});
+cv.addEventListener('contextmenu', e => e.preventDefault());
 cv.addEventListener('pointerdown', onDown);
 window.addEventListener('pointermove', onMove);
 window.addEventListener('pointerup', onUp);
@@ -1520,7 +1482,7 @@ function updateCtx(){
   const hide = !S.sel.size || S.editing || (S.drag && S.drag.kind !== 'pan');
   if (hide){ ctxEl.hidden = true; ctxKey = ''; return; }
   const ns = selNodes(), es = selEdges();
-  const key = [...S.sel].join(',') + '|' + JSON.stringify(ns.map(n=>[n.fs,n.b,n.i,n.color,n.type,n.laneType])) + JSON.stringify(es.map(e=>[e.style,e.arrow,e.dash,e.route])) + document.documentElement.getAttribute('data-theme') + P.bg;
+  const key = [...S.sel].join(',') + '|' + JSON.stringify(ns.map(n=>[n.fs,n.b,n.i,n.color,n.type,n.laneType,n.gate])) + JSON.stringify(es.map(e=>[e.style,e.arrow,e.dash,e.route])) + document.documentElement.getAttribute('data-theme') + P.bg;
   if (key !== ctxKey){ ctxKey = key; buildCtx(ns, es); }
   ctxEl.hidden = false;
   // position above selection
@@ -1544,7 +1506,16 @@ function buildCtx(ns, es){
       if (!cur){ const o = document.createElement('option'); o.textContent = T('various'); o.value = ''; s.appendChild(o); }
       for (const t of [...BOXES,'note']){ const o = document.createElement('option'); o.value = t; o.textContent = T('t_'+t); if (t === cur) o.selected = true; s.appendChild(o); }
       s.onchange = () => { if (s.value) setProp(shapes, 'type', s.value); };
-      ctxEl.appendChild(s); ctxEl.appendChild(sepEl());
+      ctxEl.appendChild(s);
+      if (shapes.every(n => n.type === 'decision')){ // BPMN gateway type
+        const g = document.createElement('select'); g.title = T('gateType'); g.setAttribute('aria-label', T('gateType'));
+        const gc = shapes.every(n => (n.gate||'plain') === (shapes[0].gate||'plain')) ? (shapes[0].gate||'plain') : '';
+        if (!gc){ const o = document.createElement('option'); o.textContent = T('various'); o.value = ''; g.appendChild(o); }
+        for (const k of ['plain', ...GATES]){ const o = document.createElement('option'); o.value = k; o.textContent = T('gate_' + k); if (k === gc) o.selected = true; g.appendChild(o); }
+        g.onchange = () => { if (!g.value) return; checkpoint(); shapes.forEach(n => { if (g.value === 'plain') delete n.gate; else n.gate = g.value; }); changed(); };
+        ctxEl.appendChild(g);
+      }
+      ctxEl.appendChild(sepEl());
     } else if (shapes.length && shapes.every(n => EVENTS.has(n.type))){
       const s = document.createElement('select'); s.title = T('eventType'); s.setAttribute('aria-label',T('eventType'));
       const cur = shapes.every(n=>n.type===shapes[0].type) ? shapes[0].type : '';
@@ -2621,7 +2592,7 @@ $('#btnLang').onclick = () => { lang = lang === 'pt' ? 'en' : 'pt'; try { localS
 /* ---------- misc UI ---------- */
 let toastT = null;
 function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2600); }
-function closePopovers(){ $('#help').hidden = true; hideTip(); closeGateMenu(); }
+function closePopovers(){ $('#help').hidden = true; hideTip(); }
 $('#btnHelp').onclick = e => { e.stopPropagation(); $('#help').hidden = !$('#help').hidden; };
 $('#btnExport').onclick = () => openExport(modalTab);
 $('#zIn').innerHTML = ICON.plus; $('#zOut').innerHTML = ICON.minus; $('#zFit').innerHTML = ICON.fit; $('#bUndo').innerHTML = ICON.undo; $('#bRedo').innerHTML = ICON.redo;
