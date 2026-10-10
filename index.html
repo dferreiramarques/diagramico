@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Diagramico · Diagramas de fluxo à velocidade do teclado</title>
-<meta name="description" content="Editor de diagramas lógicos e user flows com swimlanes, organização automática e exportação para texto compacto que qualquer IA entende. Gratuito, sem registo.">
-<meta property="og:title" content="Diagramico · Diagramas de fluxo à velocidade do teclado">
-<meta property="og:description" content="Desenha fluxos com o teclado, organiza com uma tecla e exporta texto compacto para IA, Mermaid, SVG ou PNG.">
+<title>Diagramico · Desenha o fluxo, a IA escreve a documentação</title>
+<meta name="description" content="Desenha processos e user flows com o teclado e exporta-os como texto compacto para uma IA escrever a documentação, os casos de teste e a revisão da lógica. Gratuito, sem registo.">
+<meta property="og:title" content="Diagramico · Desenha o fluxo, a IA escreve a documentação">
+<meta property="og:description" content="Desenha fluxos com o teclado, exporta texto compacto e deixa a IA escrever a documentação.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233347d4'/%3E%3Cpath d='M7 10h9l-2.5 6H7z M18 17l5 5-5 5-5-5z' fill='white'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -40,7 +40,7 @@ header.nav{display:flex;align-items:center;gap:16px;padding:18px 0}
 .btn:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hero{text-align:center;padding:48px 0 28px}
 .eyebrow{display:inline-block;font:500 13px var(--sans);color:var(--accent);background:var(--accent-soft);padding:4px 12px;border-radius:99px;margin-bottom:18px}
-h1{font-size:clamp(32px,5.6vw,56px);line-height:1.08;letter-spacing:-.02em;margin:0 auto 16px;max-width:18ch;font-weight:600}
+h1{font-size:clamp(32px,5.6vw,56px);line-height:1.08;letter-spacing:-.02em;margin:0 auto 16px;max-width:22ch;font-weight:600}
 .lead{font-size:clamp(17px,2.2vw,20px);color:var(--muted);max-width:60ch;margin:0 auto 26px}
 .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 .demo{margin:36px auto 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);background:var(--panel)}
@@ -224,18 +224,18 @@ const I18N = {
 pt:{
   nav_ai:'Texto para IA', nav_faq:'Perguntas', open:'Abrir a app', see_ai:'Ver o texto para IA',
   eyebrow:'Gratuito · sem registo · os dados ficam no teu browser',
-  h1:'Diagramas de fluxo à velocidade do teclado',
-  lead:'Desenha user flows e processos com swimlanes, organiza com uma tecla e exporta um texto compacto que qualquer IA percebe. Sem formas arrastadas uma a uma.',
+  h1:'Desenha o fluxo. A IA escreve a documentação.',
+  lead:'A forma mais rápida de desenhar um processo ou user flow: teclado, organização automática e swimlanes. Depois exporta-o como texto compacto e cola-o numa IA para obter documentação, casos de teste e revisões da lógica.',
   demo_bar:'Diagramico · exemplo interativo', demo_hint:'Arrasta para mover, Ctrl + roda para aproximar. Para editar, abre a app.',
   f_h:'Feito para quem desenha fluxos todos os dias', f_sub:'Menos rato, menos alinhamentos à mão, menos cliques perdidos em menus de formas.',
   f1_t:'Do teclado ao diagrama', f1_p:'<kbd>Tab</kbd> cria o passo seguinte já ligado. Duplo clique cria e edita. Escreve <b>**negrito**</b> e <i>*itálico*</i> diretamente no texto, e as caixas ajustam-se sozinhas.',
   f2_t:'Organiza com uma tecla', f2_p:'<kbd>Shift</kbd> + <kbd>A</kbd> arruma o diagrama da esquerda para a direita, reduz cruzamentos e respeita as swimlanes. Se não gostares, <kbd>Ctrl</kbd> + <kbd>Z</kbd>.',
   f3_t:'Setas como tu queres', f3_p:'Várias setas entre as mesmas formas, por lados diferentes. Setas soltas que não ligam a nada. Cotovelo, reta ou curva, tracejado e rótulos.',
-  ai_h:'Texto compacto para IA', ai_p:'Exporta o diagrama como texto: lanes, formas, fluxo e notas. Cola-o num chat para pedir documentação, uma revisão da lógica ou casos de teste. Ou faz o contrário: pede a uma IA que escreva o fluxo e importa-o para ver o diagrama.',
+  ai_h:'Do desenho à documentação, com IA', ai_p:'Um diagrama é difícil de explicar a uma IA; texto é fácil. O Diagramico exporta lanes, formas, fluxo e notas num texto compacto. Cola-o no teu chat e pede: «Escreve a documentação deste processo», «Lista os casos de teste», «Que passos podem falhar?». Também funciona ao contrário: pede à IA que escreva o fluxo e importa-o para o veres desenhado.',
   ai_s1:'menos caracteres que o JSON, neste exemplo', ai_n2:'2 sentidos', ai_s2:'exporta e importa texto IA e Mermaid',
-  how_h:'Como funciona', s1_t:'Desenha ou cola', s1_p:'Cria o fluxo com o teclado, importa de draw.io ou Visio, ou cola texto IA ou Mermaid.',
-  s2_t:'Organiza', s2_p:'Prime <kbd>Shift</kbd> + <kbd>A</kbd> e o diagrama fica arrumado, com cada forma na sua lane.',
-  s3_t:'Exporta', s3_p:'Para a documentação, para um chat com IA, para o GitHub (Mermaid) ou para uma apresentação (SVG, PNG).',
+  how_h:'Como funciona', s1_t:'Desenha', s1_p:'Cria o fluxo com o teclado, ou importa de draw.io, Visio, Mermaid ou texto.',
+  s2_t:'Envia à IA', s2_p:'Exporta o texto compacto (cerca de 3× menos caracteres que o JSON) e cola-o no teu chat.',
+  s3_t:'Fica documentado', s3_p:'Guarda a documentação gerada junto com o diagrama, que também sai em SVG, PNG ou Mermaid para o GitHub.',
   fmt_p:'Formatos suportados',
   t_h:'Para equipas: partilha e colaboração', t_p:'Estamos a preparar contas, sincronização na cloud, partilha por link e edição em equipa, a um preço mais simples do que as alternativas. Deixa o teu email e diz-nos o que precisas.',
   t_ph:'o.teu@email.com', t_use:'O que desenhas? (opcional)', t_btn:'Entrar na lista de espera', t_ok:'Obrigado! Avisamos quando houver novidades.', t_err:'Não foi possível enviar. Tenta de novo mais tarde.',
@@ -244,24 +244,24 @@ pt:{
   q2:'Onde ficam os meus diagramas?', a2:'No teu browser (localStorage). Nada é enviado para um servidor. Usa Diagramas → Guardar cópia de segurança para mudar de computador ou proteger o trabalho.',
   q3:'Funciona em telemóvel?', a3:'Não: foi pensado para computador e tablet, e num telemóvel o quadro fica demasiado pequeno para desenhar.',
   q4:'Posso importar diagramas que já tenho?', a4:'Sim: draw.io (.drawio), Visio (.vsdx, incluindo exportações do Lucidchart), texto IA e Mermaid. Um relatório mostra o que mudou.',
-  f4_t:'Notação BPMN', f4_p:'Eventos de início e fim, swimlanes e gateways exclusivo (XOR), paralelo (AND), inclusivo (OR) e complexo, com os símbolos que a tua equipa já conhece.',
-  q6:'É um modelador BPMN 2.0?', a6:'Usa a notação BPMN (eventos, swimlanes e gateways), mas não é um modelador BPMN 2.0 completo: não tem tarefas tipificadas nem fluxos de mensagem, não valida o modelo e não exporta XML BPMN. Se precisas de execução ou de validação formal, usa uma ferramenta dedicada.',
+  f4_t:'Inspirado em BPMN', f4_p:'Símbolos que a tua equipa já reconhece (eventos, swimlanes e gateways XOR, AND, OR), sem seres obrigado a seguir a convenção à risca. O que conta é o fluxo ficar claro.',
+  q6:'É um modelador BPMN 2.0?', a6:'Não. Inspira-se na notação BPMN, mas o objetivo é desenhar com facilidade e documentar com IA, não cumprir a norma: não tem tarefas tipificadas nem fluxos de mensagem, não valida o modelo e não exporta XML BPMN. Se precisas de execução ou de validação formal, usa uma ferramenta dedicada.',
   q5:'É código aberto?', a5:'Sim, licença MIT. É um único ficheiro HTML sem dependências, e o código está no GitHub.', gh:'Código no GitHub'},
 en:{
   nav_ai:'AI text', nav_faq:'FAQ', open:'Open the app', see_ai:'See the AI text',
   eyebrow:'Free · no sign-up · your data stays in your browser',
-  h1:'Flow diagrams at the speed of your keyboard',
-  lead:'Draw user flows and processes with swimlanes, arrange them with one key and export compact text any AI understands. No dragging shapes one by one.',
+  h1:'Draw the flow. Let AI write the documentation.',
+  lead:'The fastest way to draw a process or user flow: keyboard, automatic layout and swimlanes. Then export it as compact text and paste it into an AI for documentation, test cases and logic reviews.',
   demo_bar:'Diagramico · interactive example', demo_hint:'Drag to pan, Ctrl + wheel to zoom. Open the app to edit.',
   f_h:'Built for people who draw flows every day', f_sub:'Less mouse, less hand alignment, fewer clicks lost in shape menus.',
   f1_t:'From keyboard to diagram', f1_p:'<kbd>Tab</kbd> creates the next step already connected. Double-click creates and edits. Type <b>**bold**</b> and <i>*italic*</i> right in the text, and boxes size themselves.',
   f2_t:'Arrange with one key', f2_p:'<kbd>Shift</kbd> + <kbd>A</kbd> tidies the diagram left to right, cuts crossings and respects swimlanes. Don\'t like it? <kbd>Ctrl</kbd> + <kbd>Z</kbd>.',
   f3_t:'Arrows your way', f3_p:'Several arrows between the same shapes, from different sides. Loose arrows that attach to nothing. Elbow, straight or curved, dashed, with labels.',
-  ai_h:'Compact text for AI', ai_p:'Export the diagram as text: lanes, shapes, flow and notes. Paste it into a chat to ask for documentation, a logic review or test cases. Or go the other way: ask an AI to write the flow and import it to see the diagram.',
+  ai_h:'From drawing to documentation, with AI', ai_p:'A diagram is hard to explain to an AI; text is easy. Diagramico exports lanes, shapes, flow and notes as compact text. Paste it into your chat and ask: “Write the documentation for this process”, “List the test cases”, “Which steps can fail?”. It also works the other way: ask the AI to write the flow and import it to see it drawn.',
   ai_s1:'fewer characters than JSON, in this example', ai_n2:'Both ways', ai_s2:'exports and imports AI text and Mermaid',
-  how_h:'How it works', s1_t:'Draw or paste', s1_p:'Build the flow with the keyboard, import from draw.io or Visio, or paste AI text or Mermaid.',
-  s2_t:'Arrange', s2_p:'Press <kbd>Shift</kbd> + <kbd>A</kbd> and the diagram is tidy, with every shape in its lane.',
-  s3_t:'Export', s3_p:'To documentation, to an AI chat, to GitHub (Mermaid) or to a presentation (SVG, PNG).',
+  how_h:'How it works', s1_t:'Draw', s1_p:'Build the flow with the keyboard, or import from draw.io, Visio, Mermaid or text.',
+  s2_t:'Send it to AI', s2_p:'Export the compact text (about 3× fewer characters than JSON) and paste it into your chat.',
+  s3_t:'Documented', s3_p:'Keep the generated documentation next to the diagram, which also exports as SVG, PNG or Mermaid for GitHub.',
   fmt_p:'Supported formats',
   t_h:'For teams: sharing and collaboration', t_p:'We are building accounts, cloud sync, link sharing and team editing, at a simpler price than the alternatives. Leave your email and tell us what you need.',
   t_ph:'you@email.com', t_use:'What do you draw? (optional)', t_btn:'Join the waitlist', t_ok:'Thank you! We will let you know when there is news.', t_err:'Could not send. Please try again later.',
@@ -270,8 +270,8 @@ en:{
   q2:'Where are my diagrams stored?', a2:'In your browser (localStorage). Nothing is sent to a server. Use Diagrams → Save backup to switch computers or protect your work.',
   q3:'Does it work on a phone?', a3:'No: it is designed for computers and tablets, and on a phone the board is too small to draw on.',
   q4:'Can I import diagrams I already have?', a4:'Yes: draw.io (.drawio), Visio (.vsdx, including Lucidchart exports), AI text and Mermaid. A report shows what changed.',
-  f4_t:'BPMN notation', f4_p:'Start and end events, swimlanes, and exclusive (XOR), parallel (AND), inclusive (OR) and complex gateways, with the symbols your team already knows.',
-  q6:'Is it a BPMN 2.0 modeller?', a6:'It uses BPMN notation (events, swimlanes and gateways), but it is not a full BPMN 2.0 modeller: no typed tasks or message flows, no model validation and no BPMN XML export. If you need execution or formal validation, use a dedicated tool.',
+  f4_t:'BPMN-inspired', f4_p:'Symbols your team already recognises (events, swimlanes and XOR, AND, OR gateways), without having to follow the convention to the letter. What matters is a clear flow.',
+  q6:'Is it a BPMN 2.0 modeller?', a6:'No. It draws on BPMN notation, but the goal is easy drawing and AI documentation, not standards compliance: no typed tasks or message flows, no model validation and no BPMN XML export. If you need execution or formal validation, use a dedicated tool.',
   q5:'Is it open source?', a5:'Yes, MIT licence. It is a single HTML file with no dependencies, and the code is on GitHub.', gh:'Code on GitHub'}
 };
 
@@ -290,7 +290,7 @@ function apply(){
   $('#lang').setAttribute('aria-label', lang === 'pt' ? 'Switch to English' : 'Mudar para português');
   $('#aiSample').textContent = AI[lang];
   const f = $('#demo'), src = 'app/?embed=1&lang=' + lang; if (f.getAttribute('src') !== src) f.setAttribute('src', src);
-  document.title = lang === 'pt' ? 'Diagramico · Diagramas de fluxo à velocidade do teclado' : 'Diagramico · Flow diagrams at the speed of your keyboard';
+  document.title = lang === 'pt' ? 'Diagramico · Desenha o fluxo, a IA escreve a documentação' : 'Diagramico · Draw the flow, let AI write the documentation';
 }
 $('#lang').onclick = () => { lang = lang === 'pt' ? 'en' : 'pt'; try { localStorage.setItem(KEY, lang); } catch (e) {} apply(); };
 
