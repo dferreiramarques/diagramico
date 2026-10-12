@@ -990,7 +990,8 @@ function drawOverlay(c){
       c.fillStyle = A; c.fill(); c.strokeStyle = P.bg; c.lineWidth = 1.8/z; c.beginPath();
       c.moveTo(ctl.x-4/z, ctl.y); c.lineTo(ctl.x+4/z, ctl.y); c.moveTo(ctl.x, ctl.y-4/z); c.lineTo(ctl.x, ctl.y+4/z); c.stroke();
     } else {
-      c.fillStyle = P.bg; c.fill(); c.strokeStyle = A; c.lineWidth = 1.4/z; c.stroke();
+      const grey = P === PAL.dark ? '#b4bac8' : '#8a91a0'; // chains are light grey, not accent blue
+      c.fillStyle = P.bg; c.fill(); c.strokeStyle = grey; c.lineWidth = 1.4/z; c.stroke();
       c.save(); c.translate(ctl.x, ctl.y); c.rotate(-Math.PI/4); c.lineWidth = 1.5/z; c.beginPath();
       c.roundRect(-6/z, -2.6/z, 7.5/z, 5.2/z, 2.6/z); c.roundRect(-1.5/z, -2.6/z, 7.5/z, 5.2/z, 2.6/z); c.stroke(); c.restore();
     }
