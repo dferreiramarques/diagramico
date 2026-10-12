@@ -110,6 +110,7 @@ Limitações: só horizontal; não desenha arestas à volta de formas; a lane de
 - `index.html` (raiz) é a landing, bilingue (PT/EN), sem dependências além das fontes. A app vive em `app/`.
 - A demo do hero é a própria app num `<iframe src="app/?embed=1&lang=pt|en">`. Com `?embed=1` a app fica só de leitura: sem barras, sem visita nem aviso de telemóvel, sem atalhos nem edição (arrastar só move o quadro, a roda só faz zoom com Ctrl), e **nada é gravado** (um `localStorage` falso, em memória, tapa o real dentro do IIFE). `?lang=` escolhe o idioma sem o gravar.
 - A lista de espera está desligada: `WAITLIST_URL` (no `<script>` da landing) está vazio e a secção "equipas" fica escondida. Para a ativar, pôr lá o URL de um endpoint que aceite POST JSON (por exemplo um formulário Formspree); o formulário envia `{email, uso, lang, page}`.
+- O exemplo "do diagrama ao assistente de suporte" usa `?embed=1&t=<texto IA ou Mermaid>` para mostrar um diagrama gerado a partir de texto (`importFromText`); o texto dos dois diagramas e a conversa estão no objeto `CASE` do `<script>` da landing. A resposta do assistente é um exemplo ilustrativo escrito por uma IA, e a página di-lo.
 - Não há analytics. Para medir visitas sem cookies, acrescentar um serviço como Plausible ou GoatCounter na landing.
 
 ## Dispositivos

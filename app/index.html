@@ -2451,7 +2451,7 @@ function parseMermaid(src){
 }
 function buildDocFromParsed(r){
   const nodes = [], edges = [], byCode = new Map(), laneNodes = new Map(), count = new Map();
-  r.lanes.forEach((l, i) => { const n = {id:uid('n'), type:'lane', x:0, y:i*180, w:1320, h:180, text:l.name, fs:14, color:'none'}; if (l.type) n.laneType = l.type; laneNodes.set(l.code, n); nodes.push(n); });
+  r.lanes.forEach((l, i) => { const n = {id:uid('n'), type:'lane', x:0, y:i*180, w:100000, h:180, text:l.name, fs:14, color:'none'}; if (l.type) n.laneType = l.type; laneNodes.set(l.code, n); nodes.push(n); });
   for (const s of r.nodes){
     const lane = s.lane ? laneNodes.get(s.lane) : null, k = count.get(s.lane || '_') || 0; count.set(s.lane || '_', k+1);
     const n = mkNode(s.type, 150 + k*200, lane ? lane.y + 90 : r.lanes.length*180 + 90, s.text, s.gate ? {gate:s.gate} : {}); byCode.set(s.id, n); nodes.push(n);
@@ -2477,7 +2477,11 @@ function importFromText(src, fallbackName){
   if (fallbackName && !r.name) r.name = fallbackName;
   if (!r.nodes.length) return {error:T('txt_empty')};
   const {d, dropped} = buildDocFromParsed(r);
-  openDoc(d.id); autoLayout(); changed(); fit();
+  openDoc(d.id); autoLayout();
+  // lanes were created wide so every shape falls inside its lane while laying out; now trim them to the content
+  const body = d.nodes.filter(n => n.type !== 'lane'), right = Math.max(...body.map(n => bbox(n).x1));
+  for (const l of d.nodes) if (l.type === 'lane') l.w = Math.max(300, Math.ceil(right + 60 - l.x));
+  changed(); fit();
   return {shapes:d.nodes.filter(n => n.type !== 'lane').length, edges:d.edges.length, skipped:r.skipped.length + dropped};
 }
 let txtDraft = '';
@@ -2668,6 +2672,7 @@ if (doc.view) Object.assign(view, doc.view); else fit();
 fontsReady.then(() => { LC.clear(); draw(); });
 setTimeout(() => { LC.clear(); draw(); }, 1500);
 persistNow();
+if (EMBED && QS.get('t')) importFromText(QS.get('t')); // landing page: show a given AI text / Mermaid diagram instead of the sample
 // Phones (touch device whose shorter screen side is under 600 px) get a warning; tablets are not affected.
 const isPhone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
 function mobileNotice(){ modalRender = mobileNotice; dialog(T('mobTitle'), [el('p', 'hint', T('mobBody'))], [{label: T('mobOk'), primary: true, onClick: closeModal}]); }

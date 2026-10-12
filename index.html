@@ -72,6 +72,26 @@ details{border-bottom:1px solid var(--line);padding:14px 0}details summary{curso
 footer{padding:36px 0 48px;color:var(--muted);font-size:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
 footer .sp{flex:1}
 [hidden]{display:none!important}
+@media (max-width:560px){.nav a.link{display:none}}
+.case2{display:grid;grid-template-columns:1fr;gap:18px}
+.dcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.dcard h3{margin:0;padding:12px 16px;font-size:15px;font-weight:600;border-bottom:1px solid var(--line)}
+.dcard iframe{display:block;width:100%;height:clamp(240px,34vw,340px);border:0;background:var(--bg)}
+.dcard details{border:0;padding:0;border-top:1px solid var(--line)}
+.dcard summary{padding:10px 16px;font-size:13px;color:var(--muted)}
+.dcard pre{border:0;border-radius:0;font-size:12px;max-height:260px}
+.chat{margin-top:22px;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.chat .hd{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:600;font-size:15px}
+.chat .hd i{width:9px;height:9px;border-radius:50%;background:#2c8048}
+.chat .hd small{margin-left:auto;font-weight:400;color:var(--muted);font-size:12px}
+.chat .body{padding:18px 16px;display:flex;flex-direction:column;gap:14px;background:var(--bg)}
+.bub{max-width:min(640px,92%);padding:12px 16px;border-radius:14px;font-size:15px;line-height:1.55}
+.bub.u{align-self:flex-end;background:var(--accent);color:var(--accent-ink);border-bottom-right-radius:4px}
+.bub.b{align-self:flex-start;background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:4px}
+.bub p{margin:0 0 8px}.bub p:last-child{margin:0}
+.bub.sys{align-self:stretch;max-width:none;background:var(--code);border:1px dashed var(--line);font:12.5px/1.55 var(--mono);color:var(--muted);border-radius:10px}
+.bub.sys{white-space:pre-wrap}
+.note{font-size:13px;color:var(--muted);margin:12px 2px 0}
 </style>
 </head>
 <body>
@@ -124,6 +144,24 @@ footer .sp{flex:1}
         </div>
         <pre id="aiSample" aria-label="Exemplo"></pre>
       </div>
+    </section>
+
+    <section id="case">
+      <h2 data-i18n="c_h"></h2>
+      <p class="sub" data-i18n="c_p"></p>
+      <div class="case2">
+        <div class="dcard"><h3 id="c1t"></h3><iframe id="c1f" title="" loading="lazy"></iframe><details><summary data-i18n="c_txt"></summary><pre id="c1x"></pre></details></div>
+        <div class="dcard"><h3 id="c2t"></h3><iframe id="c2f" title="" loading="lazy"></iframe><details><summary data-i18n="c_txt"></summary><pre id="c2x"></pre></details></div>
+      </div>
+      <div class="chat" role="group">
+        <div class="hd"><i></i><span data-i18n="c_bot"></span><small data-i18n="c_ex"></small></div>
+        <div class="body">
+          <div class="bub sys" id="cSys"></div>
+          <div class="bub u" id="cQ"></div>
+          <div class="bub b" id="cA"></div>
+        </div>
+      </div>
+      <p class="note" data-i18n="c_note"></p>
     </section>
 
     <section>
@@ -220,8 +258,104 @@ OS2 > WA2 [no]
 WA2 > WA3
 WA3 > OS3 [restocked]`};
 
+// Worked example: two small diagrams exported as AI text, then a support question answered from that text only.
+const CASE = {
+pt:{
+  d1:`DIAGRAM: Pedido de reembolso
+
+LANES:
+CL = Cliente (person)
+SU = Suporte (team)
+
+NODES:
+CL1 start: Pede reembolso
+CL2 end: Recebe a resposta
+SU1 decision_exclusive: Compra com menos de 30 dias?
+SU2 step: Aprova e devolve o valor em 5 dias úteis
+SU3 step: Recusa e explica o motivo
+
+FLOW:
+CL1 > SU1
+SU1 > SU2 [sim]
+SU1 > SU3 [não]
+SU2 > CL2
+SU3 > CL2`,
+  d2:`DIAGRAM: Recuperar acesso
+
+LANES:
+UT = Utilizador (person)
+SI = Sistema (system)
+
+NODES:
+UT1 start: Esquece a palavra-passe
+UT2 user_action: Pede ligação de recuperação
+UT3 end: Acede à conta
+SI1 step: Envia email com ligação válida por 1 hora
+SI2 decision: Ligação ainda válida?
+SI3 step: Define a nova palavra-passe
+SI4 step: Recusa a ligação expirada
+
+FLOW:
+UT1 > UT2 > SI1 > SI2
+SI2 > SI3 [sim]
+SI2 > SI4 [não]
+SI3 > UT3
+SI4 > UT2 [pede nova]`,
+  sys:'Prompt: «És o assistente de suporte da empresa. Responde só com base na documentação abaixo e diz quando não encontrares a informação.»\n\n[texto dos dois diagramas acima]',
+  q:'Comprei há 40 dias e entretanto esqueci-me da palavra-passe. Consigo pedir o reembolso? E quanto tempo tenho para a redefinir?',
+  a:`<p><b>Reembolso:</b> o pedido só é aprovado se a compra tiver menos de 30 dias. Como a tua tem 40, o pedido será recusado e vais receber a explicação do motivo.</p><p><b>Palavra-passe:</b> podes pedir uma ligação de recuperação por email, válida durante 1 hora. Se passar esse tempo, a ligação é recusada, mas podes pedir outra.</p><p>Não encontro na documentação nenhuma exceção ao prazo de 30 dias.</p>`
+},
+en:{
+  d1:`DIAGRAM: Refund request
+
+LANES:
+CU = Customer (person)
+SU = Support (team)
+
+NODES:
+CU1 start: Requests a refund
+CU2 end: Receives the answer
+SU1 decision_exclusive: Purchased less than 30 days ago?
+SU2 step: Approves and refunds within 5 business days
+SU3 step: Declines and explains why
+
+FLOW:
+CU1 > SU1
+SU1 > SU2 [yes]
+SU1 > SU3 [no]
+SU2 > CU2
+SU3 > CU2`,
+  d2:`DIAGRAM: Regain access
+
+LANES:
+US = User (person)
+SY = System (system)
+
+NODES:
+US1 start: Forgets the password
+US2 user_action: Asks for a recovery link
+US3 end: Accesses the account
+SY1 step: Emails a link valid for 1 hour
+SY2 decision: Link still valid?
+SY3 step: Sets the new password
+SY4 step: Rejects the expired link
+
+FLOW:
+US1 > US2 > SY1 > SY2
+SY2 > SY3 [yes]
+SY2 > SY4 [no]
+SY3 > US3
+SY4 > US2 [asks again]`,
+  sys:'Prompt: “You are the company support assistant. Answer only from the documentation below and say when you cannot find the information.”\n\n[text of the two diagrams above]',
+  q:'I bought it 40 days ago and have since forgotten my password. Can I ask for a refund? And how long do I have to reset it?',
+  a:`<p><b>Refund:</b> a request is only approved if the purchase is less than 30 days old. Yours is 40 days old, so it will be declined and you will get an explanation of why.</p><p><b>Password:</b> you can ask for a recovery link by email, valid for 1 hour. After that the link is rejected, but you can ask for another.</p><p>I cannot find any exception to the 30-day limit in the documentation.</p>`
+}};
+
 const I18N = {
 pt:{
+  c_h:'Exemplo: do diagrama ao assistente de suporte', c_p:'Dois processos simples, desenhados no Diagramico e exportados como texto. Colamos esse texto numa IA e fazemos uma pergunta de cliente: a resposta vem só do que está nos diagramas.',
+  c_txt:'Ver o texto exportado', c_bot:'Assistente de suporte', c_ex:'exemplo ilustrativo',
+  c_note:'Exemplo ilustrativo: a resposta foi escrita por uma IA (Claude) apenas a partir do texto dos dois diagramas, e apresentada aqui como uma conversa de suporte. O Diagramico não inclui um assistente: gera o texto que colas no que já usas.',
   nav_ai:'Texto para IA', nav_faq:'Perguntas', open:'Abrir a app', see_ai:'Ver o texto para IA',
   eyebrow:'Gratuito · sem registo · os dados ficam no teu browser',
   h1:'Desenha o fluxo. A IA escreve a documentação.',
@@ -248,6 +382,9 @@ pt:{
   q6:'É um modelador BPMN 2.0?', a6:'Não. Inspira-se na notação BPMN, mas o objetivo é desenhar com facilidade e documentar com IA, não cumprir a norma: não tem tarefas tipificadas nem fluxos de mensagem, não valida o modelo e não exporta XML BPMN. Se precisas de execução ou de validação formal, usa uma ferramenta dedicada.',
   q5:'É código aberto?', a5:'Sim, licença MIT. É um único ficheiro HTML sem dependências, e o código está no GitHub.', gh:'Código no GitHub'},
 en:{
+  c_h:'Example: from diagram to support assistant', c_p:'Two simple processes, drawn in Diagramico and exported as text. We paste that text into an AI and ask a customer question: the answer comes only from what is in the diagrams.',
+  c_txt:'See the exported text', c_bot:'Support assistant', c_ex:'illustrative example',
+  c_note:'Illustrative example: the answer was written by an AI (Claude) using only the text of the two diagrams, and shown here as a support chat. Diagramico does not include an assistant: it produces the text you paste into the one you already use.',
   nav_ai:'AI text', nav_faq:'FAQ', open:'Open the app', see_ai:'See the AI text',
   eyebrow:'Free · no sign-up · your data stays in your browser',
   h1:'Draw the flow. Let AI write the documentation.',
@@ -289,6 +426,12 @@ function apply(){
   $('#lang').textContent = lang === 'pt' ? 'EN' : 'PT';
   $('#lang').setAttribute('aria-label', lang === 'pt' ? 'Switch to English' : 'Mudar para português');
   $('#aiSample').textContent = AI[lang];
+  const C = CASE[lang];
+  [['c1', C.d1], ['c2', C.d2]].forEach(([k, txt]) => {
+    $('#' + k + 't').textContent = txt.split('\n')[0].replace('DIAGRAM: ', ''); $('#' + k + 'x').textContent = txt;
+    const fr = $('#' + k + 'f'), u = 'app/?embed=1&lang=' + lang + '&t=' + encodeURIComponent(txt); fr.title = $('#' + k + 't').textContent; if (fr.getAttribute('src') !== u) fr.setAttribute('src', u);
+  });
+  $('#cSys').textContent = C.sys; $('#cQ').textContent = C.q; $('#cA').innerHTML = C.a;
   const f = $('#demo'), src = 'app/?embed=1&lang=' + lang; if (f.getAttribute('src') !== src) f.setAttribute('src', src);
   document.title = lang === 'pt' ? 'Diagramico · Desenha o fluxo, a IA escreve a documentação' : 'Diagramico · Draw the flow, let AI write the documentation';
 }
