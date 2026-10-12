@@ -36,7 +36,7 @@ Arranque rápido:
 - **Texto** que ajusta o tamanho da caixa; o tamanho de letra controla o tamanho da forma. Regular, **negrito** e *itálico* por forma ou inline (`**negrito**`, `*itálico*`).
 - **Conectores** ligados às formas: cotovelo (com escolha de percurso), reta ou curva; seta no fim, nos dois lados ou nenhuma; tracejado; rótulos.
 - **Quadro infinito** com zoom, pinça, alinhamento automático, seleção por área, copiar/colar, desfazer/refazer.
-- **Organização automática** (`Shift A` ou botão no canto inferior direito): reorganiza o diagrama da esquerda para a direita, reduz cruzamentos, mantém cada forma na sua lane (ajustando a altura das lanes) e leva as notas junto das formas a que estão ligadas. Desfazível com `Ctrl Z`.
+- **Alinhar à grelha** (`Shift A` ou botão no canto inferior direito): não reorganiza nada, só alinha. Formas a menos de 24 px entre si, na mesma lane, ficam na mesma linha; as que estão próximas em x ficam na mesma coluna; os valores arredondam-se a 10 px e as notas seguem a forma a que estão ligadas. Com 2 ou mais formas selecionadas, só essas. Desfazível com `Ctrl Z`.
 - **Várias setas entre as mesmas formas**: cada ponto lateral cria a sua seta (duas formas podem ligar-se por cima, por baixo, etc.). Ao arrastar, a forma de destino mostra os seus pontos laterais: largar sobre um deles escolhe o lado (por exemplo cima com cima desenha um U invertido). Setas que saem do mesmo lado partilham o tronco; ligar duas vezes pelo mesmo lado não duplica.
 - **Setas soltas**: com o conector (`C`), arraste de uma forma ou do vazio e largue onde quiser. Também se larga um ponto lateral no vazio com `Alt` premido. Arrastando uma ponta de uma seta selecionada, liga-se a uma forma ou desliga-se. Setas soltas não entram no texto para IA nem no Mermaid.
 - **Tema** automático, claro ou escuro (botão na barra superior ou `Shift T`).
@@ -118,7 +118,7 @@ LO2: O stock é verificado em tempo real.
 | `Ctrl Z` / `Ctrl Shift Z` | Desfazer / refazer |
 | `Ctrl C` `V` `D` | Copiar, colar, duplicar |
 | `Shift 1` / `Shift 0` | Ver tudo / 100% |
-| `Shift A` | Organizar o diagrama automaticamente |
+| `Shift A` | Alinhar as formas à grelha |
 | `Shift T` | Alternar tema |
 | `Shift L` | Mudar idioma (PT/EN) |
 | `Espaço` + arrastar | Mover o quadro |

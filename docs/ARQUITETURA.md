@@ -89,9 +89,20 @@ As secções de `app/index.html` estão marcadas com comentários `/* ----------
 3. `changed()` → `reindex()` (mapa `idx` id→node), atualiza `doc.updated`, `scheduleSave()` e `draw()`.
 4. `draw()` agenda um frame; `frame()` repinta o canvas e atualiza a barra contextual (`updateCtx`, com chave de cache `ctxKey`).
 
-## Organização automática (`autoLayout`)
+## Alinhar à grelha (`alignGrid`, `Shift A`)
 
-Layout em camadas, da esquerda para a direita, aplicado ao diagrama inteiro (`Shift A`, um só `checkpoint` para undo):
+Não reorganiza nada: só usa posições relativas entre as próprias caixas. Um `checkpoint` para o undo.
+
+1. Âmbito: as formas selecionadas (2 ou mais), senão todas as formas (sem lanes nem notas).
+2. **Linhas**: dentro de cada lane (ou fora de lanes), ordenam-se por `y` e agrupam-se as que estão a ≤ 24 px da primeira do grupo; cada grupo fica com o `y` médio arredondado a 10 px (preso aos limites da lane).
+3. **Colunas**: o mesmo por `x`, mas em todas as lanes juntas, para que um passo e o seguinte em lanes diferentes fiquem alinhados na vertical.
+4. As notas acompanham o deslocamento da forma a que estão ligadas. Se nada se mexe, avisa e não grava no histórico.
+
+Como só as diferenças pequenas são corrigidas, nunca puxa formas para um lado nem muda a ordem ou as lanes. O botão de `Shift A` e o tooltip estão em `bLayout`.
+
+## Layout em camadas (`autoLayout`, só para importação de texto)
+
+Já não está ligado ao `Shift A`; é usado por `importFromText`, onde não há posições. Layout em camadas, da esquerda para a direita:
 
 1. **Ciclos**: DFS a partir dos eventos de início; as arestas que fecham um ciclo são ignoradas só para a camada.
 2. **Camadas**: caminho mais longo (Kahn). Arestas tracejadas não contam; formas só com ligações tracejadas (ex.: Dados) ficam na coluna da forma a que se ligam.
