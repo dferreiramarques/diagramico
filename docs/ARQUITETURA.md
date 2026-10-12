@@ -58,6 +58,14 @@ As secções de `app/index.html` estão marcadas com comentários `/* ----------
 | guided tour | Visita guiada de primeira utilização (ver abaixo) |
 | boot | Inicialização; expõe `window.__diagramico` para testes |
 
+### Lanes coladas
+
+- "Coladas" é derivado da geometria, não se guarda nada: `gluedPair(a, b)` = mesmo `x` e `w`, e `a` mesmo em cima de `b` (tolerância de 1 px). As lanes do exemplo, que se tocam, contam como coladas.
+- `laneControls()` devolve os controlos desenhados em `drawOverlay` e testados em `onDown` (`laneControlAt`): o **+** (só nos lados sem lane colada, com uma lane selecionada) e as correntes nas duas lanes de cada junção. `runLaneControl` acrescenta a lane (herda tipo, cor, tamanho de texto, `x`, `w`, `h`) ou afasta 10 px com `shiftLanes` (a lane e as coladas para lá dela, com as formas que contêm).
+- `glueLane` / `gluePass`: ao largar uma lane (ou criar uma com a ferramenta) a ≤ 8 px de outra com sobreposição horizontal, encosta-a por cima ou por baixo (conforme o centro) e, se não estavam coladas antes do arrasto, herda `w`, `laneType`, `color`, `fs` da outra. As formas movidas com a lane acompanham o encosto.
+- Redimensionar (`onMove`, `kind: 'resize'`): a largura aplica-se a toda a cadeia; ao crescer para baixo/cima empurra as lanes coladas desse lado.
+- Limitações: arrastar uma lane colada para o lado faz-na voltar a encostar (ímã); não há reordenação de lanes por arrasto que empurre as outras.
+
 ### Decisões e gateways BPMN
 
 - O losango é sempre regular (`w = h`, o necessário para o texto caber: `L.w + L.h + padding`).

@@ -31,6 +31,7 @@ Arranque rápido:
 - **Tipos de decisão BPMN**: selecionar uma decisão e escolher na segunda lista da barra: exclusiva (XOR), paralela (AND, todos os caminhos), inclusiva (OR) ou complexa. Com um tipo escolhido, o símbolo fica dentro do losango e o texto por baixo, como nos eventos.
 - **Eventos**: Início, Fim, Pausa / espera, Mudança de lane.
 - **Swimlanes** para pessoas, equipas, departamentos ou sistemas. Mover uma lane leva as formas que estão dentro.
+- **Lanes coladas**: com uma lane selecionada, o **+** nos cantos direitos (em cima e em baixo) junta uma lane colada à existente, com o mesmo tipo, cor e largura. Lanes coladas mostram uma **corrente** nos cantos de ligação; clicar nela afasta a lane 10 px (a de baixo para baixo, a de cima para cima, e as coladas para lá dela vão juntas). Ao largar uma lane a menos de 8 px de outra, cola-se e herda o x, a largura, o tipo, a cor e o tamanho do texto dessa lane (só se ainda não estivessem coladas). Redimensionar uma lane acompanha as coladas (a largura é comum, e a altura empurra as de baixo ou de cima).
 - **Notas** em IBM Plex Mono.
 - **Texto** que ajusta o tamanho da caixa; o tamanho de letra controla o tamanho da forma. Regular, **negrito** e *itálico* por forma ou inline (`**negrito**`, `*itálico*`).
 - **Conectores** ligados às formas: cotovelo (com escolha de percurso), reta ou curva; seta no fim, nos dois lados ou nenhuma; tracejado; rótulos.

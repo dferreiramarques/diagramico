@@ -391,6 +391,7 @@ pt: {
     <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
     <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte. Cada lado cria a sua própria seta, por isso duas formas podem ligar-se por vários lados; as setas que saem do mesmo lado partilham o tronco</dd>
     <dt>C · Alt</dt><dd>Seta solta: com o conector, arraste de uma forma ou do vazio e largue onde quiser (ou prima Alt ao largar um ponto lateral no vazio)</dd>
+    <dt>Lanes</dt><dd>Selecione uma lane: o <b>+</b> nos cantos direitos junta uma lane colada. Lanes coladas mostram uma corrente; clique nela para as afastar 10 px. Largar uma lane a menos de 8 px de outra cola-as, e herda dessa lane o x, a largura, o tipo, a cor e o tamanho do texto</dd>
     <dt>Decisão</dt><dd>Selecione-a e use a segunda lista da barra para escolher o tipo BPMN (exclusiva XOR, paralela AND, inclusiva OR, complexa)</dd>
     <dt>Pontas da seta</dt><dd>Selecione uma seta e arraste uma ponta para uma forma (liga) ou para o vazio (desliga)</dd>
     <dt>Largar ficheiro</dt><dd>Importa .drawio, .vsdx ou .json para um novo diagrama</dd></dl>
@@ -511,6 +512,7 @@ en: {
     <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
     <dt>Side dots</dt><dd>Drag to connect; click to create the next shape. Each side makes its own arrow, so two shapes can be linked from several sides; arrows leaving the same side share a trunk</dd>
     <dt>C · Alt</dt><dd>Loose arrow: with the connector tool, drag from a shape or empty space and release anywhere (or hold Alt when releasing a side dot on empty space)</dd>
+    <dt>Lanes</dt><dd>Select a lane: the <b>+</b> at its right corners adds a glued lane. Glued lanes show a chain; click it to pull them 10 px apart. Dropping a lane within 8 px of another glues it, and it inherits that lane's x, width, type, colour and text size</dd>
     <dt>Decision</dt><dd>Select it and use the second drop-down in the bar to pick its BPMN type (exclusive XOR, parallel AND, inclusive OR, complex)</dd>
     <dt>Arrow ends</dt><dd>Select an arrow and drag an end onto a shape to attach it, or onto empty space to detach it</dd>
     <dt>Drop a file</dt><dd>Imports .drawio, .vsdx or .json into a new diagram</dd></dl>
@@ -981,6 +983,18 @@ function drawOverlay(c){
     if (n.type === 'lane' && S.sel.size === 1) for (const h of laneHandles(n)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
   }
   // connection handles
+  // glued lanes: chain (separate) and + (add a glued lane)
+  if (!EMBED) for (const ctl of laneControls()){
+    c.beginPath(); c.arc(ctl.x, ctl.y, (ctl.kind === 'plus' ? 9 : 8)/z, 0, Math.PI*2);
+    if (ctl.kind === 'plus'){
+      c.fillStyle = A; c.fill(); c.strokeStyle = P.bg; c.lineWidth = 1.8/z; c.beginPath();
+      c.moveTo(ctl.x-4/z, ctl.y); c.lineTo(ctl.x+4/z, ctl.y); c.moveTo(ctl.x, ctl.y-4/z); c.lineTo(ctl.x, ctl.y+4/z); c.stroke();
+    } else {
+      c.fillStyle = P.bg; c.fill(); c.strokeStyle = A; c.lineWidth = 1.4/z; c.stroke();
+      c.save(); c.translate(ctl.x, ctl.y); c.rotate(-Math.PI/4); c.lineWidth = 1.5/z; c.beginPath();
+      c.roundRect(-6/z, -2.6/z, 7.5/z, 5.2/z, 2.6/z); c.roundRect(-1.5/z, -2.6/z, 7.5/z, 5.2/z, 2.6/z); c.stroke(); c.restore();
+    }
+  }
   const drawHandles = (n, active, plus) => {
     for (const s of SIDES){ const h = handlePos(n, s); const on = active === s;
       c.beginPath(); c.arc(h.x, h.y, (on?7:5)/z, 0, Math.PI*2); c.fillStyle = on ? A : P.bg; c.fill(); c.strokeStyle = A; c.lineWidth = 1.5/z; c.stroke();
@@ -1080,6 +1094,61 @@ function addLooseEdge(c, p){
   if (!e.to){ e.tx = Math.round(p.x); e.ty = Math.round(p.y); }
   doc.edges.push(e); return e;
 }
+/* ---- glued lanes ----
+   Two lanes are "glued" when one sits exactly on top of the other with the same x and width (derived from geometry, nothing stored).
+   Selected lane: "+" at the right corners adds a glued lane. Glued lanes show a chain at their shared corners; clicking it
+   moves that lane (and the glued lanes beyond it) 10 px away. Dropping a lane within 8 px of another glues it and it inherits x, width, type, colour and text size. */
+const lanesAll = () => doc.nodes.filter(n => n.type === 'lane');
+const gluedPair = (a, b) => Math.abs(a.x-b.x) < 1 && Math.abs(a.w-b.w) < 1 && Math.abs(a.y+a.h-b.y) < 1; // a sits right above b
+const laneBelow = a => lanesAll().find(b => b !== a && gluedPair(a, b));
+const laneAbove = b => lanesAll().find(a => a !== b && gluedPair(a, b));
+function laneChain(l, next){ const out = []; for (let c = next(l); c && !out.includes(c) && c !== l; c = next(c)) out.push(c); return out; }
+function shiftLanes(list, dy){ // moves lanes and the shapes inside them
+  const kids = new Set(); for (const l of list) for (const k of laneChildren(l)) kids.add(k);
+  for (const l of list) l.y += dy; for (const k of kids) k.y += dy;
+}
+function laneControls(){
+  const z = view.z, out = [], ls = lanesAll();
+  for (const a of ls) for (const b of ls) if (a !== b && gluedPair(a, b)){
+    out.push({kind:'chain', lane:a, side:'bottom', x:a.x+a.w-16/z, y:a.y+a.h-13/z}, {kind:'chain', lane:b, side:'top', x:b.x+b.w-16/z, y:b.y+13/z});
+  }
+  if (S.sel.size === 1){ const l = N([...S.sel][0]);
+    if (l && l.type === 'lane'){
+      if (!laneAbove(l)) out.push({kind:'plus', lane:l, side:'top', x:l.x+l.w-22/z, y:l.y-17/z});
+      if (!laneBelow(l)) out.push({kind:'plus', lane:l, side:'bottom', x:l.x+l.w-22/z, y:l.y+l.h+17/z});
+    } }
+  return out;
+}
+const laneControlAt = p => laneControls().find(c => Math.hypot(c.x-p.x, c.y-p.y) <= 10/view.z) || null;
+function runLaneControl(c){
+  checkpoint();
+  if (c.kind === 'chain'){
+    if (c.side === 'top') shiftLanes([c.lane, ...laneChain(c.lane, laneBelow)], 10); // lower lane: away downwards
+    else shiftLanes([c.lane, ...laneChain(c.lane, laneAbove)], -10);                 // upper lane: away upwards
+    changed(); return;
+  }
+  const l = c.lane, n = addNode('lane', l.x, c.side === 'top' ? l.y - l.h : l.y + l.h, {w:l.w, h:l.h, laneType:l.laneType, color:l.color, fs:l.fs});
+  if (l.laneType === undefined) delete n.laneType;
+  S.sel = new Set([n.id]); changed(); startEdit(n.id);
+}
+// Snap lane m onto a lane within 8 px (above or below, by centre); m inherits the other lane's properties unless it was already glued to it.
+function glueLane(m, moving, orig){
+  let best = null;
+  for (const o of lanesAll()){
+    if (o === m || moving.has(o.id)) continue;
+    const ox = Math.min(m.x+m.w, o.x+o.w) - Math.max(m.x, o.x); if (ox <= 0) continue;
+    const gap = Math.max(o.y - (m.y+m.h), m.y - (o.y+o.h)); if (gap > 8) continue;
+    if (!best || gap < best.gap) best = {o, gap};
+  }
+  if (!best) return false;
+  const o = best.o, above = m.y + m.h/2 < o.y + o.h/2, dx = o.x - m.x, dy = (above ? o.y - m.h : o.y + o.h) - m.y;
+  const was = orig ? gluedPair({x:orig.x, y:orig.y, w:m.w, h:m.h}, o) || gluedPair(o, {x:orig.x, y:orig.y, w:m.w, h:m.h}) : false;
+  const kids = doc.nodes.filter(n => n.type !== 'lane' && moving.has(n.id) && n.x >= m.x && n.x <= m.x+m.w && n.y >= m.y && n.y <= m.y+m.h);
+  m.x += dx; m.y += dy; for (const k of kids){ k.x += dx; k.y += dy; }
+  if (!was){ m.w = o.w; m.color = o.color; m.fs = o.fs; if (o.laneType === undefined) delete m.laneType; else m.laneType = o.laneType; }
+  return true;
+}
+function gluePass(d){ const moving = new Set(d.orig.keys()); for (const id of moving){ const n = N(id); if (n && n.type === 'lane') glueLane(n, moving, d.orig.get(id)); } }
 function laneChildren(lane){ return doc.nodes.filter(n => n.type !== 'lane' && n.x >= lane.x && n.x <= lane.x+lane.w && n.y >= lane.y && n.y <= lane.y+lane.h); }
 function deleteSel(){
   if (!S.sel.size) return; checkpoint();
@@ -1212,11 +1281,14 @@ function onDown(e){
     checkpoint();
     const t = S.tool;
     const n = t === 'lane' ? addNode('lane', Math.round(p.x), Math.round(p.y)) : addNode(t, Math.round(p.x), Math.round(p.y));
+    if (t === 'lane') glueLane(n, new Set([n.id]), null);
     S.sel = new Set([n.id]); setTool('select'); changed(); startEdit(n.id); return;
   }
+  // glued-lane controls: chain (separate) and + (add a glued lane)
+  { const lc = laneControlAt(p); if (lc){ runLaneControl(lc); return; } }
   // lane resize handles
   if (S.sel.size === 1){ const n = N([...S.sel][0]); if (n && n.type === 'lane'){ const h = laneHandles(n).find(h => Math.abs(h.x-p.x) <= 7/view.z && Math.abs(h.y-p.y) <= 7/view.z);
-    if (h){ S.drag = {kind:'resize', id:n.id, k:h.k, start:p, orig:{x:n.x,y:n.y,w:n.w,h:n.h}, moved:false}; return; } } }
+    if (h){ S.drag = {kind:'resize', id:n.id, k:h.k, start:p, orig:{x:n.x,y:n.y,w:n.w,h:n.h}, moved:false, below:laneChain(n, laneBelow), above:laneChain(n, laneAbove), lastH:n.h, lastY:n.y}; return; } } }
   // connection handle
   if (S.hoverHandle){ const n = N(S.hoverHandle.id); S.connect = {from:n.id, side:S.hoverHandle.side, p, start:p, target:null}; S.drag = {kind:'connect', start:p, moved:false}; return; }
   // drag an end of the selected arrow to reattach or detach it
@@ -1274,6 +1346,7 @@ function onMove(e){
     if (S.space || S.tool === 'hand') cur = 'grab';
     else if (TYPES[S.tool]) cur = 'crosshair';
     else if (hh) cur = 'copy';
+    else if (laneControlAt(p)) cur = 'pointer';
     else if (S.sel.size === 1){ const n = N([...S.sel][0]); if (n && n.type === 'lane'){ const h = laneHandles(n).find(h => Math.abs(h.x-p.x) <= 7/view.z && Math.abs(h.y-p.y) <= 7/view.z); if (h) cur = h.k === 'r' ? 'ew-resize' : h.k === 'br' ? 'nwse-resize' : 'ns-resize'; } }
     if (cur === 'default' && hit) cur = hit.kind === 'edge' ? 'pointer' : 'move';
     if (S.tool === 'connector' && hit && hit.kind === 'node') cur = 'crosshair';
@@ -1291,9 +1364,9 @@ function onMove(e){
   if (d.kind === 'resize'){
     const n = N(d.id), dx = p.x - d.start.x, dy = p.y - d.start.y;
     if (!d.moved){ d.moved = true; checkpoint(); }
-    if (d.k === 'r' || d.k === 'br') n.w = Math.max(200, Math.round(d.orig.w + dx));
-    if (d.k === 'b' || d.k === 'br') n.h = Math.max(80, Math.round(d.orig.h + dy));
-    if (d.k === 't'){ const nh = Math.max(80, Math.round(d.orig.h - dy)); n.y = d.orig.y + d.orig.h - nh; n.h = nh; }
+    if (d.k === 'r' || d.k === 'br'){ n.w = Math.max(200, Math.round(d.orig.w + dx)); for (const l of [...d.above, ...d.below]) l.w = n.w; } // glued lanes keep the same width
+    if (d.k === 'b' || d.k === 'br'){ n.h = Math.max(80, Math.round(d.orig.h + dy)); if (n.h !== d.lastH){ shiftLanes(d.below, n.h - d.lastH); d.lastH = n.h; } }
+    if (d.k === 't'){ const nh = Math.max(80, Math.round(d.orig.h - dy)); n.y = d.orig.y + d.orig.h - nh; n.h = nh; if (n.y !== d.lastY){ shiftLanes(d.above, n.y - d.lastY); d.lastY = n.y; } }
     draw(); return;
   }
   if (d.kind === 'endpoint'){
@@ -1356,7 +1429,7 @@ function onUp(e){
     if (d.tap && e.pointerType === 'touch'){ const now = Date.now(); if (now - lastClick.t < 350 && Math.hypot(p.sx-lastClick.x, p.sy-lastClick.y) < 24) dbl(p); lastClick = {t:now, x:p.sx, y:p.sy}; }
     draw(); return; }
   if (d.kind === 'move'){
-    if (d.moved){ changed(); }
+    if (d.moved){ gluePass(d); changed(); }
     else if (d.wasSel && !d.shift && S.sel.size > 1){ S.sel = new Set([d.clickId]); draw(); }
     return;
   }
