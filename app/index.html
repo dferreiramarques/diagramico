@@ -82,7 +82,8 @@ button{font:inherit;color:inherit}
 /* Zoom */
 .zoom{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;padding:3px;gap:2px;z-index:5}
 #zoomPct{font:12px var(--mono);min-width:48px}
-.helpbtn{position:fixed;left:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;padding:3px}
+.helpbtn{position:fixed;left:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;padding:3px;display:flex;align-items:center;gap:2px}
+.helpbtn .ibtn{width:34px;min-width:34px;padding:0}
 
 /* Text editor overlay */
 #ta{position:fixed;z-index:4;border:0;outline:none;background:transparent;color:var(--ink);resize:none;overflow:hidden;padding:0;margin:0;white-space:pre-wrap;word-break:break-word;caret-color:var(--accent)}
