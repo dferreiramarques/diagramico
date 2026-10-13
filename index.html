@@ -91,6 +91,9 @@ footer .sp{flex:1}
 .bub p{margin:0 0 8px}.bub p:last-child{margin:0}
 .bub.sys{align-self:stretch;max-width:none;background:var(--code);border:1px dashed var(--line);font:12.5px/1.55 var(--mono);color:var(--muted);border-radius:10px}
 .bub.sys{white-space:pre-wrap}
+.gifbox{margin:0 0 24px;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);background:#f3f4f7}
+.gifbox img{display:block;width:100%;height:auto}
+.gifbox figcaption{padding:10px 16px;font-size:13px;color:var(--muted);background:var(--panel);border-top:1px solid var(--line)}
 .note{font-size:13px;color:var(--muted);margin:12px 2px 0}
 </style>
 </head>
@@ -166,6 +169,7 @@ footer .sp{flex:1}
 
     <section>
       <h2 data-i18n="how_h"></h2>
+      <figure class="gifbox"><img id="flowGif" width="800" height="450" loading="lazy" alt=""><figcaption data-i18n="how_gif"></figcaption></figure>
       <div class="steps">
         <div class="card"><h3 data-i18n="s1_t"></h3><p data-i18n="s1_p"></p></div>
         <div class="card"><h3 data-i18n="s2_t"></h3><p data-i18n-html="s2_p"></p></div>
@@ -367,6 +371,7 @@ pt:{
   f3_t:'Setas como tu queres', f3_p:'Várias setas entre as mesmas formas, por lados diferentes. Setas soltas que não ligam a nada. Cotovelo, reta ou curva, tracejado e rótulos.',
   ai_h:'Do desenho à documentação, com IA', ai_p:'Um diagrama é difícil de explicar a uma IA; texto é fácil. O Diagramico exporta lanes, formas, fluxo e notas num texto compacto. Cola-o no teu chat e pede: «Escreve a documentação deste processo», «Lista os casos de teste», «Que passos podem falhar?». Também funciona ao contrário: pede à IA que escreva o fluxo e importa-o para o veres desenhado.',
   ai_s1:'menos caracteres que o JSON, neste exemplo', ai_n2:'2 sentidos', ai_s2:'exporta e importa texto IA e Mermaid',
+  how_gif:'Um fluxo desenhado do zero, só com o teclado e o rato: swimlanes coladas, formas, ligações e alinhamento à grelha.', gif_alt:'Animação: a desenhar um pedido de reembolso com duas swimlanes, formas e setas no Diagramico',
   how_h:'Como funciona', s1_t:'Desenha', s1_p:'Cria o fluxo com o teclado, ou importa de draw.io, Visio, Mermaid ou texto.',
   s2_t:'Envia à IA', s2_p:'Exporta o texto compacto (cerca de 3× menos caracteres que o JSON) e cola-o no teu chat.',
   s3_t:'Fica documentado', s3_p:'Guarda a documentação gerada junto com o diagrama, que também sai em SVG, PNG ou Mermaid para o GitHub.',
@@ -396,6 +401,7 @@ en:{
   f3_t:'Arrows your way', f3_p:'Several arrows between the same shapes, from different sides. Loose arrows that attach to nothing. Elbow, straight or curved, dashed, with labels.',
   ai_h:'From drawing to documentation, with AI', ai_p:'A diagram is hard to explain to an AI; text is easy. Diagramico exports lanes, shapes, flow and notes as compact text. Paste it into your chat and ask: “Write the documentation for this process”, “List the test cases”, “Which steps can fail?”. It also works the other way: ask the AI to write the flow and import it to see it drawn.',
   ai_s1:'fewer characters than JSON, in this example', ai_n2:'Both ways', ai_s2:'exports and imports AI text and Mermaid',
+  how_gif:'A flow drawn from scratch with just the keyboard and mouse: glued swimlanes, shapes, connections and grid alignment.', gif_alt:'Animation: drawing a refund request with two swimlanes, shapes and arrows in Diagramico',
   how_h:'How it works', s1_t:'Draw', s1_p:'Build the flow with the keyboard, or import from draw.io, Visio, Mermaid or text.',
   s2_t:'Send it to AI', s2_p:'Export the compact text (about 3× fewer characters than JSON) and paste it into your chat.',
   s3_t:'Documented', s3_p:'Keep the generated documentation next to the diagram, which also exports as SVG, PNG or Mermaid for GitHub.',
@@ -426,6 +432,7 @@ function apply(){
   $('#lang').textContent = lang === 'pt' ? 'EN' : 'PT';
   $('#lang').setAttribute('aria-label', lang === 'pt' ? 'Switch to English' : 'Mudar para português');
   $('#aiSample').textContent = AI[lang];
+  const gif = $('#flowGif'), gsrc = 'assets/flow-' + lang + '.gif'; if (gif.getAttribute('src') !== gsrc) gif.setAttribute('src', gsrc); gif.alt = t('gif_alt');
   const C = CASE[lang];
   [['c1', C.d1], ['c2', C.d2]].forEach(([k, txt]) => {
     $('#' + k + 't').textContent = txt.split('\n')[0].replace('DIAGRAM: ', ''); $('#' + k + 'x').textContent = txt;

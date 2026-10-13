@@ -2850,7 +2850,7 @@ const fromLink = !EMBED && /^#d=/.test(location.hash);
 if (fromLink) openFromHash();
 if (!EMBED){ if (isPhone) mobileNotice(); else if (!tourSeen && !fromLink) setTimeout(startTour, 600); }
 // expose for testing
-window.__diagramico = { exportAI: () => exportAI(doc), exportMermaid: () => exportMermaid(doc), state: S, view, doc: () => doc, importText: importFromText, loadSample: () => { const s = sampleDoc(); store.docs[s.id] = s; openDoc(s.id); return s; } };
+window.__diagramico = { exportAI: () => exportAI(doc), exportMermaid: () => exportMermaid(doc), state: S, view, doc: () => doc, importText: importFromText, redraw: () => draw(), loadSample: () => { const s = sampleDoc(); store.docs[s.id] = s; openDoc(s.id); return s; } };
 })();
 </script>
 </body>
