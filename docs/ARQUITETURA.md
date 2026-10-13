@@ -7,7 +7,7 @@ Documento para quem vai ler, manter ou estender o código. Para uso da aplicaç�
 - **Ficheiro único**: `app/index.html` (~2800 linhas) com HTML, CSS e um IIFE de JavaScript. Sem build, sem dependências, sem servidor.
 - **Renderização**: um `<canvas>` a ecrã inteiro desenha tudo (grelha, lanes, formas, conectores, overlays de seleção). A interface (barra superior, rail de ferramentas, barra contextual, zoom, gaveta, modal) é DOM normal sobreposto ao canvas.
 - **Persistência**: `localStorage`. Não há backend.
-- **Externo**: apenas as fontes IBM Plex (Google Fonts). Sem elas a app funciona com fontes de sistema.
+- **Externo**: nada. As fontes IBM Plex vêm de `assets/fonts/fonts.css` (local); sem essa pasta a app usa fontes de sistema. Se a landing passar a enviar a lista de espera para um endpoint externo, esse endereço tem de entrar em `connect-src` da CSP.
 
 ## Modelo de dados
 

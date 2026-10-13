@@ -33,7 +33,7 @@ Princípio: tudo o que está no Free continua a funcionar sem conta e sem servid
 ## Fases
 
 ### Fase 0: fechar o Free e medir a procura (agora)
-- Ligar a lista de espera (falta o URL do formulário), com aviso de RGPD e consentimento.
+- Lista de espera: **o aviso de RGPD e a caixa de consentimento já estão no formulário**; falta o URL do formulário (e acrescentar a sua origem a `connect-src` da CSP).
 - Medir visitas sem cookies (Plausible ou GoatCounter).
 - Rever o texto "equipas" da landing para listar as funcionalidades pagas acima, sem prometer datas.
 - Criar o repositório privado do servidor desde o início (o editor atual fica MIT, já publicado).

@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Diagramico · Desenha o fluxo, a IA escreve a documentação</title>
 <meta name="description" content="Desenha processos e user flows com o teclado e exporta-os como texto compacto para uma IA escrever a documentação, os casos de teste e a revisão da lógica. Gratuito, sem registo.">
@@ -10,9 +10,7 @@
 <meta property="og:description" content="Desenha fluxos com o teclado, exporta texto compacto e deixa a IA escrever a documentação.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233347d4'/%3E%3Cpath d='M7 10h9l-2.5 6H7z M18 17l5 5-5 5-5-5z' fill='white'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
 <style>
 :root{
   --bg:#f6f7fa; --panel:#ffffff; --panel-2:#eef0f5; --line:#dde1e9; --ink:#1b1f2a; --muted:#596072;
@@ -68,6 +66,9 @@ pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:1
 .band{background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 form.wl{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
 form.wl input{flex:1 1 240px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:0 14px;font:15px var(--sans)}
+.chk{flex:1 1 100%;display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--muted);cursor:pointer}
+.chk input{margin-top:4px;width:16px;height:16px;flex:none;accent-color:var(--accent)}
+.fine2{margin:10px 0 0;font-size:13px;color:var(--muted);max-width:70ch}
 .msg{margin-top:10px;font-size:14px;color:var(--muted);min-height:1.4em}
 details{border-bottom:1px solid var(--line);padding:14px 0}details summary{cursor:pointer;font-weight:500}details p{margin:8px 0 0;color:var(--muted)}
 footer{padding:36px 0 48px;color:var(--muted);font-size:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
@@ -232,8 +233,10 @@ footer .sp{flex:1}
     <form class="wl" id="wl" hidden>
       <input type="email" name="email" required autocomplete="email" data-i18n-ph="t_ph" aria-label="Email">
       <input type="text" name="uso" data-i18n-ph="t_use" aria-label="Uso" maxlength="140">
+      <label class="chk"><input type="checkbox" name="consent" required><span data-i18n="t_consent"></span></label>
       <button class="btn primary" type="submit" data-i18n="t_btn"></button>
     </form>
+    <p class="fine2" data-i18n="t_priv"></p>
     <div class="msg" id="wlmsg" role="status"></div>
   </section></div>
 </div>
@@ -258,6 +261,7 @@ footer .sp{flex:1}
 <script>
 (() => {
 // Waitlist endpoint (e.g. a Formspree form URL). While empty, the form stays hidden and nothing is collected.
+// When this is set, also add the endpoint's origin (e.g. https://formspree.io) to connect-src in the Content-Security-Policy <meta> above, or the browser blocks the request.
 const WAITLIST_URL = '';
 
 const AI = {
@@ -450,7 +454,7 @@ pt:{
   s3_t:'Fica documentado', s3_p:'Guarda a documentação gerada junto com o diagrama, que também sai em SVG, PNG ou Mermaid para o GitHub.',
   fmt_p:'Formatos suportados',
   t_h:'Equipas: lista de espera', t_p:'Estamos a preparar a gravação na conta Google, a colaboração em tempo real, os comentários e os acessos por papel. Deixa o teu email para te avisarmos no lançamento e diz-nos o que precisas.',
-  t_ph:'o.teu@email.com', t_use:'O que desenhas? (opcional)', t_btn:'Entrar na lista de espera', t_ok:'Obrigado! Avisamos quando houver novidades.', t_err:'Não foi possível enviar. Tenta de novo mais tarde.',
+  t_ph:'o.teu@email.com', t_use:'O que desenhas? (opcional)', t_btn:'Entrar na lista de espera', t_consent:'Aceito receber um email quando as Equipas forem lançadas.', t_priv:'Usamos o teu email apenas para te avisar do lançamento das Equipas e para perguntar o que precisas. Não o partilhamos com terceiros. Podes pedir a remoção a qualquer momento, respondendo a um email nosso.', t_ok:'Obrigado! Avisamos quando houver novidades.', t_err:'Não foi possível enviar. Tenta de novo mais tarde.',
   q_h:'Perguntas frequentes',
   q1:'Quanto custa?', a1:'A app é gratuita e não pede registo. Os planos para equipas ainda estão em preparação.',
   q2:'Onde ficam os meus diagramas?', a2:'No teu browser (localStorage). Nada é enviado para um servidor. Usa Diagramas → Guardar cópia de segurança para mudar de computador ou proteger o trabalho.',
@@ -481,7 +485,7 @@ en:{
   s3_t:'Documented', s3_p:'Keep the generated documentation next to the diagram, which also exports as SVG, PNG or Mermaid for GitHub.',
   fmt_p:'Supported formats',
   t_h:'Teams: waitlist', t_p:'We are preparing saving to your Google account, real-time collaboration, comments and role-based access. Leave your email to hear about the launch and tell us what you need.',
-  t_ph:'you@email.com', t_use:'What do you draw? (optional)', t_btn:'Join the waitlist', t_ok:'Thank you! We will let you know when there is news.', t_err:'Could not send. Please try again later.',
+  t_ph:'you@email.com', t_use:'What do you draw? (optional)', t_btn:'Join the waitlist', t_consent:'I agree to receive an email when Teams launches.', t_priv:'We use your email only to tell you about the Teams launch and to ask what you need. We do not share it with third parties. You can ask us to delete it at any time by replying to one of our emails.', t_ok:'Thank you! We will let you know when there is news.', t_err:'Could not send. Please try again later.',
   q_h:'Frequently asked questions',
   q1:'How much does it cost?', a1:'The app is free and needs no sign-up. Team plans are still being prepared.',
   q2:'Where are my diagrams stored?', a2:'In your browser (localStorage). Nothing is sent to a server. Use Diagrams → Save backup to switch computers or protect your work.',
@@ -530,7 +534,7 @@ if (WAITLIST_URL){
   form.addEventListener('submit', async e => {
     e.preventDefault(); const msg = $('#wlmsg'); msg.textContent = '';
     try {
-      const r = await fetch(WAITLIST_URL, {method:'POST', headers:{'Content-Type':'application/json', 'Accept':'application/json'}, body:JSON.stringify({email:form.email.value, uso:form.uso.value, lang, page:location.pathname})});
+      const r = await fetch(WAITLIST_URL, {method:'POST', headers:{'Content-Type':'application/json', 'Accept':'application/json'}, body:JSON.stringify({email:form.email.value, uso:form.uso.value, consent:form.consent.checked, lang, page:location.pathname})});
       if (!r.ok) throw new Error(r.status); form.reset(); msg.textContent = t('t_ok');
     } catch (err) { msg.textContent = t('t_err'); }
   });
