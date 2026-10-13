@@ -140,7 +140,7 @@ Os diagramas ficam guardados apenas no browser onde foram criados (`localStorage
 
 ## Documentação para programadores
 
-[docs/ROADMAP.md](docs/ROADMAP.md): níveis Free, Equipas e Premium, e as fases para lá chegar. [docs/ARQUITETURA.md](docs/ARQUITETURA.md): modelo de dados, mapa do código, fluxo de alteração, exportação, i18n, visita guiada e limitações.
+[docs/SEGURANCA.md](docs/SEGURANCA.md): revisão de segurança, o que está corrigido e o que falta. [docs/ROADMAP.md](docs/ROADMAP.md): níveis Free, Equipas e Premium, e as fases para lá chegar. [docs/ARQUITETURA.md](docs/ARQUITETURA.md): modelo de dados, mapa do código, fluxo de alteração, exportação, i18n, visita guiada e limitações.
 
 ## Licença
 

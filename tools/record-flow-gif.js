@@ -8,6 +8,7 @@
         const n = await window.__rec(L.pt); await window.__encode(window.__thin(window.__frames), 'flow-pt.gif', 32);
       and the same with L.en and 'flow-en.gif'.
    Only the canvas is captured (not the toolbars); typing is simulated by writing node text directly.
+   NOTE: the page has a Content-Security-Policy that blocks external scripts. Record on a copy without the <meta http-equiv="Content-Security-Policy"> tag, or this file cannot import gifenc and html2canvas.
    If the UI changes (tool keys, side dots, glue "+"), update the script and record again. */
 
 window.__L = {

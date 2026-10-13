@@ -2,6 +2,7 @@
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Diagramico: quadro infinito para diagramas lógicos e user flows, com exportação em texto para IA.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233347d4'/%3E%3Cpath d='M7 10h9l-2.5 6H7z M18 17l5 5-5 5-5-5z' fill='white'/%3E%3C/svg%3E">
@@ -1830,7 +1831,8 @@ function exportAI(d){
   }
   return out.join('\n');
 }
-function mmEsc(t){ return clean(t).replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1').replace(/"/g,'#quot;') || ' '; }
+// < and > become entity codes so a label can never be read as HTML by a lenient Mermaid renderer
+function mmEsc(t){ return clean(t).replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1').replace(/"/g,'#quot;').replace(/</g,'#lt;').replace(/>/g,'#gt;') || ' '; }
 function exportMermaid(d){
   const {lanes, laneCode, groups, ids} = buildIds(d);
   const sh = (n) => { const t = mmEsc(n.text); switch (n.type){
@@ -1988,10 +1990,12 @@ function closeModal(){ $('#modal').hidden = true; previewSeq++; if (lastImgUrl){
 let lastImgUrl = null, imgOpts = {sel:false, scale:2, transparent:false}, previewSeq = 0;
 // Only the newest preview request may show an image; the previous object URL is revoked once the new image has loaded
 // (revoking it earlier, or from an older request that finishes late, left the visible <img> broken).
+// The preview uses a data: URL, not a blob: URL: hosts often send a Content-Security-Policy whose img-src allows data: but not blob:
+// (Railway's default does), which left the preview broken while saving the file worked.
 function showPreview(pv, blob, seq){
   if (seq !== previewSeq || !pv.isConnected) return false;
-  const old = lastImgUrl; lastImgUrl = URL.createObjectURL(blob);
-  const img = new Image(); img.alt = T('preview'); img.onload = () => { if (old) URL.revokeObjectURL(old); }; img.src = lastImgUrl; pv.replaceChildren(img); return true;
+  const img = new Image(); img.alt = T('preview'); pv.replaceChildren(img);
+  const fr = new FileReader(); fr.onload = () => { if (seq === previewSeq && img.isConnected) img.src = fr.result; }; fr.readAsDataURL(blob); return true;
 }
 function renderModal(){
   const tabs = [['ai',T('tabAi')],['mermaid',T('tabMermaid')],['json',T('tabJson')],['png',T('tabPng')],['svg',T('tabSvg')],['link',T('tabLink')]];
@@ -2130,9 +2134,11 @@ function mkEdge(from, to, o = {}){
 }
 
 /* ---------- import: draw.io ---------- */
-async function inflateRaw(bytes){
-  const s = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
-  return new Uint8Array(await new Response(s).arrayBuffer());
+// `max` caps the decompressed size, so a tiny crafted payload (a "zip bomb") cannot exhaust the tab's memory.
+async function inflateRaw(bytes, max = 64 * 1024 * 1024){
+  const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader(), parts = []; let n = 0;
+  for (;;){ const {done, value} = await reader.read(); if (done) break; n += value.length; if (n > max){ reader.cancel(); throw new Error('too big'); } parts.push(value); }
+  const out = new Uint8Array(n); let o = 0; for (const p of parts){ out.set(p, o); o += p.length; } return out;
 }
 function parseStyle(s){ const o = {}; (s || '').split(';').forEach(p => { if (!p) return; const k = p.indexOf('='); if (k < 0) o[p.trim()] = '1'; else o[p.slice(0,k).trim()] = p.slice(k+1).trim(); }); return o; }
 async function drawioPages(text){
@@ -2515,7 +2521,7 @@ function parseAIText(src){
   return r;
 }
 const MM_SHAPES = [['(((',')))','end'],['((','))','circle'],['([','])','step'],['[(',')]','data'],['[[',']]','screen'],['[/','/]','user_action'],['[\\','\\]','user_action'],['[/','\\]','step'],['{{','}}','step'],['(',')','step'],['[',']','step'],['{','}','decision'],['>',']','document']];
-const mmText = t => t.replace(/<br\s*\/?>/gi, '\n').replace(/#quot;|&quot;/g, '"').replace(/&amp;/g, '&').replace(/<[^>]+>/g, '').trim();
+const mmText = t => t.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').replace(/#quot;|&quot;/g, '"').replace(/#lt;|&lt;/g, '<').replace(/#gt;|&gt;/g, '>').replace(/&amp;/g, '&').trim();
 function mmRef(s, pos){
   const m = /^\s*([A-Za-z0-9_]+)/.exec(s.slice(pos)); if (!m) return null;
   let p = pos + m[0].length; const id = m[1], rest = s.slice(p), ref = {id, end:p};
@@ -2682,7 +2688,8 @@ async function importJSONFile(f){
     const list = o.docs ? o.docs : o.doc ? [o.doc] : (o.nodes ? [o] : null);
     if (!list) throw new Error('formato');
     let n = 0, last = null;
-    for (const d of list){ if (!d || !Array.isArray(d.nodes)) continue; const c = JSON.parse(JSON.stringify(d)); if (!c.id || store.docs[c.id]){ c.id = uid('d'); if (store.docs[d.id]) c.name = (c.name||'Import') + T('importedSuffix'); } c.edges = c.edges || []; c.updated = c.updated || Date.now(); store.docs[c.id] = c; n++; last = c.id; }
+    for (const d of list){ if (!d || !Array.isArray(d.nodes)) continue; const c = JSON.parse(JSON.stringify(d)); if (!c.id || store.docs[c.id]){ c.id = uid('d'); if (store.docs[d.id]) c.name = (c.name||'Import') + T('importedSuffix'); } c.id = clipStr(c.id, 40); c.name = clipStr(c.name, 200) || T('untitled'); c.nodes = sanitizeNodes(c.nodes); c.edges = sanitizeEdges(c.edges, c.nodes, true);
+      c.created = finite(c.created) || Date.now(); c.updated = finite(c.updated) || Date.now(); c.view = c.view && typeof c.view === 'object' ? {ox:finite(c.view.ox), oy:finite(c.view.oy), z:clamp(finite(c.view.z) || 1, 0.08, 5)} : null; store.docs[c.id] = c; n++; last = c.id; }
     if (!n) throw new Error('vazio');
     persistNow(); if (n === 1) openDoc(last); renderDocs(); toast(n === 1 ? T('imported1') : T('importedN', n));
   } catch(err){ toast(T('importFail')); }
@@ -2812,17 +2819,41 @@ function packDoc(d){
   }).filter(Boolean);
   return {v:1, n:d.name, nodes, edges};
 }
+/* Everything that enters from outside (share links, imported JSON backups) is rebuilt field by field: known shape types only,
+   finite numbers, bounded strings, known enum values, edges only between existing shapes, and bounded counts. */
+const clipStr = (v, max) => String(v ?? '').slice(0, max);
+const finite = v => Number.isFinite(+v) ? +v : 0;
+function sanitizeNodes(arr){
+  const seen = new Set(), out = [];
+  for (const n of (Array.isArray(arr) ? arr : []).slice(0, 3000)){
+    if (!n || typeof n !== 'object' || !Object.hasOwn(TYPES, n.type)) continue;
+    let id = clipStr(n.id, 40) || uid('n'); if (seen.has(id) || /^(__proto__|constructor|prototype)$/.test(id)) id = uid('n'); seen.add(id);
+    const c = {...n, id, type:n.type, x:finite(n.x), y:finite(n.y), text:clipStr(n.text, 5000), fs:finite(n.fs) || 14, b:!!n.b, i:!!n.i, color:clipStr(n.color || 'none', 20)};
+    if (!Object.hasOwn(PAL.light.fill, c.color)) c.color = 'none';
+    if (c.type === 'lane'){ c.w = finite(n.w) || 1100; c.h = finite(n.h) || 180; if (c.laneType !== undefined && !Object.hasOwn(LANE_TYPES, c.laneType)) delete c.laneType; }
+    if (!GATES.includes(c.gate)) delete c.gate;
+    out.push(c);
+  }
+  return out;
+}
+function sanitizeEdges(arr, nodes, keepIds){
+  const have = new Set(nodes.map(n => n.id)), out = [];
+  for (const e of (Array.isArray(arr) ? arr : []).slice(0, 6000)){
+    if (!e || typeof e !== 'object') continue;
+    const c = {...e, id: keepIds && e.id ? clipStr(e.id, 40) : uid('e'), from: e.from == null ? null : clipStr(e.from, 40), to: e.to == null ? null : clipStr(e.to, 40), label: clipStr(e.label, 500),
+      style: ['elbow','straight','curve'].includes(e.style) ? e.style : 'elbow', arrow: ['end','both','none'].includes(e.arrow) ? e.arrow : 'end', dash: !!e.dash};
+    if ((c.from && !have.has(c.from)) || (c.to && !have.has(c.to))) continue;
+    for (const k of ['fx','fy','tx','ty']) if (k in c) c[k] = finite(c[k]);
+    for (const k of ['sa','sb']) if (c[k] !== undefined && !SIDES.includes(c[k])) delete c[k];
+    if (c.route !== undefined && !ROUTES.includes(c.route)) delete c.route;
+    out.push(c);
+  }
+  return out;
+}
 function unpackDoc(o){
-  if (!o || !Array.isArray(o.nodes) || o.nodes.length > 3000 || !Array.isArray(o.edges || [])) throw new Error('bad');
-  const num = v => Number.isFinite(+v) ? +v : 0;
-  const nodes = o.nodes.filter(n => n && typeof n === 'object' && (TYPES[n.type])).map(n => {
-    const c = {fs:14, b:false, i:false, color:'none', text:'', ...n, id:String(n.id), type:n.type, x:num(n.x), y:num(n.y), text:String(n.text ?? ''), fs:num(n.fs) || 14};
-    if (c.type === 'lane'){ c.w = num(n.w) || 1100; c.h = num(n.h) || 180; } return c;
-  });
-  const have = new Set(nodes.map(n => n.id));
-  const edges = (o.edges || []).filter(e => e && typeof e === 'object').map(e => ({label:'', style:'elbow', arrow:'end', dash:false, from:null, to:null, ...e, id:uid('e'), label:String(e.label ?? '')}))
-    .filter(e => (!e.from || have.has(String(e.from))) && (!e.to || have.has(String(e.to))));
-  return {name:String(o.n || ''), nodes, edges};
+  if (!o || typeof o !== 'object' || !Array.isArray(o.nodes)) throw new Error('bad');
+  const nodes = sanitizeNodes(o.nodes);
+  return {name:clipStr(o.n, 200), nodes, edges:sanitizeEdges(o.edges, nodes, false)};
 }
 async function shareUrl(){
   const bytes = await deflateRaw(new TextEncoder().encode(JSON.stringify(packDoc(doc))));
@@ -2831,7 +2862,8 @@ async function shareUrl(){
 async function openFromHash(){
   const m = /^#d=([A-Za-z0-9_-]+)$/.exec(location.hash); if (!m) return false;
   try {
-    const u = unpackDoc(JSON.parse(new TextDecoder().decode(await inflateRaw(unb64u(m[1])))));
+    if (m[1].length > 600000) throw new Error('too long');
+    const u = unpackDoc(JSON.parse(new TextDecoder().decode(await inflateRaw(unb64u(m[1]), 8 * 1024 * 1024))));
     const base = u.name || T('untitled'), suf = T('sharedSuffix');
     const d = newDoc(base.endsWith(suf) ? base : base + suf); d.nodes = u.nodes; d.edges = u.edges;
     openDoc(d.id); fit(); toast(T('linkOpened'));
