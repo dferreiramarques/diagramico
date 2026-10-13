@@ -28,6 +28,7 @@ Arranque rápido:
 ## Funcionalidades (MVP)
 
 - **Formas**: Passo / processo, Ação do utilizador (trapézio inclinado), Decisão (losango regular), Ecrã, Documento, Dados.
+- **Decisão compacta**: o losango é regular e o texto quebra na largura que dá o losango mais pequeno possível.
 - **Tipos de decisão BPMN**: selecionar uma decisão e escolher na segunda lista da barra: exclusiva (XOR), paralela (AND, todos os caminhos), inclusiva (OR) ou complexa. Com um tipo escolhido, o símbolo fica dentro do losango e o texto por baixo, como nos eventos.
 - **Eventos**: Início, Fim, Pausa / espera, Mudança de lane.
 - **Swimlanes** para pessoas, equipas, departamentos ou sistemas. Mover uma lane leva as formas que estão dentro.

@@ -26,7 +26,7 @@ window.__rec = async function record(L){
   document.querySelector('#btnNew').click(); await sleep(150); document.querySelector('#docName').blur(); window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
   const v = D.view; Object.assign(v, {z:1.1, ox:29, oy:48}); window.dispatchEvent(new Event('resize')); await raf2();
   const W = 800, H = 450, out = document.createElement('canvas'); out.width = W; out.height = H; const g = out.getContext('2d', {willReadFrequently:true});
-  const frames = []; let cap = null, cur = [440, 250];
+  const frames = []; let cap = null, cur = [440, 250], guides = [];
   const sc = (x, y) => [x * v.z + v.ox, y * v.z + v.oy];
   const drawCaption = () => { if (!cap) return; g.font = '600 15px "IBM Plex Sans", sans-serif'; const tw = g.measureText(cap.t).width, kw = g.measureText(cap.k).width + 16, w = kw + tw + 34, x = (W - w)/2, y = H - 46;
     g.fillStyle = 'rgba(27,31,42,.92)'; g.beginPath(); g.roundRect(x, y, w, 34, 17); g.fill();
@@ -39,6 +39,11 @@ window.__rec = async function record(L){
     await raf2(); const modal = document.querySelector('#modal'), open = !modal.hidden, s = W / cv.clientWidth;
     let shot = null, r = null; if (open){ const card = modal.querySelector('.card'); shot = await h2c(card, {scale:s, backgroundColor:null, logging:false}); r = card.getBoundingClientRect(); }
     g.fillStyle = '#f3f4f7'; g.fillRect(0, 0, W, H); g.drawImage(cv, 0, 0, W, H);
+    if (guides.length){ // dashed lines on the rows and columns that Shift A just aligned
+      g.save(); g.strokeStyle = 'rgba(51,71,212,.65)'; g.lineWidth = 1.2; g.setLineDash([5, 4]);
+      for (const q of guides){ g.beginPath(); if (q.x !== undefined){ const sx = sc(q.x, 0)[0] * s; g.moveTo(sx, 24); g.lineTo(sx, H - 60); } else { const sy = sc(0, q.y)[1] * s; g.moveTo(14, sy); g.lineTo(W - 14, sy); } g.stroke(); }
+      g.restore();
+    }
     if (open){ g.fillStyle = 'rgba(10,12,20,.3)'; g.fillRect(0, 0, W, H); g.drawImage(shot, r.left * s, r.top * s, r.width * s, r.height * s); }
     drawCursor(); drawCaption(); frames.push({img: g.getImageData(0, 0, W, H), delay});
   };
@@ -59,7 +64,7 @@ window.__rec = async function record(L){
   const dc = await place('D', L.cap.decision, 0, 306, 266, L.decision, () => nodes().at(-1));
   const ap = await place('R', L.cap.step, 0, 492, 236, L.approve, () => nodes().at(-1));
   const rf = await place('R', L.cap.step, 0, 514, 326, L.refuse, () => nodes().at(-1));
-  const en = await place('2', L.cap.end, 0, 712, 98, L.end, () => nodes().at(-1));
+  const en = await place('2', L.cap.end, 0, 712, 110, L.end, () => nodes().at(-1));
   // 3. connect with the side dots
   const connect = async (a, side, b, label) => {
     const dir = {top:[0,-1], bottom:[0,1], left:[-1,0], right:[1,0]}[side]; const c = sc(a.x, a.y); await moveTo(c[0], c[1], 2, 40); ptr('move', c[0] + 1, c[1]);
@@ -70,7 +75,14 @@ window.__rec = async function record(L){
   await connect(st, 'right', dc, ''); await connect(dc, 'right', ap, L.yes); await connect(dc, 'bottom', rf, L.no); await connect(ap, 'right', en, ''); await connect(rf, 'right', en, '');
   D.state.sel = new Set(); D.redraw(); await snap(500);
   // 4. align
-  cap = {k:'Shift A', t:L.cap.align}; await snap(500); key('A', {shiftKey:true}); await snap(150); await snap(1400);
+  // the shapes are placed a little off-grid on purpose; Shift A snaps them, shown as a short tween plus guide lines on the aligned rows/columns
+  cap = {k:'Shift A', t:L.cap.align}; await snap(900);
+  const items = nodes().filter(n => n.type !== 'lane' && n.type !== 'note'), p0 = new Map(items.map(n => [n.id, [n.x, n.y]]));
+  key('A', {shiftKey:true}); const p1 = new Map(items.map(n => [n.id, [n.x, n.y]]));
+  for (const t of [0.34, 0.67]){ for (const n of items){ const a = p0.get(n.id), b = p1.get(n.id); n.x = a[0] + (b[0] - a[0]) * t; n.y = a[1] + (b[1] - a[1]) * t; } D.redraw(); await snap(90); }
+  for (const n of items){ const b = p1.get(n.id); n.x = b[0]; n.y = b[1]; } D.redraw();
+  const count = (k) => { const m = new Map(); for (const n of items) m.set(n[k], (m.get(n[k]) || 0) + 1); return [...m].filter(([, c]) => c > 1).map(([v]) => v); };
+  guides = [...count('x').map(x => ({x})), ...count('y').map(y => ({y}))]; await snap(1800); guides = [];
   // 5. export: AI text, Mermaid, SVG and link tabs (tab order in the window: ai, mermaid, json, png, svg, link)
   const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width/2, r.top + r.height/2]; };
   cap = {k:L.cap.expK, t:L.cap.exp};

@@ -716,14 +716,18 @@ function geom(n){
     const L = layoutText(n.text||'', fs, n.b, n.i, false, maxW);
     return {w:r*2, h:r*2, r, L, maxW, fs, ly: r + fs*0.45 + L.h/2};
   }
-  const mono = n.type === 'note', maxW = fs*(MAXW[n.type]||15);
-  const L = layoutText(n.text||'', fs, n.b, n.i, mono, maxW);
+  const mono = n.type === 'note'; let maxW = fs*(MAXW[n.type]||15);
+  let L = layoutText(n.text||'', fs, n.b, n.i, mono, maxW);
   const px = fs*1.05, py = fs*0.7;
   let w, h, tox = 0, toy = 0, extra = {};
   switch (n.type){
     case 'decision': // regular rhombus (equal diagonals). BPMN gateways keep the symbol inside and the label below, like events.
       if (GATES.includes(n.gate)){ w = h = fs*4; extra.below = true; extra.ly = h/2 + fs*0.45 + L.h/2; }
-      else w = h = Math.max(L.w + L.h + fs*1.6, fs*5.2);
+      else { // pick the wrapping width that gives the smallest square: text block (w_t × h_t) fits a rhombus of side w_t + h_t
+        let best = null;
+        for (const m of [3.8, 5, 6.5, 8.5, 10]){ const Lc = layoutText(n.text||'', fs, n.b, n.i, false, fs*m), S = Lc.w + Lc.h; if (!best || S < best.S - 0.5) best = {S, L:Lc, m}; }
+        L = best.L; maxW = fs*best.m; w = h = Math.max(best.S + fs*1.1, fs*4.6);
+      }
       break;
     case 'action': { h = Math.max(L.h + py*2, fs*3); const sk = h*0.32; w = Math.max(L.w + px*2 + sk, fs*8); extra.sk = sk; break; }
     case 'screen': { const bar = fs*1.25; w = Math.max(L.w + px*2, fs*8); h = Math.max(L.h + py*2, fs*2.6) + bar; toy = bar/2; extra.bar = bar; break; }
