@@ -12,9 +12,9 @@
 
 window.__L = {
   pt: {lang:'pt', lane1:'Cliente', lane2:'Suporte', start:'Pede reembolso', decision:'Menos de 30 dias?', approve:'Aprova e devolve o valor', refuse:'Recusa e explica o motivo', end:'Recebe a resposta', yes:'sim', no:'não',
-    cap:{lane:'cria uma swimlane', glue:'junta uma lane colada', start:'evento de início', decision:'decisão', step:'passo', end:'evento de fim', connect:'arrasta dos pontos laterais para ligar', align:'alinha à grelha', done:'pronto: exporta para IA, Mermaid, SVG, PNG'}},
+    cap:{lane:'cria uma swimlane', glue:'junta uma lane colada', start:'evento de início', decision:'decisão', step:'passo', end:'evento de fim', connect:'arrasta dos pontos laterais para ligar', align:'alinha à grelha', expK:'Exportar', exp:'texto para IA, Mermaid, SVG, PNG ou ligação', done:'pronto para a documentação'}},
   en: {lang:'en', lane1:'Customer', lane2:'Support', start:'Requests a refund', decision:'Under 30 days?', approve:'Approves and refunds', refuse:'Declines and explains', end:'Receives the answer', yes:'yes', no:'no',
-    cap:{lane:'draws a swimlane', glue:'adds a glued lane', start:'start event', decision:'decision', step:'step', end:'end event', connect:'drag the side dots to connect', align:'aligns to the grid', done:'done: export to AI, Mermaid, SVG, PNG'}}
+    cap:{lane:'draws a swimlane', glue:'adds a glued lane', start:'start event', decision:'decision', step:'step', end:'end event', connect:'drag the side dots to connect', align:'aligns to the grid', expK:'Export', exp:'AI text, Mermaid, SVG, PNG or link', done:'ready for documentation'}}
 };
 
 window.__rec = async function record(L){
@@ -33,7 +33,15 @@ window.__rec = async function record(L){
     g.fillStyle = '#ffffff'; g.beginPath(); g.roundRect(x + 8, y + 6, kw, 22, 6); g.fill(); g.fillStyle = '#1b1f2a'; g.textBaseline = 'middle'; g.fillText(cap.k, x + 16, y + 18);
     g.fillStyle = '#ffffff'; g.fillText(cap.t, x + 8 + kw + 10, y + 18); };
   const drawCursor = () => { const s = W / cv.clientWidth, x = cur[0] * s, y = cur[1] * s; g.save(); g.translate(x, y); g.fillStyle = '#1b1f2a'; g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(0, 0); g.lineTo(0, 15); g.lineTo(4, 11.5); g.lineTo(7.5, 18); g.lineTo(10, 17); g.lineTo(6.5, 10.5); g.lineTo(11.5, 10); g.closePath(); g.fill(); g.stroke(); g.restore(); };
-  const snap = async delay => { await raf2(); g.fillStyle = '#f3f4f7'; g.fillRect(0, 0, W, H); g.drawImage(cv, 0, 0, W, H); drawCursor(); drawCaption(); frames.push({img: g.getImageData(0, 0, W, H), delay}); };
+  // The export window is DOM, not canvas: while it is open it is rendered with html2canvas and drawn over the dimmed board.
+  const h2c = (await import('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.esm.js')).default;
+  const snap = async delay => {
+    await raf2(); const modal = document.querySelector('#modal'), open = !modal.hidden, s = W / cv.clientWidth;
+    let shot = null, r = null; if (open){ const card = modal.querySelector('.card'); shot = await h2c(card, {scale:s, backgroundColor:null, logging:false}); r = card.getBoundingClientRect(); }
+    g.fillStyle = '#f3f4f7'; g.fillRect(0, 0, W, H); g.drawImage(cv, 0, 0, W, H);
+    if (open){ g.fillStyle = 'rgba(10,12,20,.3)'; g.fillRect(0, 0, W, H); g.drawImage(shot, r.left * s, r.top * s, r.width * s, r.height * s); }
+    drawCursor(); drawCaption(); frames.push({img: g.getImageData(0, 0, W, H), delay});
+  };
   const ptr = (t, x, y) => { cur = [x, y]; const ev = new PointerEvent('pointer' + t, {clientX:x, clientY:y, pointerId:1, bubbles:true, button:0, pointerType:'mouse'}); (t === 'down' ? cv : (t === 'move' && !D.state.drag ? cv : window)).dispatchEvent(ev); };
   const key = (k, o = {}) => window.dispatchEvent(new KeyboardEvent('keydown', {key:k, bubbles:true, ...o}));
   const moveTo = async (x, y, steps = 3, d = 60) => { const [a, b] = cur; for (let i = 1; i <= steps; i++){ ptr('move', a + (x - a) * i / steps, b + (y - b) * i / steps); await snap(d); } };
@@ -63,6 +71,14 @@ window.__rec = async function record(L){
   D.state.sel = new Set(); D.redraw(); await snap(500);
   // 4. align
   cap = {k:'Shift A', t:L.cap.align}; await snap(500); key('A', {shiftKey:true}); await snap(150); await snap(1400);
+  // 5. export: AI text, Mermaid, SVG and link tabs (tab order in the window: ai, mermaid, json, png, svg, link)
+  const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width/2, r.top + r.height/2]; };
+  cap = {k:L.cap.expK, t:L.cap.exp};
+  { const b = document.querySelector('#btnExport'); const [x, y] = center(b); await moveTo(x, y, 4, 50); await snap(250); b.click(); await sleep(200); await snap(1900); }
+  for (const [idx, wait, hold] of [[1, 200, 1500], [4, 1200, 1900], [5, 600, 2000]]){
+    const b = document.querySelectorAll('#mTabs button')[idx]; const [x, y] = center(b); await moveTo(x, y, 2, 50); b.click(); await sleep(wait); await snap(hold);
+  }
+  { const b = document.querySelector('#mClose'); const [x, y] = center(b); await moveTo(x, y, 2, 50); b.click(); await sleep(150); await snap(300); }
   cap = {k:'✓', t:L.cap.done}; await snap(2200);
   window.__frames = frames; return frames.length;
 };
