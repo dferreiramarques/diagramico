@@ -1984,8 +1984,15 @@ let modalTab = 'ai';
 function openExport(tab){
   endEdit(); modalTab = tab; modalRender = renderModal; $('#modal').hidden = false; renderModal();
 }
-function closeModal(){ $('#modal').hidden = true; if (lastImgUrl){ URL.revokeObjectURL(lastImgUrl); lastImgUrl = null; } cv.focus({preventScroll:true}); }
-let lastImgUrl = null, imgOpts = {sel:false, scale:2, transparent:false};
+function closeModal(){ $('#modal').hidden = true; previewSeq++; if (lastImgUrl){ URL.revokeObjectURL(lastImgUrl); lastImgUrl = null; } cv.focus({preventScroll:true}); }
+let lastImgUrl = null, imgOpts = {sel:false, scale:2, transparent:false}, previewSeq = 0;
+// Only the newest preview request may show an image; the previous object URL is revoked once the new image has loaded
+// (revoking it earlier, or from an older request that finishes late, left the visible <img> broken).
+function showPreview(pv, blob, seq){
+  if (seq !== previewSeq || !pv.isConnected) return false;
+  const old = lastImgUrl; lastImgUrl = URL.createObjectURL(blob);
+  const img = new Image(); img.alt = T('preview'); img.onload = () => { if (old) URL.revokeObjectURL(old); }; img.src = lastImgUrl; pv.replaceChildren(img); return true;
+}
 function renderModal(){
   const tabs = [['ai',T('tabAi')],['mermaid',T('tabMermaid')],['json',T('tabJson')],['png',T('tabPng')],['svg',T('tabSvg')],['link',T('tabLink')]];
   $('#mTabs').hidden = false; $('#mTitle').textContent = T('exportOf') + doc.name;
@@ -1999,7 +2006,7 @@ function renderModal(){
       <label>${T('resolution')} <select id="oSc"><option value="1">1×</option><option value="2">2×</option><option value="3">3×</option></select></label>`;
     body.appendChild(o); $('#oSc').value = String(imgOpts.scale);
     const pv = document.createElement('div'); pv.className = 'preview'; pv.innerHTML = '<span style="color:var(--muted)">' + T('preparing') + '</span>'; body.appendChild(pv);
-    const refresh = async () => { const blob = await renderPNG(imgOpts.sel, imgOpts.scale, imgOpts.transparent); if (!blob){ pv.textContent = T('empty'); return; } if (lastImgUrl) URL.revokeObjectURL(lastImgUrl); lastImgUrl = URL.createObjectURL(blob); pv.innerHTML = `<img alt="${T('preview')}" src="${lastImgUrl}">`; stat.textContent = `${Math.round(blob.size/1024)} KB`; };
+    const refresh = async () => { const my = ++previewSeq; const blob = await renderPNG(imgOpts.sel, imgOpts.scale, imgOpts.transparent); if (!blob){ pv.textContent = T('empty'); return; } if (!showPreview(pv, blob, my)) return; stat.textContent = `${Math.round(blob.size/1024)} KB`; };
     $('#oSel').onchange = e => { imgOpts.sel = e.target.checked; refresh(); };
     $('#oTr').onchange = e => { imgOpts.transparent = e.target.checked; refresh(); };
     $('#oSc').onchange = e => { imgOpts.scale = +e.target.value; refresh(); };
@@ -2015,7 +2022,7 @@ function renderModal(){
     body.appendChild(o);
     const p = document.createElement('p'); p.className = 'hint'; p.textContent = T('hintSvg'); body.appendChild(p);
     const pv = document.createElement('div'); pv.className = 'preview'; pv.innerHTML = '<span style="color:var(--muted)">' + T('preparing') + '</span>'; body.appendChild(pv);
-    const refresh = async () => { const blob = await renderSVG(imgOpts.sel, imgOpts.transparent); if (!blob){ pv.textContent = T('empty'); return; } if (lastImgUrl) URL.revokeObjectURL(lastImgUrl); lastImgUrl = URL.createObjectURL(blob); pv.innerHTML = `<img alt="${T('preview')}" src="${lastImgUrl}">`; stat.textContent = `${Math.max(1, Math.round(blob.size/1024))} KB`; };
+    const refresh = async () => { const my = ++previewSeq; const blob = await renderSVG(imgOpts.sel, imgOpts.transparent); if (!blob){ pv.textContent = T('empty'); return; } if (!showPreview(pv, blob, my)) return; stat.textContent = `${Math.max(1, Math.round(blob.size/1024))} KB`; };
     $('#oSel').onchange = e => { imgOpts.sel = e.target.checked; refresh(); };
     $('#oTr').onchange = e => { imgOpts.transparent = e.target.checked; refresh(); };
     const stat = document.createElement('span'); stat.className = 'stat'; foot.appendChild(stat);
