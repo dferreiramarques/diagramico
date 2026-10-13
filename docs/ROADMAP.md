@@ -1,6 +1,6 @@
 # Roadmap do Diagramico
 
-Estado em 2026-10-13. As datas e os esforços são estimativas de uma pessoa a trabalhar sozinha, para ordenar o trabalho, não compromissos.
+Estado em 2026-10-13. A versão pública e simplificada (NOW / NEXT / LATER) está na landing, na secção Roadmap; esta é a versão completa. As datas e os esforços são estimativas de uma pessoa a trabalhar sozinha, para ordenar o trabalho, não compromissos.
 
 ## Os três níveis
 

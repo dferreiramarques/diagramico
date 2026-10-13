@@ -73,6 +73,33 @@ footer{padding:36px 0 48px;color:var(--muted);font-size:14px;display:flex;gap:16
 footer .sp{flex:1}
 [hidden]{display:none!important}
 @media (max-width:560px){.nav a.link{display:none}}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;align-items:stretch}
+.tier{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:6px}
+.tier.hl{border-color:var(--accent);box-shadow:var(--shadow)}
+.tier .st{font:500 12px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tier h3{margin:0;font-size:22px;font-weight:600}
+.tier .sub2{margin:0 0 6px;color:var(--muted)}
+.tier ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.tier li{padding-left:22px;position:relative;font-size:15px}
+.tier li::before{content:"";position:absolute;left:2px;top:.45em;width:9px;height:5px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg)}
+.tier li.inc{color:var(--muted)}
+.tier .fine{margin:auto 0 0;padding-top:12px;font-size:13px;color:var(--muted)}
+.kan{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.kan{grid-template-columns:1fr}}
+.kcol{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:12px}
+.kcol h3{margin:2px 4px 10px;font:600 13px var(--mono);letter-spacing:.08em;display:flex;align-items:baseline;gap:8px}
+.kcol h3 small{font:400 12px var(--sans);letter-spacing:0;color:var(--muted)}
+.kcol h3 b{margin-left:auto;font:500 12px var(--mono);color:var(--muted)}
+.kcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.kcard:last-child{margin-bottom:0}
+.kcard h4{margin:0 0 4px;font-size:15px;font-weight:600}
+.kcard p{margin:0 0 8px;font-size:14px;color:var(--muted);line-height:1.5}
+.tag{display:inline-block;font:500 11px var(--mono);padding:2px 8px;border-radius:99px}
+.tag.free{color:#2c8048;background:rgba(44,128,72,.15)}
+.tag.teams{color:var(--accent);background:var(--accent-soft)}
+.tag.premium{color:#7347c9;background:rgba(115,71,201,.16)}
+@media (prefers-color-scheme:dark){.tag.free{color:#5cc282}.tag.premium{color:#b597ff}}
+.kfoot{font-size:13px;color:var(--muted);margin:12px 2px 0}
 .case2{display:grid;grid-template-columns:1fr;gap:18px}
 .dcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .dcard h3{margin:0;padding:12px 16px;font-size:15px;font-weight:600;border-bottom:1px solid var(--line)}
@@ -103,6 +130,8 @@ footer .sp{flex:1}
     <a class="brand" href="./"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#3347d4"/><path d="M7 10h9l-2.5 6H7z M18 17l5 5-5 5-5-5z" fill="#fff"/></svg><span>Diagram<b>ico</b></span></a>
     <span class="sp"></span>
     <a class="link" href="#ai" data-i18n="nav_ai"></a>
+    <a class="link" href="#plans" data-i18n="nav_plans"></a>
+    <a class="link" href="#roadmap" data-i18n="nav_road"></a>
     <a class="link" href="#faq" data-i18n="nav_faq"></a>
     <button class="btn sm" id="lang" type="button"></button>
     <a class="btn sm primary" href="app/" data-i18n="open"></a>
@@ -179,6 +208,20 @@ footer .sp{flex:1}
         <div class="formats"><span>Texto IA</span><span>Mermaid</span><span>SVG</span><span>PNG</span><span>JSON</span><span>draw.io</span><span>Visio (.vsdx)</span></div></div>
     </section>
   </main>
+</div>
+
+<div class="wrap">
+  <section id="plans">
+    <h2 data-i18n="p_h"></h2>
+    <p class="sub" data-i18n="p_sub"></p>
+    <div class="tiers" id="tiers"></div>
+  </section>
+  <section id="roadmap" style="padding-top:8px">
+    <h2 data-i18n="r_h"></h2>
+    <p class="sub" data-i18n="r_sub"></p>
+    <div class="kan" id="kan"></div>
+    <p class="kfoot" data-i18n="r_note"></p>
+  </section>
 </div>
 
 <div class="band" id="teams">
@@ -355,11 +398,40 @@ SY4 > US2 [asks again]`,
   a:`<p><b>Refund:</b> a request is only approved if the purchase is less than 30 days old. Yours is 40 days old, so it will be declined and you will get an explanation of why.</p><p><b>Password:</b> you can ask for a recovery link by email, valid for 1 hour. After that the link is rejected, but you can ask for another.</p><p>I cannot find any exception to the 30-day limit in the documentation.</p>`
 }};
 
+// Plans and public roadmap (what the page shows; the long version is docs/ROADMAP.md)
+const PLANS = {
+pt:[
+  {k:'free', name:'Free', st:'Disponível', sub:'Para desenhar e documentar, sem conta.', hl:true,
+   items:['Desenhar sem registo, no browser','Swimlanes, decisões BPMN e alinhamento à grelha','Exportar: texto para IA, Mermaid, SVG, PNG, JSON e ligação','Importar de draw.io, Visio, Mermaid e texto','Os teus dados ficam no teu browser'], fine:'Gratuito.'},
+  {k:'teams', name:'Equipas', st:'Em preparação', sub:'Para trabalhar em conjunto.',
+   inc:'Tudo do Free', items:['Gravar os diagramas na tua conta Google, em qualquer computador','Colaboração em tempo real: partilhas a ligação, a equipa entra e cada pessoa tem o seu cursor colorido com o nome','Comentários nas formas','Acessos: membro (lê e escreve) e revisor (só lê)'], fine:'Na colaboração, o conteúdo da sala passa pelo nosso servidor. Preço por anunciar.'},
+  {k:'premium', name:'Premium', st:'A pensar', sub:'Para empresas com dados internos.',
+   inc:'Tudo de Equipas', items:['Gravação na infraestrutura da empresa, em vez do Google','Colaboração só na rede interna'], fine:'Preço sob consulta.'}],
+en:[
+  {k:'free', name:'Free', st:'Available', sub:'For drawing and documenting, no account.', hl:true,
+   items:['Draw with no sign-up, in your browser','Swimlanes, BPMN decisions and grid alignment','Export: AI text, Mermaid, SVG, PNG, JSON and link','Import from draw.io, Visio, Mermaid and text','Your data stays in your browser'], fine:'Free.'},
+  {k:'teams', name:'Teams', st:'In preparation', sub:'For working together.',
+   inc:'Everything in Free', items:['Save diagrams to your Google account, on any computer','Real-time collaboration: share the link, the team joins and everyone gets a coloured cursor with their name','Comments on shapes','Access roles: member (read and write) and reviewer (read only)'], fine:'With collaboration, the room content goes through our server. Price to be announced.'},
+  {k:'premium', name:'Premium', st:'Being considered', sub:'For companies with internal data.',
+   inc:'Everything in Teams', items:['Saving on the company\'s own infrastructure instead of Google','Collaboration on the internal network only'], fine:'Price on request.'}]
+};
+const ROAD = {
+pt:{labels:{now:'A trabalhar', next:'A seguir', later:'Mais tarde'}, tags:{free:'Free', teams:'Equipas', premium:'Premium'}, cols:{
+  now:[{t:'Afinar o Free', d:'Corrigir e melhorar com o feedback de quem já o usa.', k:'free'},{t:'Lista de espera', d:'Perceber quem quer as Equipas e para quê, antes de as construir.', k:'teams'}],
+  next:[{t:'Gravar na conta Google', d:'Os teus diagramas disponíveis em qualquer computador.', k:'teams'},{t:'Colaboração em tempo real', d:'Ligação de colaboração, com um cursor colorido e o nome de cada pessoa.', k:'teams'},{t:'Acessos por papel', d:'Membro (lê e escreve) e revisor (só lê).', k:'teams'}],
+  later:[{t:'Comentários', d:'Conversas ancoradas às formas, com resolver.', k:'teams'},{t:'Premium', d:'Gravação na infraestrutura da empresa e colaboração na rede interna.', k:'premium'},{t:'Login único (SSO)', d:'Entrar com a conta da empresa.', k:'premium'}]}},
+en:{labels:{now:'Working on', next:'Up next', later:'Later'}, tags:{free:'Free', teams:'Teams', premium:'Premium'}, cols:{
+  now:[{t:'Polishing Free', d:'Fixing and improving with feedback from people already using it.', k:'free'},{t:'Waitlist', d:'Finding out who wants Teams and why, before building it.', k:'teams'}],
+  next:[{t:'Save to your Google account', d:'Your diagrams available on any computer.', k:'teams'},{t:'Real-time collaboration', d:'A collaboration link, with a coloured cursor and the name of each person.', k:'teams'},{t:'Role-based access', d:'Member (read and write) and reviewer (read only).', k:'teams'}],
+  later:[{t:'Comments', d:'Conversations anchored to shapes, with resolve.', k:'teams'},{t:'Premium', d:'Saving on the company infrastructure and collaboration on the internal network.', k:'premium'},{t:'Single sign-on (SSO)', d:'Sign in with the company account.', k:'premium'}]}}
+};
+
 const I18N = {
 pt:{
   c_h:'Exemplo: do diagrama ao assistente de suporte', c_p:'Dois processos simples, desenhados no Diagramico e exportados como texto. Colamos esse texto numa IA e fazemos uma pergunta de cliente: a resposta vem só do que está nos diagramas.',
   c_txt:'Ver o texto exportado', c_bot:'Assistente de suporte', c_ex:'exemplo ilustrativo',
   c_note:'Exemplo ilustrativo: a resposta foi escrita por uma IA (Claude) apenas a partir do texto dos dois diagramas, e apresentada aqui como uma conversa de suporte. O Diagramico não inclui um assistente: gera o texto que colas no que já usas.',
+  nav_plans:'Planos', nav_road:'Roadmap', p_h:'Planos', p_sub:'O Diagramico é gratuito para desenhar e documentar. As Equipas acrescentam gravação na conta, colaboração e comentários, e o Premium leva tudo para a infraestrutura da tua empresa.', r_h:'Roadmap', r_sub:'O que estamos a fazer e a ordem em que vem a seguir. Uma vista simples do nosso quadro de trabalho.', r_note:'Sem datas: a ordem pode mudar com o feedback que recebermos.',
   nav_ai:'Texto para IA', nav_faq:'Perguntas', open:'Abrir a app', see_ai:'Ver o texto para IA',
   eyebrow:'Gratuito · sem registo · os dados ficam no teu browser',
   h1:'Desenha o fluxo. A IA escreve a documentação.',
@@ -376,7 +448,7 @@ pt:{
   s2_t:'Envia à IA', s2_p:'Exporta o texto compacto (cerca de 3× menos caracteres que o JSON) e cola-o no teu chat.',
   s3_t:'Fica documentado', s3_p:'Guarda a documentação gerada junto com o diagrama, que também sai em SVG, PNG ou Mermaid para o GitHub.',
   fmt_p:'Formatos suportados',
-  t_h:'Para equipas: partilha e colaboração', t_p:'Estamos a preparar contas, sincronização na cloud, partilha por link e edição em equipa, a um preço mais simples do que as alternativas. Deixa o teu email e diz-nos o que precisas.',
+  t_h:'Equipas: lista de espera', t_p:'Estamos a preparar a gravação na conta Google, a colaboração em tempo real, os comentários e os acessos por papel. Deixa o teu email para te avisarmos no lançamento e diz-nos o que precisas.',
   t_ph:'o.teu@email.com', t_use:'O que desenhas? (opcional)', t_btn:'Entrar na lista de espera', t_ok:'Obrigado! Avisamos quando houver novidades.', t_err:'Não foi possível enviar. Tenta de novo mais tarde.',
   q_h:'Perguntas frequentes',
   q1:'Quanto custa?', a1:'A app é gratuita e não pede registo. Os planos para equipas ainda estão em preparação.',
@@ -390,6 +462,7 @@ en:{
   c_h:'Example: from diagram to support assistant', c_p:'Two simple processes, drawn in Diagramico and exported as text. We paste that text into an AI and ask a customer question: the answer comes only from what is in the diagrams.',
   c_txt:'See the exported text', c_bot:'Support assistant', c_ex:'illustrative example',
   c_note:'Illustrative example: the answer was written by an AI (Claude) using only the text of the two diagrams, and shown here as a support chat. Diagramico does not include an assistant: it produces the text you paste into the one you already use.',
+  nav_plans:'Plans', nav_road:'Roadmap', p_h:'Plans', p_sub:'Diagramico is free for drawing and documenting. Teams adds saving to your account, collaboration and comments, and Premium moves everything onto your own company infrastructure.', r_h:'Roadmap', r_sub:'What we are working on and what comes next. A simple view of our work board.', r_note:'No dates: the order may change with the feedback we receive.',
   nav_ai:'AI text', nav_faq:'FAQ', open:'Open the app', see_ai:'See the AI text',
   eyebrow:'Free · no sign-up · your data stays in your browser',
   h1:'Draw the flow. Let AI write the documentation.',
@@ -406,7 +479,7 @@ en:{
   s2_t:'Send it to AI', s2_p:'Export the compact text (about 3× fewer characters than JSON) and paste it into your chat.',
   s3_t:'Documented', s3_p:'Keep the generated documentation next to the diagram, which also exports as SVG, PNG or Mermaid for GitHub.',
   fmt_p:'Supported formats',
-  t_h:'For teams: sharing and collaboration', t_p:'We are building accounts, cloud sync, link sharing and team editing, at a simpler price than the alternatives. Leave your email and tell us what you need.',
+  t_h:'Teams: waitlist', t_p:'We are preparing saving to your Google account, real-time collaboration, comments and role-based access. Leave your email to hear about the launch and tell us what you need.',
   t_ph:'you@email.com', t_use:'What do you draw? (optional)', t_btn:'Join the waitlist', t_ok:'Thank you! We will let you know when there is news.', t_err:'Could not send. Please try again later.',
   q_h:'Frequently asked questions',
   q1:'How much does it cost?', a1:'The app is free and needs no sign-up. Team plans are still being prepared.',
@@ -432,6 +505,13 @@ function apply(){
   $('#lang').textContent = lang === 'pt' ? 'EN' : 'PT';
   $('#lang').setAttribute('aria-label', lang === 'pt' ? 'Switch to English' : 'Mudar para português');
   $('#aiSample').textContent = AI[lang];
+  $('#tiers').replaceChildren(...PLANS[lang].map(p => { const d = document.createElement('div'); d.className = 'tier' + (p.hl ? ' hl' : '');
+    const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; e.textContent = txt; return e; };
+    d.append(h('span', 'st', p.st), h('h3', '', p.name), h('p', 'sub2', p.sub)); const ul = document.createElement('ul');
+    if (p.inc) ul.append(h('li', 'inc', p.inc)); for (const it of p.items) ul.append(h('li', '', it)); d.append(ul, h('p', 'fine', p.fine)); return d; }));
+  $('#kan').replaceChildren(...['now', 'next', 'later'].map(c => { const R = ROAD[lang], col = document.createElement('div'); col.className = 'kcol';
+    const hd = document.createElement('h3'); hd.innerHTML = ''; hd.append(c.toUpperCase()); const sm = document.createElement('small'); sm.textContent = R.labels[c]; const n = document.createElement('b'); n.textContent = R.cols[c].length; hd.append(sm, n); col.append(hd);
+    for (const k of R.cols[c]){ const card = document.createElement('div'); card.className = 'kcard'; const t = document.createElement('h4'); t.textContent = k.t; const p = document.createElement('p'); p.textContent = k.d; const tg = document.createElement('span'); tg.className = 'tag ' + k.k; tg.textContent = R.tags[k.k]; card.append(t, p, tg); col.append(card); } return col; }));
   const gif = $('#flowGif'), gsrc = 'assets/flow-' + lang + '.gif'; if (gif.getAttribute('src') !== gsrc) gif.setAttribute('src', gsrc); gif.alt = t('gif_alt');
   const C = CASE[lang];
   [['c1', C.d1], ['c2', C.d2]].forEach(([k, txt]) => {
