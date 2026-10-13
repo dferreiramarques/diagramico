@@ -112,6 +112,10 @@ Já não está ligado ao `Shift A`; é usado por `importFromText`, onde não há
 
 Limitações: só horizontal; não desenha arestas à volta de formas; a lane de cada forma é a atual, nunca é alterada.
 
+## Partilha por ligação (`#d=…`)
+
+`packDoc` tira os valores por defeito (`fs` 14, `b`, `i`, `color`, `label`, `style`, `arrow`, `dash`) e troca os ids por índices em base 36; `deflateRaw` (CompressionStream) e `b64u` fazem o resto. `openFromHash` (no arranque e em `hashchange`) descomprime com `inflateRaw`, valida com `unpackDoc` (tipos conhecidos, números finitos, máx. 3000 formas, setas só para formas existentes), cria um diagrama novo "(partilhado)" e limpa o fragmento com `history.replaceState`. O separador **Ligação** do modal de exportação mostra o URL e avisa acima de 8000 caracteres. Não é uma ligação "viva": o URL não muda enquanto se desenha (seria um `replaceState` com compressão a cada edição) e só funciona em browsers com `CompressionStream` (Chrome 80+, Firefox 113+, Safari 16.4+).
+
 ## Importação de texto (`importFromText`)
 
 `detectText` distingue Mermaid (`flowchart`/`graph`) do texto para IA (`DIAGRAM`/`NODES`/`FLOW`). `parseAIText` e `parseMermaid` produzem a mesma estrutura intermédia `{name, lanes, nodes, edges, notes, skipped}`; `buildDocFromParsed` cria o diagrama (cada forma é posta na lane certa, uma linha por lane), `importFromText` abre-o e corre `autoLayout`.

@@ -357,7 +357,10 @@ pt: {
   swap:'Inverter direção', edgeLabel:'Rótulo da ligação (Enter)', duplicate:'Duplicar (Ctrl D)', delete:'Apagar (Delete)',
   copied:'Copiado', copiedClip:'Copiado para a área de transferência', selectedCopy:'Texto selecionado. Use Ctrl C para copiar.',
   fileSaved:'Ficheiro guardado', fileFail:'Não foi possível guardar o ficheiro',
-  exportOf:'Exportar · ', tabAi:'Texto para IA', tabMermaid:'Mermaid', tabJson:'JSON completo', tabPng:'Imagem PNG', tabSvg:'SVG (vetorial)', saveSvg:'Guardar SVG', hintSvg:'Imagem vetorial, nítida em qualquer tamanho e editável em Figma, Illustrator ou Inkscape. Os textos usam IBM Plex Sans/Mono; se a fonte não estiver instalada onde abrir o ficheiro, é substituída por outra.',
+  exportOf:'Exportar · ', tabAi:'Texto para IA', tabMermaid:'Mermaid', tabJson:'JSON completo', tabPng:'Imagem PNG', tabLink:'Ligação', copyLink:'Copiar ligação', sharedSuffix:' (partilhado)',
+  hintLink:'Uma ligação que contém o próprio diagrama, sem contas nem servidor: quem a abrir recebe uma cópia no seu browser. Os dados vão no endereço (a parte a seguir ao #), que não é enviada a nenhum servidor. Alterações posteriores não mudam a ligação; gera outra.',
+  linkBig:'Ligação muito longa: algumas aplicações de mensagens podem cortá-la. Para diagramas grandes, envia antes o ficheiro (JSON) ou o texto para IA.', linkNoSupport:'Este browser não suporta a compressão necessária para gerar a ligação.',
+  linkOpened:'Diagrama aberto a partir da ligação (cópia local).', linkBad:'A ligação não é válida ou está incompleta.', tabSvg:'SVG (vetorial)', saveSvg:'Guardar SVG', hintSvg:'Imagem vetorial, nítida em qualquer tamanho e editável em Figma, Illustrator ou Inkscape. Os textos usam IBM Plex Sans/Mono; se a fonte não estiver instalada onde abrir o ficheiro, é substituída por outra.',
   mobTitle:'A aplicação não funciona em telemóvel', mobBody:'O Diagramico foi pensado para ecrãs maiores: num telemóvel o quadro e as barras de ferramentas ficam demasiado pequenos e não se consegue ver nem editar o diagrama. Abra num computador ou num tablet. Pode continuar aqui, mas a experiência será limitada.', mobOk:'Continuar mesmo assim',
   onlySel:'Só a seleção', transparent:'Fundo transparente', resolution:'Resolução', preparing:'A preparar…', empty:'O diagrama está vazio.', preview:'Pré-visualização',
   savePng:'Guardar PNG', copy:'Copiar', saveFile:'Guardar ficheiro', chars:'caracteres', tokens:'tokens',
@@ -478,7 +481,10 @@ en: {
   swap:'Reverse direction', edgeLabel:'Connector label (Enter)', duplicate:'Duplicate (Ctrl D)', delete:'Delete (Delete)',
   copied:'Copied', copiedClip:'Copied to clipboard', selectedCopy:'Text selected. Press Ctrl C to copy.',
   fileSaved:'File saved', fileFail:'Could not save the file',
-  exportOf:'Export · ', tabAi:'AI text', tabMermaid:'Mermaid', tabJson:'Full JSON', tabPng:'PNG image', tabSvg:'SVG (vector)', saveSvg:'Save SVG', hintSvg:'Vector image, sharp at any size and editable in Figma, Illustrator or Inkscape. Text uses IBM Plex Sans/Mono; if the font is not installed where you open the file, another one is substituted.',
+  exportOf:'Export · ', tabAi:'AI text', tabMermaid:'Mermaid', tabJson:'Full JSON', tabPng:'PNG image', tabLink:'Link', copyLink:'Copy link', sharedSuffix:' (shared)',
+  hintLink:'A link that contains the diagram itself, with no accounts or server: whoever opens it gets a copy in their browser. The data travels in the address (the part after the #), which is never sent to a server. Later changes do not update the link; generate a new one.',
+  linkBig:'Very long link: some messaging apps may truncate it. For large diagrams, send the file (JSON) or the AI text instead.', linkNoSupport:'This browser does not support the compression needed to build the link.',
+  linkOpened:'Diagram opened from the link (local copy).', linkBad:'The link is not valid or is incomplete.', tabSvg:'SVG (vector)', saveSvg:'Save SVG', hintSvg:'Vector image, sharp at any size and editable in Figma, Illustrator or Inkscape. Text uses IBM Plex Sans/Mono; if the font is not installed where you open the file, another one is substituted.',
   mobTitle:'The app does not work on a phone', mobBody:'Diagramico is designed for larger screens: on a phone the board and toolbars are too small and you cannot see or edit the diagram. Please open it on a computer or a tablet. You can continue here, but the experience will be limited.', mobOk:'Continue anyway',
   onlySel:'Selection only', transparent:'Transparent background', resolution:'Resolution', preparing:'Preparing…', empty:'The diagram is empty.', preview:'Preview',
   savePng:'Save PNG', copy:'Copy', saveFile:'Save file', chars:'characters', tokens:'tokens',
@@ -1977,7 +1983,7 @@ function openExport(tab){
 function closeModal(){ $('#modal').hidden = true; if (lastImgUrl){ URL.revokeObjectURL(lastImgUrl); lastImgUrl = null; } cv.focus({preventScroll:true}); }
 let lastImgUrl = null, imgOpts = {sel:false, scale:2, transparent:false};
 function renderModal(){
-  const tabs = [['ai',T('tabAi')],['mermaid',T('tabMermaid')],['json',T('tabJson')],['png',T('tabPng')],['svg',T('tabSvg')]];
+  const tabs = [['ai',T('tabAi')],['mermaid',T('tabMermaid')],['json',T('tabJson')],['png',T('tabPng')],['svg',T('tabSvg')],['link',T('tabLink')]];
   $('#mTabs').hidden = false; $('#mTitle').textContent = T('exportOf') + doc.name;
   const tabsEl = $('#mTabs'); tabsEl.innerHTML = '';
   for (const [k,l] of tabs){ const b = document.createElement('button'); b.textContent = l; b.className = modalTab === k ? 'on' : ''; b.onclick = () => { modalTab = k; renderModal(); }; tabsEl.appendChild(b); }
@@ -2012,6 +2018,20 @@ function renderModal(){
     const b = document.createElement('button'); b.className = 'btn primary'; b.textContent = T('saveSvg');
     b.onclick = async () => { const blob = await renderSVG(imgOpts.sel, imgOpts.transparent); if (blob) saveFile(slug(doc.name) + '.svg', blob); };
     foot.appendChild(b); refresh(); return;
+  }
+  if (modalTab === 'link'){
+    const hp = document.createElement('p'); hp.className = 'hint'; hp.textContent = T('hintLink'); body.appendChild(hp);
+    const area = document.createElement('textarea'); area.className = 'import'; area.readOnly = true; area.spellcheck = false; area.style.minHeight = '110px'; area.value = T('preparing'); body.appendChild(area);
+    const warn = document.createElement('p'); warn.className = 'hint'; body.appendChild(warn);
+    const stat = document.createElement('span'); stat.className = 'stat'; foot.appendChild(stat);
+    const cp = document.createElement('button'); cp.className = 'btn primary'; cp.textContent = T('copyLink'); cp.disabled = true; foot.appendChild(cp);
+    area.onfocus = () => area.select();
+    if (!doc.nodes.length){ area.value = ''; warn.textContent = T('empty'); return; }
+    shareUrl().then(url => {
+      area.value = url; stat.textContent = `${url.length.toLocaleString(LOC())} ${T('chars')}`; cp.disabled = false; cp.onclick = () => copyText(url);
+      if (url.length > 8000){ warn.textContent = T('linkBig'); warn.style.color = 'var(--danger)'; }
+    }).catch(() => { area.value = ''; warn.textContent = T('linkNoSupport'); });
+    return;
   }
   let text, hint, ext;
   if (modalTab === 'ai'){ text = exportAI(doc); ext = 'txt'; hint = T('hintAi'); }
@@ -2764,6 +2784,52 @@ window.addEventListener('keydown', e => {
 window.addEventListener('resize', () => { if (tour) tourShow(); });
 $('#btnTour').innerHTML = ICON.tour; $('#btnTour').onclick = e => { e.stopPropagation(); startTour(); };
 
+/* ---------- share link ---------- */
+// The diagram travels in the URL fragment (#d=…): JSON without defaults, compressed with deflate-raw, base64url. The fragment is never sent to a server.
+const b64u = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); };
+const unb64u = s => Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0));
+async function deflateRaw(u8){ return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()); }
+function packDoc(d){
+  const ids = new Map(d.nodes.map((n, i) => [n.id, i.toString(36)]));
+  const nodes = d.nodes.map(n => { const o = {...n, id: ids.get(n.id)}; if (o.fs === 14) delete o.fs; if (!o.b) delete o.b; if (!o.i) delete o.i; if (o.color === 'none') delete o.color; if (!o.text) delete o.text; return o; });
+  const edges = d.edges.map(e => {
+    const o = {...e}; delete o.id;
+    if (e.from) o.from = ids.get(e.from); else delete o.from;
+    if (e.to) o.to = ids.get(e.to); else delete o.to;
+    if ((e.from && !o.from) || (e.to && !o.to)) return null;
+    if (!o.label) delete o.label; if (o.style === 'elbow') delete o.style; if (o.arrow === 'end') delete o.arrow; if (!o.dash) delete o.dash; return o;
+  }).filter(Boolean);
+  return {v:1, n:d.name, nodes, edges};
+}
+function unpackDoc(o){
+  if (!o || !Array.isArray(o.nodes) || o.nodes.length > 3000 || !Array.isArray(o.edges || [])) throw new Error('bad');
+  const num = v => Number.isFinite(+v) ? +v : 0;
+  const nodes = o.nodes.filter(n => n && typeof n === 'object' && (TYPES[n.type])).map(n => {
+    const c = {fs:14, b:false, i:false, color:'none', text:'', ...n, id:String(n.id), type:n.type, x:num(n.x), y:num(n.y), text:String(n.text ?? ''), fs:num(n.fs) || 14};
+    if (c.type === 'lane'){ c.w = num(n.w) || 1100; c.h = num(n.h) || 180; } return c;
+  });
+  const have = new Set(nodes.map(n => n.id));
+  const edges = (o.edges || []).filter(e => e && typeof e === 'object').map(e => ({label:'', style:'elbow', arrow:'end', dash:false, from:null, to:null, ...e, id:uid('e'), label:String(e.label ?? '')}))
+    .filter(e => (!e.from || have.has(String(e.from))) && (!e.to || have.has(String(e.to))));
+  return {name:String(o.n || ''), nodes, edges};
+}
+async function shareUrl(){
+  const bytes = await deflateRaw(new TextEncoder().encode(JSON.stringify(packDoc(doc))));
+  return location.href.split('#')[0].split('?')[0] + '#d=' + b64u(bytes);
+}
+async function openFromHash(){
+  const m = /^#d=([A-Za-z0-9_-]+)$/.exec(location.hash); if (!m) return false;
+  try {
+    const u = unpackDoc(JSON.parse(new TextDecoder().decode(await inflateRaw(unb64u(m[1])))));
+    const base = u.name || T('untitled'), suf = T('sharedSuffix');
+    const d = newDoc(base.endsWith(suf) ? base : base + suf); d.nodes = u.nodes; d.edges = u.edges;
+    openDoc(d.id); fit(); toast(T('linkOpened'));
+  } catch(e){ toast(T('linkBad')); }
+  history.replaceState(null, '', location.pathname + location.search); // so a refresh does not open it again
+  return true;
+}
+window.addEventListener('hashchange', () => { if (!EMBED) openFromHash(); });
+
 /* ---------- boot ---------- */
 const FONT_FACES = ['400 14px "IBM Plex Sans"','600 14px "IBM Plex Sans"','italic 400 14px "IBM Plex Sans"','italic 600 14px "IBM Plex Sans"','400 14px "IBM Plex Mono"','600 14px "IBM Plex Mono"','italic 400 14px "IBM Plex Mono"','italic 600 14px "IBM Plex Mono"'];
 const fontsReady = (document.fonts ? Promise.all(FONT_FACES.map(f => document.fonts.load(f).catch(()=>null))).then(() => document.fonts.ready) : Promise.resolve()).catch(()=>{});
@@ -2780,7 +2846,9 @@ if (EMBED && QS.get('t')) importFromText(QS.get('t')); // landing page: show a g
 const isPhone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
 function mobileNotice(){ modalRender = mobileNotice; dialog(T('mobTitle'), [el('p', 'hint', T('mobBody'))], [{label: T('mobOk'), primary: true, onClick: closeModal}]); }
 let tourSeen = true; try { tourSeen = !!localStorage.getItem(TOUR_KEY); } catch(e){}
-if (!EMBED){ if (isPhone) mobileNotice(); else if (!tourSeen) setTimeout(startTour, 600); }
+const fromLink = !EMBED && /^#d=/.test(location.hash);
+if (fromLink) openFromHash();
+if (!EMBED){ if (isPhone) mobileNotice(); else if (!tourSeen && !fromLink) setTimeout(startTour, 600); }
 // expose for testing
 window.__diagramico = { exportAI: () => exportAI(doc), exportMermaid: () => exportMermaid(doc), state: S, view, doc: () => doc, importText: importFromText, loadSample: () => { const s = sampleDoc(); store.docs[s.id] = s; openDoc(s.id); return s; } };
 })();
