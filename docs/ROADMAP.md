@@ -36,7 +36,7 @@ Princípio: tudo o que está no Free continua a funcionar sem conta e sem servid
 - Ligar a lista de espera (falta o URL do formulário), com aviso de RGPD e consentimento.
 - Medir visitas sem cookies (Plausible ou GoatCounter).
 - Rever o texto "equipas" da landing para listar as funcionalidades pagas acima, sem prometer datas.
-- Decidir a licença (a MIT permite copiar e vender o código).
+- Criar o repositório privado do servidor desde o início (o editor atual fica MIT, já publicado).
 - **Critério para avançar:** um número de inscrições definido de antemão (sugestão: 50 emails ou 5% das visitas únicas) e respostas ao "O que desenhas?".
 
 ### Fase 1: contas, cobrança e gravar no Google
@@ -92,7 +92,7 @@ Reaproveita as salas, sessões e reconexão do `bitnik-platform`.
 2. **Quem paga o lugar:** só quem escreve (team member) ou também quem comenta (reviewer)? Recomendo: reviewers gratuitos, comentam, não editam.
 3. **Convidar por ligação ou por email:** a ligação por papel é o mais simples; o convite por email (lista de pessoas autorizadas) só se for pedido.
 4. **Identidade de quem entra pela ligação:** exigir conta Google ou aceitar apenas um nome? Aceitar só nome é mais fácil, mas perde-se rasto de quem fez o quê.
-5. **Licença:** com um produto pago, a MIT deixa de fazer sentido para o código do servidor. Decidir antes da Fase 1.
+5. **Licença:** o editor atual fica MIT (já publicado). **O servidor das Equipas e do Premium nasce num repositório privado desde o primeiro commit**, e só depois se decide se e como o abrir (por exemplo FSL, que passa a MIT ao fim de 2 anos). Até lá, a landing não faz promessas sobre a licença de nada além do editor.
 
 ## Marcos de decisão
 
