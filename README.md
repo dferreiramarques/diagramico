@@ -140,7 +140,7 @@ Os diagramas ficam guardados apenas no browser onde foram criados (`localStorage
 
 ## Documentação para programadores
 
-[docs/SEGURANCA.md](docs/SEGURANCA.md): revisão de segurança, o que está corrigido e o que falta. [docs/ROADMAP.md](docs/ROADMAP.md): níveis Free, Equipas e Premium, e as fases para lá chegar. [docs/ARQUITETURA.md](docs/ARQUITETURA.md): modelo de dados, mapa do código, fluxo de alteração, exportação, i18n, visita guiada e limitações.
+[docs/SEGURANCA.md](docs/SEGURANCA.md): revisão de segurança, o que está corrigido e o que falta. [docs/ROADMAP.md](docs/ROADMAP.md): níveis Free, Equipas e Premium, e as fases para lá chegar. [docs/ARQUITETURA.md](docs/ARQUITETURA.md): modelo de dados, mapa do código, fluxo de alteração, exportação, i18n, visita guiada e limitações. [docs/AUTORIA.md](docs/AUTORIA.md): o que foi decidido por David e o que foi feito pela IA, com cronologia e commits; [docs/BOAS-PRATICAS-AUTORIA.md](docs/BOAS-PRATICAS-AUTORIA.md) e [docs/PROMPT-SEGMENTACAO-AUTORIA.md](docs/PROMPT-SEGMENTACAO-AUTORIA.md) para repetir o processo noutros projetos.
 
 ## Licença
 
