@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Diagramico · Desenha o fluxo, a IA escreve a documentação</title>
 <meta name="description" content="Desenha processos e user flows com o teclado e exporta-os como texto compacto para uma IA escrever a documentação, os casos de teste e a revisão da lógica. Gratuito, sem registo.">
@@ -233,6 +233,7 @@ footer .sp{flex:1}
     <form class="wl" id="wl" hidden>
       <input type="email" name="email" required autocomplete="email" data-i18n-ph="t_ph" aria-label="Email">
       <input type="text" name="uso" data-i18n-ph="t_use" aria-label="Uso" maxlength="140">
+      <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"><!-- honeypot: bots fill it, Formspree drops those submissions -->
       <label class="chk"><input type="checkbox" name="consent" required><span data-i18n="t_consent"></span></label>
       <button class="btn primary" type="submit" data-i18n="t_btn"></button>
     </form>
@@ -262,7 +263,7 @@ footer .sp{flex:1}
 (() => {
 // Waitlist endpoint (e.g. a Formspree form URL). While empty, the form stays hidden and nothing is collected.
 // When this is set, also add the endpoint's origin (e.g. https://formspree.io) to connect-src in the Content-Security-Policy <meta> above, or the browser blocks the request.
-const WAITLIST_URL = '';
+const WAITLIST_URL = 'https://formspree.io/f/maeqaqrn';
 
 const AI = {
 pt:`DIAGRAM: Exemplo · Compra na loja online
@@ -454,7 +455,7 @@ pt:{
   s3_t:'Fica documentado', s3_p:'Guarda a documentação gerada junto com o diagrama, que também sai em SVG, PNG ou Mermaid para o GitHub.',
   fmt_p:'Formatos suportados',
   t_h:'Equipas: lista de espera', t_p:'Estamos a preparar a gravação na conta Google, a colaboração em tempo real, os comentários e os acessos por papel. Deixa o teu email para te avisarmos no lançamento e diz-nos o que precisas.',
-  t_ph:'o.teu@email.com', t_use:'O que desenhas? (opcional)', t_btn:'Entrar na lista de espera', t_consent:'Aceito receber um email quando as Equipas forem lançadas.', t_priv:'Usamos o teu email apenas para te avisar do lançamento das Equipas e para perguntar o que precisas. Não o partilhamos com terceiros. Podes pedir a remoção a qualquer momento, respondendo a um email nosso.', t_ok:'Obrigado! Avisamos quando houver novidades.', t_err:'Não foi possível enviar. Tenta de novo mais tarde.',
+  t_ph:'o.teu@email.com', t_use:'O que desenhas? (opcional)', t_btn:'Entrar na lista de espera', t_consent:'Aceito receber um email quando as Equipas forem lançadas.', t_priv:'Usamos o teu email apenas para te avisar do lançamento das Equipas e para perguntar o que precisas. Não o partilhamos com terceiros; o envio é tratado pelo Formspree, que o guarda por nossa conta. Podes pedir a remoção a qualquer momento, respondendo a um email nosso.', t_ok:'Obrigado! Avisamos quando houver novidades.', t_err:'Não foi possível enviar. Tenta de novo mais tarde.',
   q_h:'Perguntas frequentes',
   q1:'Quanto custa?', a1:'A app é gratuita e não pede registo. Os planos para equipas ainda estão em preparação.',
   q2:'Onde ficam os meus diagramas?', a2:'No teu browser (localStorage). Nada é enviado para um servidor. Usa Diagramas → Guardar cópia de segurança para mudar de computador ou proteger o trabalho.',
@@ -485,7 +486,7 @@ en:{
   s3_t:'Documented', s3_p:'Keep the generated documentation next to the diagram, which also exports as SVG, PNG or Mermaid for GitHub.',
   fmt_p:'Supported formats',
   t_h:'Teams: waitlist', t_p:'We are preparing saving to your Google account, real-time collaboration, comments and role-based access. Leave your email to hear about the launch and tell us what you need.',
-  t_ph:'you@email.com', t_use:'What do you draw? (optional)', t_btn:'Join the waitlist', t_consent:'I agree to receive an email when Teams launches.', t_priv:'We use your email only to tell you about the Teams launch and to ask what you need. We do not share it with third parties. You can ask us to delete it at any time by replying to one of our emails.', t_ok:'Thank you! We will let you know when there is news.', t_err:'Could not send. Please try again later.',
+  t_ph:'you@email.com', t_use:'What do you draw? (optional)', t_btn:'Join the waitlist', t_consent:'I agree to receive an email when Teams launches.', t_priv:'We use your email only to tell you about the Teams launch and to ask what you need. We do not share it with third parties; the submission is handled by Formspree, which stores it on our behalf. You can ask us to delete it at any time by replying to one of our emails.', t_ok:'Thank you! We will let you know when there is news.', t_err:'Could not send. Please try again later.',
   q_h:'Frequently asked questions',
   q1:'How much does it cost?', a1:'The app is free and needs no sign-up. Team plans are still being prepared.',
   q2:'Where are my diagrams stored?', a2:'In your browser (localStorage). Nothing is sent to a server. Use Diagrams → Save backup to switch computers or protect your work.',
@@ -534,9 +535,12 @@ if (WAITLIST_URL){
   form.addEventListener('submit', async e => {
     e.preventDefault(); const msg = $('#wlmsg'); msg.textContent = '';
     try {
-      const r = await fetch(WAITLIST_URL, {method:'POST', headers:{'Content-Type':'application/json', 'Accept':'application/json'}, body:JSON.stringify({email:form.email.value, uso:form.uso.value, consent:form.consent.checked, lang, page:location.pathname})});
-      if (!r.ok) throw new Error(r.status); form.reset(); msg.textContent = t('t_ok');
-    } catch (err) { msg.textContent = t('t_err'); }
+      const btn = form.querySelector('button[type=submit]'); btn.disabled = true;
+      const r = await fetch(WAITLIST_URL, {method:'POST', headers:{'Content-Type':'application/json', 'Accept':'application/json'}, body:JSON.stringify({email:form.email.value, uso:form.uso.value, consent:form.consent.checked, _gotcha:form._gotcha.value, _subject:'Diagramico: lista de espera (Equipas)', lang, page:location.pathname})});
+      btn.disabled = false;
+      if (!r.ok){ let m = ''; try { m = ((await r.json()).errors || []).map(x => x.message).join(' '); } catch (_) {} throw new Error(m || r.status); }
+      form.reset(); msg.textContent = t('t_ok');
+    } catch (err) { form.querySelector('button[type=submit]').disabled = false; msg.textContent = t('t_err'); }
   });
 }
 else $('#teams').hidden = true; // nothing to show until a waitlist endpoint is configured
