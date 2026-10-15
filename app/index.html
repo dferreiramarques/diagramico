@@ -1274,6 +1274,9 @@ function startEdit(id){
   undoS.push(snap()); redoS.length = 0;
   ta.value = n ? (n.text||'') : (e.label||''); ta.hidden = false;
   placeTA(); ta.focus(); ta.select(); draw();
+  // A tool click starts editing from pointerdown, and the browser then moves focus to the canvas as the default action of mousedown,
+  // which left the text field unfocused (typing did nothing; an empty free text looked as if the click had done nothing). Take the focus back once the event is over.
+  setTimeout(() => { if (S.editing && S.editing.id === id && document.activeElement !== ta){ ta.focus(); ta.select(); } }, 0);
 }
 function placeTA(){
   const ed = S.editing; if (!ed) return;
