@@ -287,6 +287,8 @@ const ICON = {
   aBoth: I('<path d="M5 12h14M9 7l-5 5 5 5M15 7l5 5-5 5"/>'),
   dash: I('<path d="M3 12h3M10 12h4M18 12h3"/>'),
   text: I('<path d="M6 6h12M12 6v13M9 19h6"/>'),
+  group: I('<rect x="4" y="4" width="9" height="9" rx="1.5"/><rect x="11" y="11" width="9" height="9" rx="1.5"/><path d="M2.5 2.5h19v19h-19z" stroke-dasharray="2 2.6" opacity=".55"/>'),
+  ungroup: I('<rect x="3.5" y="3.5" width="8" height="8" rx="1.5"/><rect x="12.5" y="12.5" width="8" height="8" rx="1.5"/>'),
   geo: I('<rect x="3.5" y="9" width="11" height="11" rx="1.5"/><circle cx="15" cy="9" r="5.5"/>'),
   fill: I('<rect x="4.5" y="4.5" width="15" height="15" rx="2" fill="currentColor" fill-opacity=".28"/>'),
   flip: I('<path d="M5 19L19 5"/><path d="M5 5l14 14" opacity=".35"/>'),
@@ -376,7 +378,7 @@ pt: {
   th_auto:'Automático (sistema)', th_light:'Claro', th_dark:'Escuro', theme:'Tema', themeTitle:(a,b)=>`Tema: ${a} · clique para ${b}`,
   langTitle:'Idioma: Português · mudar para English', langToast:'Idioma: Português',
   autoLayout:'Alinhar à grelha (Shift A)', layoutDone:(n,r,c)=>`${n} formas alinhadas (${r} linhas, ${c} colunas). Ctrl Z para desfazer.`, layoutEmpty:'Não há formas para alinhar.', alignNone:'Já está tudo alinhado.',
-  gateType:'Tipo de decisão (BPMN)', t_geo:'Forma geométrica', t_text:'Texto', geoKind:'Tipo de forma geométrica', geo_rect:'Retângulo', geo_ellipse:'Círculo / elipse', geo_triangle:'Triângulo', geo_line:'Linha', geoFill:'Preenchimento', geoFlip:'Inverter a diagonal', lw1:'Linha fina', lw2:'Linha média', lw3:'Linha grossa', aw1:'Seta fina', aw2:'Seta média', aw3:'Seta grossa', gate_plain:'Decisão simples', gate_exclusive:'Exclusiva (XOR): um caminho', gate_parallel:'Paralela (AND): todos', gate_inclusive:'Inclusiva (OR): um ou mais', gate_complex:'Complexa (regra própria)',
+  gateType:'Tipo de decisão (BPMN)', t_geo:'Forma geométrica', t_text:'Texto', grpGroup:'Agrupar (Ctrl G)', grpUngroup:'Desagrupar (Ctrl Shift G)', geoKind:'Tipo de forma geométrica', geo_rect:'Retângulo', geo_ellipse:'Círculo / elipse', geo_triangle:'Triângulo', geo_line:'Linha', geoFill:'Preenchimento', geoFlip:'Inverter a diagonal', lw1:'Linha fina', lw2:'Linha média', lw3:'Linha grossa', aw1:'Seta fina', aw2:'Seta média', aw3:'Seta grossa', gate_plain:'Decisão simples', gate_exclusive:'Exclusiva (XOR): um caminho', gate_parallel:'Paralela (AND): todos', gate_inclusive:'Inclusiva (OR): um ou mais', gate_complex:'Complexa (regra própria)',
   tourBtn:'Visita guiada', tourNext:'Seguinte', tourBack:'Anterior', tourSkip:'Saltar', tourDone:'Começar', tourOf:(a,b)=>`${a} de ${b}`,
   tourSteps:[
     {t:'Bem-vindo ao Diagramico', d:'Um quadro infinito para desenhar diagramas lógicos e user flows. Em 1 minuto fica a saber o essencial. Já abri um diagrama de exemplo para explorar.'},
@@ -397,6 +399,7 @@ pt: {
     <dt>N · L · C</dt><dd>Nota · Swimlane · Conector</dd>
     <dt>G</dt><dd>Forma geométrica (retângulo, círculo, triângulo ou linha): arraste no quadro; depois mude o tipo, o preenchimento, a cor e a espessura na barra. Serve de contentor e leva consigo o que está lá dentro</dd>
     <dt>T</dt><dd>Texto livre, sem forma: clique no quadro e escreva; tamanho, negrito, itálico e cor na barra. Sem texto, desaparece</dd>
+    <dt>Ctrl G · Ctrl Shift G</dt><dd>Agrupar · Desagrupar as formas selecionadas: ficam selecionadas e movem-se em conjunto (só ajuda a desenhar; não conta para o texto IA)</dd>
     <dt>Duplo clique</dt><dd>No vazio cria um passo; numa forma edita o texto</dd>
     <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
     <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte. Cada lado cria a sua própria seta, por isso duas formas podem ligar-se por vários lados; as setas que saem do mesmo lado partilham o tronco</dd>
@@ -502,7 +505,7 @@ en: {
   th_auto:'Automatic (system)', th_light:'Light', th_dark:'Dark', theme:'Theme', themeTitle:(a,b)=>`Theme: ${a} · click for ${b}`,
   langTitle:'Language: English · switch to Português', langToast:'Language: English',
   autoLayout:'Align to grid (Shift A)', layoutDone:(n,r,c)=>`${n} shapes aligned (${r} rows, ${c} columns). Ctrl Z to undo.`, layoutEmpty:'There are no shapes to align.', alignNone:'Everything is already aligned.',
-  gateType:'Decision type (BPMN)', t_geo:'Geometric shape', t_text:'Text', geoKind:'Geometric shape type', geo_rect:'Rectangle', geo_ellipse:'Circle / ellipse', geo_triangle:'Triangle', geo_line:'Line', geoFill:'Fill', geoFlip:'Flip the diagonal', lw1:'Thin line', lw2:'Medium line', lw3:'Thick line', aw1:'Thin arrow', aw2:'Medium arrow', aw3:'Thick arrow', gate_plain:'Plain decision', gate_exclusive:'Exclusive (XOR): one path', gate_parallel:'Parallel (AND): all paths', gate_inclusive:'Inclusive (OR): one or more', gate_complex:'Complex (custom rule)',
+  gateType:'Decision type (BPMN)', t_geo:'Geometric shape', t_text:'Text', grpGroup:'Group (Ctrl G)', grpUngroup:'Ungroup (Ctrl Shift G)', geoKind:'Geometric shape type', geo_rect:'Rectangle', geo_ellipse:'Circle / ellipse', geo_triangle:'Triangle', geo_line:'Line', geoFill:'Fill', geoFlip:'Flip the diagonal', lw1:'Thin line', lw2:'Medium line', lw3:'Thick line', aw1:'Thin arrow', aw2:'Medium arrow', aw3:'Thick arrow', gate_plain:'Plain decision', gate_exclusive:'Exclusive (XOR): one path', gate_parallel:'Parallel (AND): all paths', gate_inclusive:'Inclusive (OR): one or more', gate_complex:'Complex (custom rule)',
   tourBtn:'Guided tour', tourNext:'Next', tourBack:'Back', tourSkip:'Skip', tourDone:'Get started', tourOf:(a,b)=>`${a} of ${b}`,
   tourSteps:[
     {t:'Welcome to Diagramico', d:'An infinite board for drawing logic diagrams and user flows. One minute is enough to learn the basics. An example diagram is already open to explore.'},
@@ -523,6 +526,7 @@ en: {
     <dt>N · L · C</dt><dd>Note · Swimlane · Connector</dd>
     <dt>G</dt><dd>Geometric shape (rectangle, circle, triangle or line): drag on the board; then change the type, fill, colour and weight in the bar. It works as a container and carries what is inside it</dd>
     <dt>T</dt><dd>Free text, no shape: click the board and type; size, bold, italic and colour in the bar. With no text it disappears</dd>
+    <dt>Ctrl G · Ctrl Shift G</dt><dd>Group · Ungroup the selected shapes: they are selected and moved together (a drawing aid only; it does not count towards the AI text)</dd>
     <dt>Double-click</dt><dd>On empty space creates a step; on a shape edits its text</dd>
     <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
     <dt>Side dots</dt><dd>Drag to connect; click to create the next shape. Each side makes its own arrow, so two shapes can be linked from several sides; arrows leaving the same side share a trunk</dd>
@@ -1023,6 +1027,11 @@ function drawOverlay(c){
     if (!n){ const e1 = S.sel.size === 1 && E(id), r = e1 && route(e1);
       if (r) for (const q of [r.pts[0], r.pts[r.pts.length-1]]){ c.beginPath(); c.arc(q.x, q.y, 5/z, 0, Math.PI*2); c.fillStyle = P.bg; c.fill(); c.strokeStyle = A; c.lineWidth = 1.8/z; c.stroke(); }
       continue; }
+    if (n.grp && S.sel.size > 1){ // one dashed frame per selected group, drawn once (on its first member)
+      const mates = [...S.sel].map(N).filter(m => m && m.grp === n.grp);
+      if (mates[0] === n){ let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const m of mates){ const q = bbox(m); x0 = Math.min(x0, q.x0); y0 = Math.min(y0, q.y0); x1 = Math.max(x1, q.x1); y1 = Math.max(y1, q.y1); }
+        c.save(); c.strokeStyle = A; c.lineWidth = 1.2/z; c.setLineDash([6/z, 4/z]); c.strokeRect(x0 - 9/z, y0 - 9/z, x1 - x0 + 18/z, y1 - y0 + 18/z); c.restore(); }
+    }
     const b = bbox(n), p = 4/z;
     c.strokeStyle = A; c.lineWidth = 1.5/z; c.strokeRect(b.x0-p, b.y0-p, b.x1-b.x0+2*p, b.y1-b.y0+2*p);
     if (n.type === 'geo' && S.sel.size === 1) for (const h of geoHandles(n)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
@@ -1220,6 +1229,18 @@ function containerChildren(n){
   const g = geom(n), x0 = n.x-g.w/2, x1 = n.x+g.w/2, y0 = n.y-g.h/2, y1 = n.y+g.h/2, area = g.w*g.h;
   return doc.nodes.filter(m => m !== n && m.type !== 'lane' && m.x >= x0 && m.x <= x1 && m.y >= y0 && m.y <= y1 && (m.type !== 'geo' || m.kind === 'line' || m.w*m.h < area));
 }
+/* ---- groups ----
+   Drawing aid only: shapes that share n.grp are selected and moved together. Not part of the AI text, Mermaid or exports. */
+const groupMates = id => { const n = N(id); if (!n || !n.grp) return [id]; return doc.nodes.filter(m => m.grp === n.grp).map(m => m.id); };
+function expandGroups(ids){ const out = new Set(ids); for (const id of ids) for (const m of groupMates(id)) out.add(m); return out; }
+function groupSel(){
+  const ns = selNodes().filter(n => n.type !== 'lane'); if (ns.length < 2) return;
+  checkpoint(); const g = uid('g'); ns.forEach(n => n.grp = g); changed();
+}
+function ungroupSel(){
+  const gs = new Set(selNodes().map(n => n.grp).filter(Boolean)); if (!gs.size) return;
+  checkpoint(); for (const n of doc.nodes) if (gs.has(n.grp)) delete n.grp; changed();
+}
 function laneChildren(lane){ return doc.nodes.filter(n => n.type !== 'lane' && n.x >= lane.x && n.x <= lane.x+lane.w && n.y >= lane.y && n.y <= lane.y+lane.h); }
 function deleteSel(){
   if (!S.sel.size) return; checkpoint();
@@ -1258,7 +1279,8 @@ function copySel(){ const ids = expandSel(); const nodes = doc.nodes.filter(n=>i
 function paste(offset=28){
   if (!clip) return; checkpoint();
   const map = {}, newSel = new Set();
-  for (const n of clip.nodes){ const c = {...n, id:uid('n'), x:n.x+offset, y:n.y+offset}; map[n.id] = c.id; if (c.type==='lane') doc.nodes.unshift(c); else doc.nodes.push(c); newSel.add(c.id); }
+  const gmap = {};
+  for (const n of clip.nodes){ const c = {...n, id:uid('n'), x:n.x+offset, y:n.y+offset}; map[n.id] = c.id; if (n.grp) c.grp = gmap[n.grp] || (gmap[n.grp] = uid('g')); if (c.type==='lane') doc.nodes.unshift(c); else doc.nodes.push(c); newSel.add(c.id); }
   reindex();
   const mv = e => { const c = {...e, id:uid('e'), from:e.from ? map[e.from] : null, to:e.to ? map[e.to] : null}; if (!e.from){ c.fx += offset; c.fy += offset; } if (!e.to){ c.tx += offset; c.ty += offset; } return c; };
   for (const e of clip.edges) if ((!e.from || map[e.from]) && (!e.to || map[e.to])) doc.edges.push(mv(e));
@@ -1384,9 +1406,9 @@ function onDown(e){
     S.connect = {from:hit ? hit.id : null, side:null, p, start:p, target:null}; S.drag = {kind:'connect', start:p, moved:false}; return;
   }
   if (hit && hit.kind === 'node'){
-    const was = S.sel.has(hit.id);
-    if (e.shiftKey){ if (was) S.sel.delete(hit.id); else S.sel.add(hit.id); }
-    else if (!was) S.sel = new Set([hit.id]);
+    const was = S.sel.has(hit.id), mates = groupMates(hit.id);
+    if (e.shiftKey){ if (was) for (const m of mates) S.sel.delete(m); else for (const m of mates) S.sel.add(m); }
+    else if (!was) S.sel = new Set(mates);
     const moving = new Set([...S.sel].filter(id => N(id)));
     for (const id of [...moving]){ const n = N(id); if (n.type === 'lane' || n.type === 'geo') for (const c of containerChildren(n)) moving.add(c.id); }
     const orig = new Map([...moving].map(id => { const n = N(id); return [id, {x:n.x, y:n.y}]; }));
@@ -1489,7 +1511,7 @@ function onMove(e){
     const sel = new Set(d.base);
     for (const n of doc.nodes){ const b = bbox(n); if (b.x0 >= x0 && b.x1 <= x1 && b.y0 >= y0 && b.y1 <= y1) sel.add(n.id); }
     for (const e2 of doc.edges) if (sel.has(e2.from) && sel.has(e2.to)) sel.add(e2.id);
-    S.sel = sel; draw();
+    S.sel = expandGroups(sel); draw();
   }
 }
 function snapMove(d, dx, dy){
@@ -1526,7 +1548,7 @@ function onUp(e){
     draw(); return; }
   if (d.kind === 'move'){
     if (d.moved){ gluePass(d); changed(); }
-    else if (d.wasSel && !d.shift && S.sel.size > 1){ S.sel = new Set([d.clickId]); draw(); }
+    else if (d.wasSel && !d.shift && S.sel.size > 1){ S.sel = new Set(groupMates(d.clickId)); draw(); }
     return;
   }
   if (d.kind === 'resize' || d.kind === 'endpoint' || d.kind === 'georesize'){ if (d.moved) changed(); return; }
@@ -1584,6 +1606,7 @@ window.addEventListener('keydown', e => {
   if (mod && (k === '=' || k === '+')){ e.preventDefault(); zoomAt(W/2, H/2, 1.25); return; }
   if (mod && k === '-'){ e.preventDefault(); zoomAt(W/2, H/2, 0.8); return; }
   if (mod && k === '0'){ e.preventDefault(); setZoom(1); return; }
+  if (mod && k === 'g'){ e.preventDefault(); if (e.shiftKey) ungroupSel(); else groupSel(); return; }
   if (mod) return;
   if (e.shiftKey && e.code === 'Digit1'){ fit(); return; }
   if (e.shiftKey && e.code === 'Digit0'){ setZoom(1); return; }
@@ -1655,7 +1678,7 @@ function updateCtx(){
   const hide = !S.sel.size || S.editing || (S.drag && S.drag.kind !== 'pan');
   if (hide){ ctxEl.hidden = true; ctxKey = ''; return; }
   const ns = selNodes(), es = selEdges();
-  const key = [...S.sel].join(',') + '|' + JSON.stringify(ns.map(n=>[n.fs,n.b,n.i,n.color,n.type,n.laneType,n.gate,n.kind,n.fill,n.lw,n.dash,n.flip])) + JSON.stringify(es.map(e=>[e.style,e.arrow,e.dash,e.route,e.lw])) + document.documentElement.getAttribute('data-theme') + P.bg;
+  const key = [...S.sel].join(',') + '|' + JSON.stringify(ns.map(n=>[n.fs,n.b,n.i,n.color,n.type,n.laneType,n.gate,n.kind,n.fill,n.lw,n.dash,n.flip,n.grp])) + JSON.stringify(es.map(e=>[e.style,e.arrow,e.dash,e.route,e.lw])) + document.documentElement.getAttribute('data-theme') + P.bg;
   if (key !== ctxKey){ ctxKey = key; buildCtx(ns, es); }
   ctxEl.hidden = false;
   // position above selection
@@ -1746,6 +1769,9 @@ function buildCtx(ns, es){
     ctxEl.appendChild(btn(ICON.swap, T('swap'), () => { checkpoint(); es.forEach(e => { [e.from, e.to] = [e.to, e.from]; [e.fx, e.tx] = [e.tx, e.fx]; [e.fy, e.ty] = [e.ty, e.fy]; [e.sa, e.sb] = [e.sb, e.sa]; }); changed(); }));
     if (es.length === 1) ctxEl.appendChild(btn(ICON.edit, T('edgeLabel'), () => startEdit(es[0].id)));
   }
+  { const gn = ns.filter(n => n.type !== 'lane');
+    if (gn.length >= 2 && !(gn[0].grp && gn.every(n => n.grp === gn[0].grp))) ctxEl.appendChild(btn(ICON.group, T('grpGroup'), groupSel));
+    if (gn.some(n => n.grp)) ctxEl.appendChild(btn(ICON.ungroup, T('grpUngroup'), ungroupSel)); }
   ctxEl.appendChild(btn(ICON.copy, T('duplicate'), () => { if (copySel()) paste(); }));
   ctxEl.appendChild(btn(ICON.trash, T('delete'), deleteSel));
 }
@@ -2934,6 +2960,7 @@ function sanitizeNodes(arr){
     if (c.type === 'lane'){ c.w = finite(n.w) || 1100; c.h = finite(n.h) || 180; if (c.laneType !== undefined && !Object.hasOwn(LANE_TYPES, c.laneType)) delete c.laneType; }
     if (c.type === 'geo'){ c.w = clamp(finite(n.w), 0, 20000); c.h = clamp(finite(n.h), 0, 20000); if (!GEO_KINDS.includes(c.kind)) c.kind = 'rect'; c.fill = !!c.fill; c.dash = !!c.dash; c.flip = !!c.flip; }
     if (c.lw !== undefined && ![1,2,3].includes(c.lw)) delete c.lw;
+    if (c.grp !== undefined){ c.grp = clipStr(c.grp, 40); if (!c.grp || c.type === 'lane') delete c.grp; }
     if (!GATES.includes(c.gate)) delete c.gate;
     out.push(c);
   }

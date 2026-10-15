@@ -74,6 +74,10 @@ As secções de `app/index.html` estão marcadas com comentários `/* ----------
 - Não entram no fluxo: ficam de fora do texto IA, do Mermaid, do alinhamento à grelha e do layout, e não se ligam com setas.
 - **Espessuras:** `n.lw` (formas e formas geométricas) e `e.lw` (setas) valem 1, 2 ou 3 (2 por defeito). Nas formas multiplica a largura base (`LW_MUL`), nas formas geométricas é fixa (`GEO_W`) e nas setas define também o tamanho da cabeça (`EDGE_W`, `HEAD_S`). Validado em `sanitizeNodes` e `sanitizeEdges`.
 
+### Grupos
+
+Só ajudam a desenhar: formas com o mesmo `n.grp` (um id) selecionam-se e movem-se juntas (`groupMates`, `expandGroups`, aplicadas ao clicar, ao selecionar com a moldura e ao reduzir uma seleção múltipla). `Ctrl G` agrupa (`groupSel`; achata grupos anteriores) e `Ctrl Shift G` desagrupa (`ungroupSel`); a barra de contexto mostra os botões. Copiar e colar cria um grupo novo (`gmap` em `paste`). As lanes nunca se agrupam, e `grp` é validado em `sanitizeNodes`. O texto IA, o Mermaid e o alinhamento à grelha não olham para os grupos.
+
 ### Texto livre
 
 Tipo `text`: só texto, sem contorno nem fundo (`geom` mede-o com `layoutText`, largura de quebra de 24×o corpo; `drawNode` desenha-o alinhado à esquerda, com `n.color` a colorir o texto). Cria-se com a ferramenta `T` (um clique abre a edição); se ficar vazio ao fim da edição é apagado (`endEdit`), incluindo o ponto de histórico da criação. Não tem espessura, não entra no alinhamento à grelha nem no layout, e segue no texto IA como nota (secção `NOTES`); o Mermaid ignora-o.

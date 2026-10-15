@@ -35,6 +35,7 @@ Arranque rápido:
 - **Lanes coladas**: com uma lane selecionada, o **+** nos cantos direitos (em cima e em baixo) junta uma lane colada à existente, com o mesmo tipo, cor e largura. Lanes coladas mostram uma **corrente** nos cantos de ligação; clicar nela afasta a lane 10 px (a de baixo para baixo, a de cima para cima, e as coladas para lá dela vão juntas). Ao largar uma lane a menos de 8 px de outra, cola-se e herda o x, a largura, o tipo, a cor e o tamanho do texto dessa lane (só se ainda não estivessem coladas). Redimensionar uma lane acompanha as coladas (a largura é comum, e a altura empurra as de baixo ou de cima).
 - **Formas geométricas** (`G`): linha, retângulo, círculo/elipse e triângulo, desenhados por arrasto, com ou sem preenchimento, cor, tracejado e texto (título no canto). Servem de **contentores**: ficam por trás das formas e das setas, e ao mover um contentor leva consigo o que está lá dentro. Redimensionam-se pelos 8 pontos de pega.
 - **Texto livre** (`T`): um campo de texto sem forma nem contorno, para títulos e anotações no quadro. Tamanho, negrito, itálico e cor como nas outras formas; sem texto, desaparece. Segue no texto para IA como nota.
+- **Agrupar** (`Ctrl G`) e **desagrupar** (`Ctrl Shift G`): as formas agrupadas selecionam-se e movem-se em conjunto, e uma moldura tracejada mostra o grupo. Ajuda a desenhar; não aparece no texto para IA nem nas exportações. Copiar e colar mantém o grupo (como um grupo novo).
 - **Espessuras:** 3 espessuras de linha para as formas e para as formas geométricas (fina, média, grossa), e 3 para as setas (a cabeça da seta acompanha).
 - **Notas** em IBM Plex Mono.
 - **Texto** que ajusta o tamanho da caixa; o tamanho de letra controla o tamanho da forma. Regular, **negrito** e *itálico* por forma ou inline (`**negrito**`, `*itálico*`).
@@ -120,6 +121,7 @@ LO2: O stock é verificado em tempo real.
 | `N` `L` `C` | Nota, Swimlane, Conector |
 | `G` | Forma geométrica (arrastar no quadro) |
 | `T` | Texto livre, sem forma |
+| `Ctrl G` / `Ctrl Shift G` | Agrupar / desagrupar |
 | `V` / `H` | Selecionar / mover quadro |
 | Duplo clique | No vazio cria um passo; numa forma edita o texto |
 | `Tab` | Cria o passo seguinte ligado |
