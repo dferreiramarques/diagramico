@@ -286,6 +286,10 @@ const ICON = {
   aNone: I('<path d="M4 12h16"/>'),
   aBoth: I('<path d="M5 12h14M9 7l-5 5 5 5M15 7l5 5-5 5"/>'),
   dash: I('<path d="M3 12h3M10 12h4M18 12h3"/>'),
+  geo: I('<rect x="3.5" y="9" width="11" height="11" rx="1.5"/><circle cx="15" cy="9" r="5.5"/>'),
+  fill: I('<rect x="4.5" y="4.5" width="15" height="15" rx="2" fill="currentColor" fill-opacity=".28"/>'),
+  flip: I('<path d="M5 19L19 5"/><path d="M5 5l14 14" opacity=".35"/>'),
+  lw1: I('<path d="M4 12h16" stroke-width="1"/>'), lw2: I('<path d="M4 12h16" stroke-width="2.4"/>'), lw3: I('<path d="M4 12h16" stroke-width="4.6"/>'),
   layout: I('<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/>'),
   tour: I('<circle cx="12" cy="12" r="8.5"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'),
   route: I('<path d="M5 19V9a3 3 0 013-3h11"/><path d="M16 3l3 3-3 3"/><circle cx="5" cy="19" r="1.4"/>'),
@@ -371,7 +375,7 @@ pt: {
   th_auto:'Automático (sistema)', th_light:'Claro', th_dark:'Escuro', theme:'Tema', themeTitle:(a,b)=>`Tema: ${a} · clique para ${b}`,
   langTitle:'Idioma: Português · mudar para English', langToast:'Idioma: Português',
   autoLayout:'Alinhar à grelha (Shift A)', layoutDone:(n,r,c)=>`${n} formas alinhadas (${r} linhas, ${c} colunas). Ctrl Z para desfazer.`, layoutEmpty:'Não há formas para alinhar.', alignNone:'Já está tudo alinhado.',
-  gateType:'Tipo de decisão (BPMN)', gate_plain:'Decisão simples', gate_exclusive:'Exclusiva (XOR): um caminho', gate_parallel:'Paralela (AND): todos', gate_inclusive:'Inclusiva (OR): um ou mais', gate_complex:'Complexa (regra própria)',
+  gateType:'Tipo de decisão (BPMN)', t_geo:'Forma geométrica', geoKind:'Tipo de forma geométrica', geo_rect:'Retângulo', geo_ellipse:'Círculo / elipse', geo_triangle:'Triângulo', geo_line:'Linha', geoFill:'Preenchimento', geoFlip:'Inverter a diagonal', lw1:'Linha fina', lw2:'Linha média', lw3:'Linha grossa', aw1:'Seta fina', aw2:'Seta média', aw3:'Seta grossa', gate_plain:'Decisão simples', gate_exclusive:'Exclusiva (XOR): um caminho', gate_parallel:'Paralela (AND): todos', gate_inclusive:'Inclusiva (OR): um ou mais', gate_complex:'Complexa (regra própria)',
   tourBtn:'Visita guiada', tourNext:'Seguinte', tourBack:'Anterior', tourSkip:'Saltar', tourDone:'Começar', tourOf:(a,b)=>`${a} de ${b}`,
   tourSteps:[
     {t:'Bem-vindo ao Diagramico', d:'Um quadro infinito para desenhar diagramas lógicos e user flows. Em 1 minuto fica a saber o essencial. Já abri um diagrama de exemplo para explorar.'},
@@ -390,6 +394,7 @@ pt: {
     <dt>E · F · B</dt><dd>Ecrã · Documento · Dados</dd>
     <dt>1 · 2 · 3 · 4</dt><dd>Início · Fim · Pausa · Mudança de lane</dd>
     <dt>N · L · C</dt><dd>Nota · Swimlane · Conector</dd>
+    <dt>G</dt><dd>Forma geométrica (retângulo, círculo, triângulo ou linha): arraste no quadro; depois mude o tipo, o preenchimento, a cor e a espessura na barra. Serve de contentor e leva consigo o que está lá dentro</dd>
     <dt>Duplo clique</dt><dd>No vazio cria um passo; numa forma edita o texto</dd>
     <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
     <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte. Cada lado cria a sua própria seta, por isso duas formas podem ligar-se por vários lados; as setas que saem do mesmo lado partilham o tronco</dd>
@@ -495,7 +500,7 @@ en: {
   th_auto:'Automatic (system)', th_light:'Light', th_dark:'Dark', theme:'Theme', themeTitle:(a,b)=>`Theme: ${a} · click for ${b}`,
   langTitle:'Language: English · switch to Português', langToast:'Language: English',
   autoLayout:'Align to grid (Shift A)', layoutDone:(n,r,c)=>`${n} shapes aligned (${r} rows, ${c} columns). Ctrl Z to undo.`, layoutEmpty:'There are no shapes to align.', alignNone:'Everything is already aligned.',
-  gateType:'Decision type (BPMN)', gate_plain:'Plain decision', gate_exclusive:'Exclusive (XOR): one path', gate_parallel:'Parallel (AND): all paths', gate_inclusive:'Inclusive (OR): one or more', gate_complex:'Complex (custom rule)',
+  gateType:'Decision type (BPMN)', t_geo:'Geometric shape', geoKind:'Geometric shape type', geo_rect:'Rectangle', geo_ellipse:'Circle / ellipse', geo_triangle:'Triangle', geo_line:'Line', geoFill:'Fill', geoFlip:'Flip the diagonal', lw1:'Thin line', lw2:'Medium line', lw3:'Thick line', aw1:'Thin arrow', aw2:'Medium arrow', aw3:'Thick arrow', gate_plain:'Plain decision', gate_exclusive:'Exclusive (XOR): one path', gate_parallel:'Parallel (AND): all paths', gate_inclusive:'Inclusive (OR): one or more', gate_complex:'Complex (custom rule)',
   tourBtn:'Guided tour', tourNext:'Next', tourBack:'Back', tourSkip:'Skip', tourDone:'Get started', tourOf:(a,b)=>`${a} of ${b}`,
   tourSteps:[
     {t:'Welcome to Diagramico', d:'An infinite board for drawing logic diagrams and user flows. One minute is enough to learn the basics. An example diagram is already open to explore.'},
@@ -514,6 +519,7 @@ en: {
     <dt>E · F · B</dt><dd>Screen · Document · Data</dd>
     <dt>1 · 2 · 3 · 4</dt><dd>Start · End · Pause · Lane handoff</dd>
     <dt>N · L · C</dt><dd>Note · Swimlane · Connector</dd>
+    <dt>G</dt><dd>Geometric shape (rectangle, circle, triangle or line): drag on the board; then change the type, fill, colour and weight in the bar. It works as a container and carries what is inside it</dd>
     <dt>Double-click</dt><dd>On empty space creates a step; on a shape edits its text</dd>
     <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
     <dt>Side dots</dt><dd>Drag to connect; click to create the next shape. Each side makes its own arrow, so two shapes can be linked from several sides; arrows leaving the same side share a trunk</dd>
@@ -562,6 +568,7 @@ const TYPES = {
   handoff:{name:'Mudança de lane', key:'4'},
   note:{name:'Nota', key:'n'},
   lane:{name:'Swimlane', key:'l'},
+  geo:{name:'Forma geométrica', key:'g'},
 };
 const EVENTS = new Set(['start','end','pause','handoff']);
 // BPMN gateway kinds a decision can take (n.gate); unset = plain decision with the text inside.
@@ -570,6 +577,11 @@ const GATE_SYM = {exclusive:'✕', parallel:'＋', inclusive:'○', complex:'✱
 const BOXES = ['step','action','decision','screen','doc','data'];
 const LANE_TYPES = {pessoa:'person', equipa:'team', departamento:'department', sistema:'system'};
 const FS = [10,12,14,16,18,20,24,28,32,40,48,64,80];
+// Geometric shapes (type 'geo': kind, fill, dash, flip, w, h) and the three line weights (n.lw / e.lw ∈ 1,2,3; 2 is the default).
+const GEO_KINDS = ['rect','ellipse','triangle','line'];
+const LW_MUL = {1:0.55, 2:1, 3:2};           // shapes: multiplier on the size-based outline width
+const GEO_W = {1:1, 2:2, 3:4};               // geometric shapes: outline width in px
+const EDGE_W = {1:1, 2:1.5, 3:3}, HEAD_S = {1:8, 2:10, 3:14}; // arrows: line width and arrowhead size
 const COLORS = ['none','blue','green','yellow','red','violet','grey'];
 const PAL = {
   light:{ bg:'#f3f4f7', dot:'#c5cad6', ink:'#1b1f2a', muted:'#646b7b', edge:'#3b4252', accent:'#3347d4', accentSoft:'rgba(51,71,212,.12)',
@@ -709,6 +721,7 @@ const MAXW = {step:15, action:14, decision:10, screen:15, doc:15, data:13, note:
 function geom(n){
   const fs = n.fs || 14;
   if (n.type === 'point') return {w:0, h:0, fs};
+  if (n.type === 'geo'){ const w = Math.max(0, finite(n.w)), h = Math.max(0, finite(n.h)), pad = fs*0.6; return {w, h, fs, p:pad, L:layoutText(n.text||'', fs, n.b, n.i, false, Math.max(40, w - pad*2))}; }
   if (n.type === 'lane'){ const hw = 44*fs/14; return {w:n.w, h:n.h, hw, fs}; }
   if (EVENTS.has(n.type)){
     const r = fs*1.25, maxW = fs*10;
@@ -887,7 +900,7 @@ function drawLane(c, n, pal, opts){
 function drawNode(c, n, pal, opts){
   const g = geom(n), {fill, stroke} = nodeColors(n, pal);
   c.save(); c.translate(n.x, n.y);
-  const lw = Math.max(1.25, g.fs/11);
+  const lw = Math.max(1.25, g.fs/11) * (LW_MUL[n.lw] || 1);
   if (n.type === 'note'){
     c.shadowColor = pal.noteShadow; c.shadowBlur = 10; c.shadowOffsetY = 3;
     shapePath(c, n, g); c.fillStyle = n.color && n.color !== 'none' ? pal.fill[n.color] : pal.note; c.fill();
@@ -900,7 +913,7 @@ function drawNode(c, n, pal, opts){
   c.strokeStyle = stroke; c.lineWidth = lw;
   if (EVENTS.has(n.type)){
     const r = g.r;
-    c.lineWidth = n.type === 'end' ? Math.max(3.5, g.fs/4) : lw*1.15; c.stroke();
+    c.lineWidth = n.type === 'end' ? Math.max(3.5, g.fs/4) * (LW_MUL[n.lw] || 1) : lw*1.15; c.stroke();
     if (n.type === 'pause' || n.type === 'handoff'){
       c.lineWidth = lw; c.beginPath(); c.arc(0,0,r*0.78,0,Math.PI*2); c.stroke();
       c.lineWidth = Math.max(1.6, g.fs/8); c.lineCap = 'round'; c.beginPath();
@@ -930,7 +943,7 @@ function drawEdge(c, e, pal, opts, selected){
   const r = route(e); if (!r) return;
   const z = opts.z;
   c.strokeStyle = selected ? pal.accent : pal.edge; c.fillStyle = c.strokeStyle;
-  c.lineWidth = selected ? 2.2 : 1.5; c.lineJoin = 'round'; c.lineCap = 'round';
+  c.lineWidth = (EDGE_W[e.lw] || 1.5) + (selected ? 0.7 : 0); c.lineJoin = 'round'; c.lineCap = 'round';
   c.setLineDash(e.dash ? [6,5] : []);
   const P_ = r.pts;
   c.beginPath(); c.moveTo(P_[0].x, P_[0].y);
@@ -942,7 +955,7 @@ function drawEdge(c, e, pal, opts, selected){
     }
   }
   c.stroke(); c.setLineDash([]);
-  const head = (tip, from) => { const ang = Math.atan2(tip.y-from.y, tip.x-from.x), s = 10; c.beginPath(); c.moveTo(tip.x, tip.y); c.lineTo(tip.x - s*Math.cos(ang-0.42), tip.y - s*Math.sin(ang-0.42)); c.lineTo(tip.x - s*Math.cos(ang+0.42), tip.y - s*Math.sin(ang+0.42)); c.closePath(); c.fill(); };
+  const head = (tip, from) => { const ang = Math.atan2(tip.y-from.y, tip.x-from.x), s = HEAD_S[e.lw] || 10; c.beginPath(); c.moveTo(tip.x, tip.y); c.lineTo(tip.x - s*Math.cos(ang-0.42), tip.y - s*Math.sin(ang-0.42)); c.lineTo(tip.x - s*Math.cos(ang+0.42), tip.y - s*Math.sin(ang+0.42)); c.closePath(); c.fill(); };
   const endFrom = r.curve ? r.c2 : P_[P_.length-2], startFrom = r.curve ? r.c1 : P_[1];
   if (e.arrow === 'end' || e.arrow === 'both') head(P_[P_.length-1], endFrom);
   if (e.arrow === 'both') head(P_[0], startFrom);
@@ -960,9 +973,22 @@ function drawGrid(c, pal){
   for (let x = x0; x < W; x += s) for (let y = y0; y < H; y += s) c.rect(x - r/2, y - r/2, r, r);
   c.fill();
 }
+function drawGeo(c, n, pal, opts){
+  const g = geom(n), hw = g.w/2, hh = g.h/2, key = n.color && n.color !== 'none' ? n.color : 'none';
+  c.save(); c.translate(n.x, n.y); c.beginPath();
+  if (n.kind === 'ellipse') c.ellipse(0, 0, Math.max(hw, .01), Math.max(hh, .01), 0, 0, Math.PI*2);
+  else if (n.kind === 'triangle'){ c.moveTo(0, -hh); c.lineTo(hw, hh); c.lineTo(-hw, hh); c.closePath(); }
+  else if (n.kind === 'line'){ const sg = n.flip ? -1 : 1; c.moveTo(-sg*hw, -hh); c.lineTo(sg*hw, hh); }
+  else c.roundRect(-hw, -hh, g.w, g.h, Math.min(8, hw, hh));
+  if (n.fill && n.kind !== 'line'){ c.fillStyle = pal.fill[key]; c.fill(); }
+  c.strokeStyle = pal.stroke[key]; c.lineWidth = GEO_W[n.lw] || GEO_W[2]; c.lineJoin = 'round'; c.lineCap = 'round'; c.setLineDash(n.dash ? [8,6] : []); c.stroke(); c.setLineDash([]);
+  if (n.text && n.kind !== 'line' && opts.editing !== n.id) drawText(c, g.L, -hw + g.p, -hh + g.p + g.L.h/2, g.fs, false, 'left', pal.ink);
+  c.restore();
+}
 function renderScene(c, pal, opts){
-  const lanes = doc.nodes.filter(n=>n.type==='lane'), rest = doc.nodes.filter(n=>n.type!=='lane');
+  const lanes = doc.nodes.filter(n=>n.type==='lane'), geos = doc.nodes.filter(n=>n.type==='geo'), rest = doc.nodes.filter(n=>n.type!=='lane' && n.type!=='geo');
   for (const n of lanes) drawLane(c, n, pal, opts);
+  for (const n of geos) drawGeo(c, n, pal, opts); // containers sit above lanes and below arrows and shapes
   for (const e of doc.edges) drawEdge(c, e, pal, opts, opts.overlay && S.sel.has(e.id));
   for (const n of rest) drawNode(c, n, pal, opts);
 }
@@ -990,6 +1016,7 @@ function drawOverlay(c){
       continue; }
     const b = bbox(n), p = 4/z;
     c.strokeStyle = A; c.lineWidth = 1.5/z; c.strokeRect(b.x0-p, b.y0-p, b.x1-b.x0+2*p, b.y1-b.y0+2*p);
+    if (n.type === 'geo' && S.sel.size === 1) for (const h of geoHandles(n)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
     if (n.type === 'lane' && S.sel.size === 1) for (const h of laneHandles(n)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
   }
   // connection handles
@@ -1054,8 +1081,21 @@ function saveView(){ clearTimeout(viewTimer); viewTimer = setTimeout(()=>{ doc.v
 function updateZoomLabel(){ $('#zoomPct').textContent = Math.round(view.z*100) + '%'; }
 
 /* ---------- hit testing ---------- */
+// A geometric shape is hit on its outline; a filled one also inside. It is tested after shapes and arrows, so what it contains stays clickable.
+function geoHit(n, p){
+  const g = geom(n), hw = g.w/2, hh = g.h/2, dx = p.x-n.x, dy = p.y-n.y, tol = 7/view.z, filled = !!n.fill && n.kind !== 'line';
+  let inside = false, border = false;
+  if (n.kind === 'line'){ const sg = n.flip ? -1 : 1; border = distSeg(p, {x:n.x - sg*hw, y:n.y - hh}, {x:n.x + sg*hw, y:n.y + hh}) <= tol; }
+  else if (n.kind === 'ellipse'){ const r = Math.hypot(dx/Math.max(hw,1), dy/Math.max(hh,1)); inside = r <= 1; border = Math.abs(r-1) * Math.min(Math.max(hw,1), Math.max(hh,1)) <= tol; }
+  else if (n.kind === 'triangle'){
+    const A = {x:n.x, y:n.y-hh}, B = {x:n.x+hw, y:n.y+hh}, C = {x:n.x-hw, y:n.y+hh}, sgn = (a,b,q) => (q.x-b.x)*(a.y-b.y) - (a.x-b.x)*(q.y-b.y);
+    const d1 = sgn(p,A,B), d2 = sgn(p,B,C), d3 = sgn(p,C,A); inside = !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+    border = distSeg(p,A,B) <= tol || distSeg(p,B,C) <= tol || distSeg(p,C,A) <= tol;
+  } else { inside = Math.abs(dx) <= hw && Math.abs(dy) <= hh; border = Math.abs(dx) <= hw+tol && Math.abs(dy) <= hh+tol && (Math.abs(Math.abs(dx)-hw) <= tol || Math.abs(Math.abs(dy)-hh) <= tol); }
+  return border || (filled && inside);
+}
 function insideNode(n, p){
-  if (n.type === 'lane') return false;
+  if (n.type === 'lane' || n.type === 'geo') return false;
   const g = geom(n), dx = p.x-n.x, dy = p.y-n.y;
   if (EVENTS.has(n.type)){ if (Math.hypot(dx,dy) <= g.r + 2) return true; if (n.text){ const lw = g.L.w/2 + 4; return Math.abs(dx) <= lw && dy >= g.ly - g.L.h/2 - 2 && dy <= g.ly + g.L.h/2 + 2; } return false; }
   if (n.type === 'decision') return Math.abs(dx)/(g.w/2) + Math.abs(dy)/(g.h/2) <= 1.04 || !!(g.below && n.text && Math.abs(dx) <= g.L.w/2 + 4 && dy >= g.ly - g.L.h/2 - 2 && dy <= g.ly + g.L.h/2 + 2);
@@ -1069,15 +1109,17 @@ function hitTest(p){
     if (e.label){ const m = midOf(r), L = edgeLabelLayout(e); if (Math.abs(p.x-m.x) <= L.w/2+6 && Math.abs(p.y-m.y) <= L.h/2+5) return {kind:'edge', id:e.id}; }
     const P_ = polyOf(r); for (let i=1;i<P_.length;i++) if (distSeg(p, P_[i-1], P_[i]) <= tol) return {kind:'edge', id:e.id};
   }
+  for (let k = doc.nodes.length-1; k >= 0; k--){ const n = doc.nodes[k]; if (n.type === 'geo' && geoHit(n, p)) return {kind:'node', id:n.id}; }
   for (let k = doc.nodes.length-1; k >= 0; k--){ const n = doc.nodes[k]; if (n.type === 'lane'){ const g = geom(n); if (p.x >= n.x && p.x <= n.x+g.hw && p.y >= n.y && p.y <= n.y+n.h) return {kind:'node', id:n.id}; } }
   return null;
 }
+function geoHandles(n){ const g = geom(n), x0 = n.x-g.w/2, x1 = n.x+g.w/2, y0 = n.y-g.h/2, y1 = n.y+g.h/2, xm = n.x, ym = n.y; return [{k:'nw',x:x0,y:y0},{k:'n',x:xm,y:y0},{k:'ne',x:x1,y:y0},{k:'e',x:x1,y:ym},{k:'se',x:x1,y:y1},{k:'s',x:xm,y:y1},{k:'sw',x:x0,y:y1},{k:'w',x:x0,y:ym}]; }
 function laneHandles(n){ return [{k:'r',x:n.x+n.w,y:n.y+n.h/2},{k:'b',x:n.x+n.w/2,y:n.y+n.h},{k:'br',x:n.x+n.w,y:n.y+n.h},{k:'t',x:n.x+n.w/2,y:n.y}]; }
 function handlePos(n, side){ const a = anchor(n, side), off = 16/view.z; return {x:a.x + DIR[side].x*off, y:a.y + DIR[side].y*off}; }
 function handleNode(){
   if (S.drag || S.editing || S.tool === 'hand' || (S.tool !== 'select' && S.tool !== 'connector')) return null;
-  if (S.hover){ const n = N(S.hover); if (n && n.type !== 'lane') return n; }
-  if (S.sel.size === 1){ const n = N([...S.sel][0]); if (n && n.type !== 'lane') return n; }
+  if (S.hover){ const n = N(S.hover); if (n && n.type !== 'lane' && n.type !== 'geo') return n; }
+  if (S.sel.size === 1){ const n = N([...S.sel][0]); if (n && n.type !== 'lane' && n.type !== 'geo') return n; }
   return null;
 }
 
@@ -1085,6 +1127,8 @@ function handleNode(){
 function addNode(type, x, y, extra={}){
   const n = type === 'lane'
     ? {id:uid('n'), type, x, y, w:1100, h:180, text:T('newLane'), laneType:'pessoa', fs:14, color:'none'}
+    : type === 'geo'
+    ? {id:uid('n'), type, x, y, w:200, h:120, kind:'rect', fill:false, lw:2, text:'', fs:14, b:false, i:false, color:'none'}
     : {id:uid('n'), type, x, y, text:'', fs: type === 'note' ? 12 : 14, b:false, i:false, color:'none'};
   Object.assign(n, extra);
   if (type === 'lane') doc.nodes.unshift(n); else doc.nodes.push(n);
@@ -1160,6 +1204,13 @@ function glueLane(m, moving, orig){
   return true;
 }
 function gluePass(d){ const moving = new Set(d.orig.keys()); for (const id of moving){ const n = N(id); if (n && n.type === 'lane') glueLane(n, moving, d.orig.get(id)); } }
+// What a lane or a closed geometric shape carries when it moves: shapes whose centre is inside it (and smaller geometric shapes / lines inside a geometric shape).
+function containerChildren(n){
+  if (n.type === 'lane') return laneChildren(n);
+  if (n.type !== 'geo' || n.kind === 'line') return [];
+  const g = geom(n), x0 = n.x-g.w/2, x1 = n.x+g.w/2, y0 = n.y-g.h/2, y1 = n.y+g.h/2, area = g.w*g.h;
+  return doc.nodes.filter(m => m !== n && m.type !== 'lane' && m.x >= x0 && m.x <= x1 && m.y >= y0 && m.y <= y1 && (m.type !== 'geo' || m.kind === 'line' || m.w*m.h < area));
+}
 function laneChildren(lane){ return doc.nodes.filter(n => n.type !== 'lane' && n.x >= lane.x && n.x <= lane.x+lane.w && n.y >= lane.y && n.y <= lane.y+lane.h); }
 function deleteSel(){
   if (!S.sel.size) return; checkpoint();
@@ -1192,7 +1243,7 @@ function ensureVisible(n){ const b = bbox(n), a = toScreen(b.x0,b.y0), c = toScr
 
 /* ---------- clipboard ---------- */
 let clip = null;
-function expandSel(){ const ids = new Set(S.sel); for (const id of S.sel){ const n = N(id); if (n && n.type === 'lane') for (const c of laneChildren(n)) ids.add(c.id); } return ids; }
+function expandSel(){ const ids = new Set(S.sel); for (const id of S.sel){ const n = N(id); if (n && (n.type === 'lane' || n.type === 'geo')) for (const c of containerChildren(n)) ids.add(c.id); } return ids; }
 function copySel(){ const ids = expandSel(); const nodes = doc.nodes.filter(n=>ids.has(n.id)); if (!nodes.length) return false;
   clip = {nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(doc.edges.filter(e=>(!e.from||ids.has(e.from)) && (!e.to||ids.has(e.to)) && (e.from||e.to||ids.has(e.id)))))}; return true; }
 function paste(offset=28){
@@ -1209,6 +1260,7 @@ function paste(offset=28){
 /* ---------- text editing ---------- */
 function startEdit(id){
   const n = N(id), e = n ? null : E(id); if (!n && !e) return;
+  if (n && n.type === 'geo' && n.kind === 'line') return;
   S.editing = {id, before: n ? n.text : e.label, kind: n ? 'node' : 'edge'};
   undoS.push(snap()); redoS.length = 0;
   ta.value = n ? (n.text||'') : (e.label||''); ta.hidden = false;
@@ -1220,7 +1272,8 @@ function placeTA(){
   if (ed.kind === 'edge'){ const e = E(ed.id); if (!e){ endEdit(); return; } const r = route(e); const m = midOf(r); fs = EDGE_FS; w = 170; cx = m.x; cy = m.y; }
   else {
     const n = N(ed.id); if (!n){ endEdit(); return; } const g = geom(n); fs = n.fs||14; bold = !!n.b; ital = !!n.i;
-    if (n.type === 'lane'){ bold = true; align = 'left'; w = Math.min(320, n.w - g.hw - 20); left = n.x + g.hw + 12; top = n.y + 10; }
+    if (n.type === 'geo'){ align = 'left'; w = Math.max(60, g.w - g.p*2); left = n.x - g.w/2 + g.p; top = n.y - g.h/2 + g.p; }
+    else if (n.type === 'lane'){ bold = true; align = 'left'; w = Math.min(320, n.w - g.hw - 20); left = n.x + g.hw + 12; top = n.y + 10; }
     else if (n.type === 'note'){ mono = true; align = 'left'; w = g.maxW; left = n.x - g.w/2 + g.p; top = n.y - g.h/2 + g.p; }
     else if (EVENTS.has(n.type) || g.below){ w = g.maxW; cx = n.x; cy = n.y + g.ly; }
     else { w = g.maxW; cx = n.x + g.tox; cy = n.y + g.toy; }
@@ -1287,6 +1340,7 @@ function onDown(e){
   if (e.button === 1 || S.space || S.tool === 'hand'){ S.drag = {kind:'pan', sx:p.sx, sy:p.sy, ox:view.ox, oy:view.oy}; cv.style.cursor = 'grabbing'; return; }
   if (e.button === 2) return;
 
+  if (S.tool === 'geo'){ checkpoint(); const n = addNode('geo', Math.round(p.x), Math.round(p.y), {w:0, h:0}); S.sel = new Set([n.id]); S.drag = {kind:'geodraw', id:n.id, start:p, moved:false}; draw(); return; }
   // create shape
   if (TYPES[S.tool] ){
     checkpoint();
@@ -1295,6 +1349,8 @@ function onDown(e){
     if (t === 'lane') glueLane(n, new Set([n.id]), null);
     S.sel = new Set([n.id]); setTool('select'); changed(); startEdit(n.id); return;
   }
+  if (S.sel.size === 1){ const n = N([...S.sel][0]); if (n && n.type === 'geo'){ const h = geoHandles(n).find(h => Math.abs(h.x-p.x) <= 7/view.z && Math.abs(h.y-p.y) <= 7/view.z);
+    if (h){ const g = geom(n); S.drag = {kind:'georesize', id:n.id, k:h.k, box:{x0:n.x-g.w/2, y0:n.y-g.h/2, x1:n.x+g.w/2, y1:n.y+g.h/2}, moved:false}; return; } } }
   // glued-lane controls: chain (separate) and + (add a glued lane)
   { const lc = laneControlAt(p); if (lc){ runLaneControl(lc); return; } }
   // lane resize handles
@@ -1308,7 +1364,7 @@ function onDown(e){
       if (end){ S.drag = {kind:'endpoint', id:e1.id, end:end[0], moved:false}; return; } } }
 
   const hit = hitTest(p);
-  if (S.tool === 'connector' && (!hit || (hit.kind === 'node' && N(hit.id).type !== 'lane'))){
+  if (S.tool === 'connector' && (!hit || (hit.kind === 'node' && !['lane','geo'].includes(N(hit.id).type)))){
     S.connect = {from:hit ? hit.id : null, side:null, p, start:p, target:null}; S.drag = {kind:'connect', start:p, moved:false}; return;
   }
   if (hit && hit.kind === 'node'){
@@ -1316,7 +1372,7 @@ function onDown(e){
     if (e.shiftKey){ if (was) S.sel.delete(hit.id); else S.sel.add(hit.id); }
     else if (!was) S.sel = new Set([hit.id]);
     const moving = new Set([...S.sel].filter(id => N(id)));
-    for (const id of [...moving]){ const n = N(id); if (n.type === 'lane') for (const c of laneChildren(n)) moving.add(c.id); }
+    for (const id of [...moving]){ const n = N(id); if (n.type === 'lane' || n.type === 'geo') for (const c of containerChildren(n)) moving.add(c.id); }
     const orig = new Map([...moving].map(id => { const n = N(id); return [id, {x:n.x, y:n.y}]; }));
     S.drag = {kind:'move', start:p, orig, moved:false, clickId:hit.id, wasSel:was, shift:e.shiftKey};
     draw(); return;
@@ -1333,7 +1389,7 @@ function onDown(e){
 // Shape under the pointer while dragging an arrow, plus the side whose dot the pointer is on (dots sit just outside the shape, so keep the previous target alive over them).
 function handleAt(n, p, r = 12){ return SIDES.find(s => { const h = handlePos(n, s); return Math.hypot(h.x-p.x, h.y-p.y) <= r/view.z; }) || null; }
 function dropTarget(p, prev, ok){
-  const hit = hitTest(p); let id = hit && hit.kind === 'node' && N(hit.id).type !== 'lane' && ok(hit.id) ? hit.id : null;
+  const hit = hitTest(p); let id = hit && hit.kind === 'node' && !['lane','geo'].includes(N(hit.id).type) && ok(hit.id) ? hit.id : null;
   if (!id && prev && N(prev) && handleAt(N(prev), p, 24)) id = prev; // keep the shape while the pointer travels over its side dots
   return [id, id ? handleAt(N(id), p) : null];
 }
@@ -1371,6 +1427,19 @@ function onMove(e){
     if (!e.altKey){ const sn = snapMove(d, dx, dy); dx = sn.dx; dy = sn.dy; }
     for (const [id,o] of d.orig){ const n = N(id); n.x = Math.round(o.x + dx); n.y = Math.round(o.y + dy); }
     draw(); return;
+  }
+  if (d.kind === 'geodraw'){
+    const n = N(d.id), x0 = Math.min(d.start.x, p.x), x1 = Math.max(d.start.x, p.x), y0 = Math.min(d.start.y, p.y), y1 = Math.max(d.start.y, p.y);
+    d.moved = d.moved || Math.hypot(p.x-d.start.x, p.y-d.start.y)*view.z > 4;
+    n.x = Math.round((x0+x1)/2); n.y = Math.round((y0+y1)/2); n.w = Math.round(x1-x0); n.h = Math.round(y1-y0); draw(); return;
+  }
+  if (d.kind === 'georesize'){
+    const n = N(d.id); if (!d.moved){ d.moved = true; checkpoint(); } const b = {...d.box}, min = n.kind === 'line' ? 0 : 12;
+    if (d.k.includes('w')) b.x0 = Math.min(Math.round(p.x), b.x1 - min);
+    if (d.k.includes('e')) b.x1 = Math.max(Math.round(p.x), b.x0 + min);
+    if (d.k.includes('n')) b.y0 = Math.min(Math.round(p.y), b.y1 - min);
+    if (d.k.includes('s')) b.y1 = Math.max(Math.round(p.y), b.y0 + min);
+    n.x = (b.x0+b.x1)/2; n.y = (b.y0+b.y1)/2; n.w = b.x1-b.x0; n.h = b.y1-b.y0; draw(); return;
   }
   if (d.kind === 'resize'){
     const n = N(d.id), dx = p.x - d.start.x, dy = p.y - d.start.y;
@@ -1444,7 +1513,11 @@ function onUp(e){
     else if (d.wasSel && !d.shift && S.sel.size > 1){ S.sel = new Set([d.clickId]); draw(); }
     return;
   }
-  if (d.kind === 'resize' || d.kind === 'endpoint'){ if (d.moved) changed(); return; }
+  if (d.kind === 'resize' || d.kind === 'endpoint' || d.kind === 'georesize'){ if (d.moved) changed(); return; }
+  if (d.kind === 'geodraw'){ // a click without dragging drops a default-sized shape
+    const n = N(d.id); if (!d.moved || (n.w < 8 && n.h < 8)){ n.w = 200; n.h = n.kind === 'line' ? 0 : 120; n.x = Math.round(d.start.x); n.y = Math.round(d.start.y); }
+    setTool('select'); changed(); return;
+  }
   if (d.kind === 'connect'){
     const c = S.connect; S.connect = null; const src = c.from ? N(c.from) : null;
     if (!d.moved){ if (src && c.side) quickAdd(src, c.side); else draw(); return; }
@@ -1504,7 +1577,7 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Escape'){ if (S.tool !== 'select') setTool('select'); else { S.sel = new Set(); } closePopovers(); draw(); return; }
   if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); deleteSel(); return; }
   if (e.key === 'Enter' && S.sel.size === 1){ e.preventDefault(); startEdit([...S.sel][0]); return; }
-  if (e.key === 'Tab'){ const n = S.sel.size === 1 ? N([...S.sel][0]) : null; if (n && n.type !== 'lane'){ e.preventDefault(); quickAdd(n, e.shiftKey ? 'bottom' : 'right'); } return; }
+  if (e.key === 'Tab'){ const n = S.sel.size === 1 ? N([...S.sel][0]) : null; if (n && n.type !== 'lane' && n.type !== 'geo'){ e.preventDefault(); quickAdd(n, e.shiftKey ? 'bottom' : 'right'); } return; }
   if (e.key === '[' || e.key === ']'){ bumpFont(e.key === ']' ? 1 : -1); return; }
   if (e.key.startsWith('Arrow') && S.sel.size){
     e.preventDefault(); const s = e.shiftKey ? 10 : 1, dx = e.key === 'ArrowLeft' ? -s : e.key === 'ArrowRight' ? s : 0, dy = e.key === 'ArrowUp' ? -s : e.key === 'ArrowDown' ? s : 0;
@@ -1528,7 +1601,7 @@ function bumpFont(dir){ const ns = selNodes(); if (!ns.length) return; checkpoin
 function setProp(list, prop, val){ checkpoint(); list.forEach(x => x[prop] = val); changed(); }
 
 /* ---------- tool rail ---------- */
-const TOOL_GROUPS = [['select','hand'],['step','action','decision','screen','doc','data'],['start','end','pause','handoff'],['note','lane','connector']];
+const TOOL_GROUPS = [['select','hand'],['step','action','decision','screen','doc','data'],['start','end','pause','handoff'],['note','lane','geo','connector']];
 const TOOL_KEY = {select:'V', hand:'H', connector:'C'};
 function buildTools(){
   const el = $('#tools'); el.innerHTML = '';
@@ -1566,7 +1639,7 @@ function updateCtx(){
   const hide = !S.sel.size || S.editing || (S.drag && S.drag.kind !== 'pan');
   if (hide){ ctxEl.hidden = true; ctxKey = ''; return; }
   const ns = selNodes(), es = selEdges();
-  const key = [...S.sel].join(',') + '|' + JSON.stringify(ns.map(n=>[n.fs,n.b,n.i,n.color,n.type,n.laneType,n.gate])) + JSON.stringify(es.map(e=>[e.style,e.arrow,e.dash,e.route])) + document.documentElement.getAttribute('data-theme') + P.bg;
+  const key = [...S.sel].join(',') + '|' + JSON.stringify(ns.map(n=>[n.fs,n.b,n.i,n.color,n.type,n.laneType,n.gate,n.kind,n.fill,n.lw,n.dash,n.flip])) + JSON.stringify(es.map(e=>[e.style,e.arrow,e.dash,e.route,e.lw])) + document.documentElement.getAttribute('data-theme') + P.bg;
   if (key !== ctxKey){ ctxKey = key; buildCtx(ns, es); }
   ctxEl.hidden = false;
   // position above selection
@@ -1584,7 +1657,18 @@ function buildCtx(ns, es){
   ctxEl.innerHTML = '';
   const shapes = ns.filter(n => n.type !== 'lane'), lanes = ns.filter(n => n.type === 'lane');
   if (ns.length){
-    if (shapes.length && shapes.every(n => BOXES.includes(n.type) || n.type === 'note') ){
+    if (shapes.length && shapes.every(n => n.type === 'geo')){
+      const s = document.createElement('select'); s.title = T('geoKind'); s.setAttribute('aria-label', T('geoKind'));
+      const cur = shapes.every(n => n.kind === shapes[0].kind) ? shapes[0].kind : '';
+      if (!cur){ const o = document.createElement('option'); o.textContent = T('various'); o.value = ''; s.appendChild(o); }
+      for (const k of GEO_KINDS){ const o = document.createElement('option'); o.value = k; o.textContent = T('geo_' + k); if (k === cur) o.selected = true; s.appendChild(o); }
+      s.onchange = () => { if (s.value) setProp(shapes, 'kind', s.value); };
+      ctxEl.appendChild(s);
+      ctxEl.appendChild(btn(ICON.fill, T('geoFill'), () => setProp(shapes, 'fill', !shapes.every(n => n.fill)), shapes.every(n => n.fill)));
+      ctxEl.appendChild(btn(ICON.dash, T('dash'), () => setProp(shapes, 'dash', !shapes.every(n => n.dash)), shapes.every(n => n.dash)));
+      if (shapes.every(n => n.kind === 'line')) ctxEl.appendChild(btn(ICON.flip, T('geoFlip'), () => setProp(shapes, 'flip', !shapes.every(n => n.flip)), shapes.every(n => n.flip)));
+      ctxEl.appendChild(sepEl());
+    } else if (shapes.length && shapes.every(n => BOXES.includes(n.type) || n.type === 'note') ){
       const s = document.createElement('select'); s.title = T('shapeType'); s.setAttribute('aria-label',T('shapeType'));
       const cur = shapes.every(n=>n.type===shapes[0].type) ? shapes[0].type : '';
       if (!cur){ const o = document.createElement('option'); o.textContent = T('various'); o.value = ''; s.appendChild(o); }
@@ -1625,6 +1709,8 @@ function buildCtx(ns, es){
     ctxEl.appendChild(sepEl());
     ctxEl.appendChild(swatches(ns));
     ctxEl.appendChild(sepEl());
+    { const th = shapes.filter(n => n.type !== 'note'); // outline weight: thin, medium, thick
+      if (th.length && th.length === shapes.length && !lanes.length){ for (const v of [1,2,3]) ctxEl.appendChild(btn(ICON['lw'+v], T('lw'+v), () => setProp(th, 'lw', v), th.every(n => (n.lw || 2) === v))); ctxEl.appendChild(sepEl()); } }
     if (ns.length === 1) ctxEl.appendChild(btn(ICON.edit, T('editTextBtn'), () => startEdit(ns[0].id)));
   }
   if (es.length && !ns.length){
@@ -1639,6 +1725,7 @@ function buildCtx(ns, es){
     ctxEl.appendChild(btn(ICON.aBoth, T('aBoth'), () => setProp(es,'arrow','both'), ar==='both'));
     ctxEl.appendChild(btn(ICON.aNone, T('aNone'), () => setProp(es,'arrow','none'), ar==='none'));
     ctxEl.appendChild(btn(ICON.dash, T('dash'), () => setProp(es,'dash',!es.every(e=>e.dash)), es.every(e=>e.dash)));
+    for (const v of [1,2,3]) ctxEl.appendChild(btn(ICON['lw'+v], T('aw'+v), () => setProp(es, 'lw', v), es.every(e => (e.lw || 2) === v)));
     ctxEl.appendChild(sepEl());
     ctxEl.appendChild(btn(ICON.swap, T('swap'), () => { checkpoint(); es.forEach(e => { [e.from, e.to] = [e.to, e.from]; [e.fx, e.tx] = [e.tx, e.fx]; [e.fy, e.ty] = [e.ty, e.fy]; [e.sa, e.sb] = [e.sb, e.sa]; }); changed(); }));
     if (es.length === 1) ctxEl.appendChild(btn(ICON.edit, T('edgeLabel'), () => startEdit(es[0].id)));
@@ -1653,7 +1740,7 @@ function buildCtx(ns, es){
 function autoLayout(){
   const lanes = doc.nodes.filter(n=>n.type==='lane').sort((a,b)=>a.y-b.y||a.x-b.x);
   const notes = doc.nodes.filter(n=>n.type==='note');
-  const items = doc.nodes.filter(n=>n.type!=='lane' && n.type!=='note');
+  const items = doc.nodes.filter(n=>n.type!=='lane' && n.type!=='note' && n.type!=='geo');
   if (!items.length) return false;
   const GAPX = 90, GAPY = 50;
   const byId = new Map(items.map(n=>[n.id,n]));
@@ -1734,8 +1821,8 @@ function autoLayout(){
 /* Shift A: align to the grid the boxes already imply. Nothing is re-laid-out: shapes within 24 px of each other in the same lane
    share a row (same y), shapes within 24 px in x share a column (same x), and the shared values are rounded to 10 px. */
 function alignGrid(){
-  const picked = [...S.sel].map(N).filter(n => n && n.type !== 'lane' && n.type !== 'note');
-  const items = picked.length >= 2 ? picked : doc.nodes.filter(n => n.type !== 'lane' && n.type !== 'note');
+  const picked = [...S.sel].map(N).filter(n => n && n.type !== 'lane' && n.type !== 'note' && n.type !== 'geo');
+  const items = picked.length >= 2 ? picked : doc.nodes.filter(n => n.type !== 'lane' && n.type !== 'note' && n.type !== 'geo');
   if (!items.length) return null;
   const TOL = 24, snap = v => Math.round(v/10)*10, lanes = doc.nodes.filter(n => n.type === 'lane');
   const groups = (list, key) => { const s = [...list].sort((a,b) => key(a)-key(b)), out = []; for (const n of s){ const g = out[out.length-1]; if (g && key(n)-key(g[0]) <= TOL) g.push(n); else out.push([n]); } return out; };
@@ -1778,7 +1865,7 @@ function buildIds(d){
     if (code === 'N') code = 'NN';
     let c = code, k = 2; while (used.has(c)) c = code + (k++); used.add(c); laneCode.set(l.id, c);
   }
-  const shapes = d.nodes.filter(n=>n.type!=='lane' && n.type!=='note');
+  const shapes = d.nodes.filter(n=>n.type!=='lane' && n.type!=='note' && n.type!=='geo');
   const groups = new Map();
   for (const n of shapes){ const l = laneOf(n, lanes); const key = l ? l.id : '_'; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(n); }
   const ids = new Map();
@@ -2829,6 +2916,8 @@ function sanitizeNodes(arr){
     const c = {...n, id, type:n.type, x:finite(n.x), y:finite(n.y), text:clipStr(n.text, 5000), fs:finite(n.fs) || 14, b:!!n.b, i:!!n.i, color:clipStr(n.color || 'none', 20)};
     if (!Object.hasOwn(PAL.light.fill, c.color)) c.color = 'none';
     if (c.type === 'lane'){ c.w = finite(n.w) || 1100; c.h = finite(n.h) || 180; if (c.laneType !== undefined && !Object.hasOwn(LANE_TYPES, c.laneType)) delete c.laneType; }
+    if (c.type === 'geo'){ c.w = clamp(finite(n.w), 0, 20000); c.h = clamp(finite(n.h), 0, 20000); if (!GEO_KINDS.includes(c.kind)) c.kind = 'rect'; c.fill = !!c.fill; c.dash = !!c.dash; c.flip = !!c.flip; }
+    if (c.lw !== undefined && ![1,2,3].includes(c.lw)) delete c.lw;
     if (!GATES.includes(c.gate)) delete c.gate;
     out.push(c);
   }
@@ -2843,6 +2932,7 @@ function sanitizeEdges(arr, nodes, keepIds){
     if ((c.from && !have.has(c.from)) || (c.to && !have.has(c.to))) continue;
     for (const k of ['fx','fy','tx','ty']) if (k in c) c[k] = finite(c[k]);
     for (const k of ['sa','sb']) if (c[k] !== undefined && !SIDES.includes(c[k])) delete c[k];
+    if (c.lw !== undefined && ![1,2,3].includes(c.lw)) delete c.lw;
     if (c.route !== undefined && !ROUTES.includes(c.route)) delete c.route;
     out.push(c);
   }

@@ -33,6 +33,8 @@ Arranque rápido:
 - **Eventos**: Início, Fim, Pausa / espera, Mudança de lane.
 - **Swimlanes** para pessoas, equipas, departamentos ou sistemas. Mover uma lane leva as formas que estão dentro.
 - **Lanes coladas**: com uma lane selecionada, o **+** nos cantos direitos (em cima e em baixo) junta uma lane colada à existente, com o mesmo tipo, cor e largura. Lanes coladas mostram uma **corrente** nos cantos de ligação; clicar nela afasta a lane 10 px (a de baixo para baixo, a de cima para cima, e as coladas para lá dela vão juntas). Ao largar uma lane a menos de 8 px de outra, cola-se e herda o x, a largura, o tipo, a cor e o tamanho do texto dessa lane (só se ainda não estivessem coladas). Redimensionar uma lane acompanha as coladas (a largura é comum, e a altura empurra as de baixo ou de cima).
+- **Formas geométricas** (`G`): linha, retângulo, círculo/elipse e triângulo, desenhados por arrasto, com ou sem preenchimento, cor, tracejado e texto (título no canto). Servem de **contentores**: ficam por trás das formas e das setas, e ao mover um contentor leva consigo o que está lá dentro. Redimensionam-se pelos 8 pontos de pega.
+- **Espessuras:** 3 espessuras de linha para as formas e para as formas geométricas (fina, média, grossa), e 3 para as setas (a cabeça da seta acompanha).
 - **Notas** em IBM Plex Mono.
 - **Texto** que ajusta o tamanho da caixa; o tamanho de letra controla o tamanho da forma. Regular, **negrito** e *itálico* por forma ou inline (`**negrito**`, `*itálico*`).
 - **Conectores** ligados às formas: cotovelo (com escolha de percurso), reta ou curva; seta no fim, nos dois lados ou nenhuma; tracejado; rótulos.
@@ -115,6 +117,7 @@ LO2: O stock é verificado em tempo real.
 | `R` `U` `D` `E` `F` `B` | Passo, Ação do utilizador, Decisão, Ecrã, Documento, Dados |
 | `1` `2` `3` `4` | Início, Fim, Pausa, Mudança de lane |
 | `N` `L` `C` | Nota, Swimlane, Conector |
+| `G` | Forma geométrica (arrastar no quadro) |
 | `V` / `H` | Selecionar / mover quadro |
 | Duplo clique | No vazio cria um passo; numa forma edita o texto |
 | `Tab` | Cria o passo seguinte ligado |

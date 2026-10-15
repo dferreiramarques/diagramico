@@ -66,6 +66,14 @@ As secções de `app/index.html` estão marcadas com comentários `/* ----------
 - Redimensionar (`onMove`, `kind: 'resize'`): a largura aplica-se a toda a cadeia; ao crescer para baixo/cima empurra as lanes coladas desse lado.
 - Limitações: arrastar uma lane colada para o lado faz-na voltar a encostar (ímã); não há reordenação de lanes por arrasto que empurre as outras.
 
+### Formas geométricas e espessuras
+
+- Tipo `geo` (`kind`: `rect`, `ellipse`, `triangle`, `line`; `w`, `h`, `fill`, `dash`, `flip` para a diagonal da linha, `color`, `text` opcional como título no canto). Desenha-se com `drawGeo`, **depois das lanes e antes das setas e das formas** (`renderScene`), por isso um contentor preenchido nunca tapa o que contém.
+- **Seleção:** `geoHit` testa o contorno (e o interior, se tiver preenchimento) e corre **depois** das formas e das setas, para o que está dentro continuar clicável. Redimensiona-se com 8 pontos de pega (`geoHandles`, `georesize`); criar é arrastar com a ferramenta `geo` (`geodraw`; um clique solto cria 200×120).
+- **Contentor:** `containerChildren` devolve as formas cujo centro está dentro (e os contentores mais pequenos e as linhas); é o que o arrasto e a cópia levam consigo. As lanes usam o mesmo mecanismo.
+- Não entram no fluxo: ficam de fora do texto IA, do Mermaid, do alinhamento à grelha e do layout, e não se ligam com setas.
+- **Espessuras:** `n.lw` (formas e formas geométricas) e `e.lw` (setas) valem 1, 2 ou 3 (2 por defeito). Nas formas multiplica a largura base (`LW_MUL`), nas formas geométricas é fixa (`GEO_W`) e nas setas define também o tamanho da cabeça (`EDGE_W`, `HEAD_S`). Validado em `sanitizeNodes` e `sanitizeEdges`.
+
 ### Decisões e gateways BPMN
 
 - O losango é sempre regular (`w = h`, o necessário para o texto caber: `L.w + L.h + padding`).
