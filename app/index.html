@@ -286,6 +286,7 @@ const ICON = {
   aNone: I('<path d="M4 12h16"/>'),
   aBoth: I('<path d="M5 12h14M9 7l-5 5 5 5M15 7l5 5-5 5"/>'),
   dash: I('<path d="M3 12h3M10 12h4M18 12h3"/>'),
+  text: I('<path d="M6 6h12M12 6v13M9 19h6"/>'),
   geo: I('<rect x="3.5" y="9" width="11" height="11" rx="1.5"/><circle cx="15" cy="9" r="5.5"/>'),
   fill: I('<rect x="4.5" y="4.5" width="15" height="15" rx="2" fill="currentColor" fill-opacity=".28"/>'),
   flip: I('<path d="M5 19L19 5"/><path d="M5 5l14 14" opacity=".35"/>'),
@@ -375,7 +376,7 @@ pt: {
   th_auto:'Automático (sistema)', th_light:'Claro', th_dark:'Escuro', theme:'Tema', themeTitle:(a,b)=>`Tema: ${a} · clique para ${b}`,
   langTitle:'Idioma: Português · mudar para English', langToast:'Idioma: Português',
   autoLayout:'Alinhar à grelha (Shift A)', layoutDone:(n,r,c)=>`${n} formas alinhadas (${r} linhas, ${c} colunas). Ctrl Z para desfazer.`, layoutEmpty:'Não há formas para alinhar.', alignNone:'Já está tudo alinhado.',
-  gateType:'Tipo de decisão (BPMN)', t_geo:'Forma geométrica', geoKind:'Tipo de forma geométrica', geo_rect:'Retângulo', geo_ellipse:'Círculo / elipse', geo_triangle:'Triângulo', geo_line:'Linha', geoFill:'Preenchimento', geoFlip:'Inverter a diagonal', lw1:'Linha fina', lw2:'Linha média', lw3:'Linha grossa', aw1:'Seta fina', aw2:'Seta média', aw3:'Seta grossa', gate_plain:'Decisão simples', gate_exclusive:'Exclusiva (XOR): um caminho', gate_parallel:'Paralela (AND): todos', gate_inclusive:'Inclusiva (OR): um ou mais', gate_complex:'Complexa (regra própria)',
+  gateType:'Tipo de decisão (BPMN)', t_geo:'Forma geométrica', t_text:'Texto', geoKind:'Tipo de forma geométrica', geo_rect:'Retângulo', geo_ellipse:'Círculo / elipse', geo_triangle:'Triângulo', geo_line:'Linha', geoFill:'Preenchimento', geoFlip:'Inverter a diagonal', lw1:'Linha fina', lw2:'Linha média', lw3:'Linha grossa', aw1:'Seta fina', aw2:'Seta média', aw3:'Seta grossa', gate_plain:'Decisão simples', gate_exclusive:'Exclusiva (XOR): um caminho', gate_parallel:'Paralela (AND): todos', gate_inclusive:'Inclusiva (OR): um ou mais', gate_complex:'Complexa (regra própria)',
   tourBtn:'Visita guiada', tourNext:'Seguinte', tourBack:'Anterior', tourSkip:'Saltar', tourDone:'Começar', tourOf:(a,b)=>`${a} de ${b}`,
   tourSteps:[
     {t:'Bem-vindo ao Diagramico', d:'Um quadro infinito para desenhar diagramas lógicos e user flows. Em 1 minuto fica a saber o essencial. Já abri um diagrama de exemplo para explorar.'},
@@ -395,6 +396,7 @@ pt: {
     <dt>1 · 2 · 3 · 4</dt><dd>Início · Fim · Pausa · Mudança de lane</dd>
     <dt>N · L · C</dt><dd>Nota · Swimlane · Conector</dd>
     <dt>G</dt><dd>Forma geométrica (retângulo, círculo, triângulo ou linha): arraste no quadro; depois mude o tipo, o preenchimento, a cor e a espessura na barra. Serve de contentor e leva consigo o que está lá dentro</dd>
+    <dt>T</dt><dd>Texto livre, sem forma: clique no quadro e escreva; tamanho, negrito, itálico e cor na barra. Sem texto, desaparece</dd>
     <dt>Duplo clique</dt><dd>No vazio cria um passo; numa forma edita o texto</dd>
     <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
     <dt>Pontos laterais</dt><dd>Arraste para ligar; clique para criar a forma seguinte. Cada lado cria a sua própria seta, por isso duas formas podem ligar-se por vários lados; as setas que saem do mesmo lado partilham o tronco</dd>
@@ -500,7 +502,7 @@ en: {
   th_auto:'Automatic (system)', th_light:'Light', th_dark:'Dark', theme:'Theme', themeTitle:(a,b)=>`Theme: ${a} · click for ${b}`,
   langTitle:'Language: English · switch to Português', langToast:'Language: English',
   autoLayout:'Align to grid (Shift A)', layoutDone:(n,r,c)=>`${n} shapes aligned (${r} rows, ${c} columns). Ctrl Z to undo.`, layoutEmpty:'There are no shapes to align.', alignNone:'Everything is already aligned.',
-  gateType:'Decision type (BPMN)', t_geo:'Geometric shape', geoKind:'Geometric shape type', geo_rect:'Rectangle', geo_ellipse:'Circle / ellipse', geo_triangle:'Triangle', geo_line:'Line', geoFill:'Fill', geoFlip:'Flip the diagonal', lw1:'Thin line', lw2:'Medium line', lw3:'Thick line', aw1:'Thin arrow', aw2:'Medium arrow', aw3:'Thick arrow', gate_plain:'Plain decision', gate_exclusive:'Exclusive (XOR): one path', gate_parallel:'Parallel (AND): all paths', gate_inclusive:'Inclusive (OR): one or more', gate_complex:'Complex (custom rule)',
+  gateType:'Decision type (BPMN)', t_geo:'Geometric shape', t_text:'Text', geoKind:'Geometric shape type', geo_rect:'Rectangle', geo_ellipse:'Circle / ellipse', geo_triangle:'Triangle', geo_line:'Line', geoFill:'Fill', geoFlip:'Flip the diagonal', lw1:'Thin line', lw2:'Medium line', lw3:'Thick line', aw1:'Thin arrow', aw2:'Medium arrow', aw3:'Thick arrow', gate_plain:'Plain decision', gate_exclusive:'Exclusive (XOR): one path', gate_parallel:'Parallel (AND): all paths', gate_inclusive:'Inclusive (OR): one or more', gate_complex:'Complex (custom rule)',
   tourBtn:'Guided tour', tourNext:'Next', tourBack:'Back', tourSkip:'Skip', tourDone:'Get started', tourOf:(a,b)=>`${a} of ${b}`,
   tourSteps:[
     {t:'Welcome to Diagramico', d:'An infinite board for drawing logic diagrams and user flows. One minute is enough to learn the basics. An example diagram is already open to explore.'},
@@ -520,6 +522,7 @@ en: {
     <dt>1 · 2 · 3 · 4</dt><dd>Start · End · Pause · Lane handoff</dd>
     <dt>N · L · C</dt><dd>Note · Swimlane · Connector</dd>
     <dt>G</dt><dd>Geometric shape (rectangle, circle, triangle or line): drag on the board; then change the type, fill, colour and weight in the bar. It works as a container and carries what is inside it</dd>
+    <dt>T</dt><dd>Free text, no shape: click the board and type; size, bold, italic and colour in the bar. With no text it disappears</dd>
     <dt>Double-click</dt><dd>On empty space creates a step; on a shape edits its text</dd>
     <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
     <dt>Side dots</dt><dd>Drag to connect; click to create the next shape. Each side makes its own arrow, so two shapes can be linked from several sides; arrows leaving the same side share a trunk</dd>
@@ -567,6 +570,7 @@ const TYPES = {
   pause:{name:'Pausa / espera', key:'3'},
   handoff:{name:'Mudança de lane', key:'4'},
   note:{name:'Nota', key:'n'},
+  text:{name:'Texto', key:'t'},
   lane:{name:'Swimlane', key:'l'},
   geo:{name:'Forma geométrica', key:'g'},
 };
@@ -721,6 +725,7 @@ const MAXW = {step:15, action:14, decision:10, screen:15, doc:15, data:13, note:
 function geom(n){
   const fs = n.fs || 14;
   if (n.type === 'point') return {w:0, h:0, fs};
+  if (n.type === 'text'){ const pad = fs*0.3, maxW = fs*24, L = layoutText(n.text||'', fs, n.b, n.i, false, maxW); return {w: Math.max(L.w, fs*0.6) + pad*2, h: Math.max(L.h, fs*1.4) + pad*2, L, maxW, fs, p:pad}; }
   if (n.type === 'geo'){ const w = Math.max(0, finite(n.w)), h = Math.max(0, finite(n.h)), pad = fs*0.6; return {w, h, fs, p:pad, L:layoutText(n.text||'', fs, n.b, n.i, false, Math.max(40, w - pad*2))}; }
   if (n.type === 'lane'){ const hw = 44*fs/14; return {w:n.w, h:n.h, hw, fs}; }
   if (EVENTS.has(n.type)){
@@ -901,6 +906,10 @@ function drawNode(c, n, pal, opts){
   const g = geom(n), {fill, stroke} = nodeColors(n, pal);
   c.save(); c.translate(n.x, n.y);
   const lw = Math.max(1.25, g.fs/11) * (LW_MUL[n.lw] || 1);
+  if (n.type === 'text'){ // free text: no outline, no fill; the colour swatch colours the text
+    if (opts.editing !== n.id) drawText(c, g.L, -g.w/2 + g.p, 0, g.fs, false, 'left', n.color && n.color !== 'none' ? pal.stroke[n.color] : pal.ink);
+    c.restore(); return;
+  }
   if (n.type === 'note'){
     c.shadowColor = pal.noteShadow; c.shadowBlur = 10; c.shadowOffsetY = 3;
     shapePath(c, n, g); c.fillStyle = n.color && n.color !== 'none' ? pal.fill[n.color] : pal.note; c.fill();
@@ -1272,7 +1281,8 @@ function placeTA(){
   if (ed.kind === 'edge'){ const e = E(ed.id); if (!e){ endEdit(); return; } const r = route(e); const m = midOf(r); fs = EDGE_FS; w = 170; cx = m.x; cy = m.y; }
   else {
     const n = N(ed.id); if (!n){ endEdit(); return; } const g = geom(n); fs = n.fs||14; bold = !!n.b; ital = !!n.i;
-    if (n.type === 'geo'){ align = 'left'; w = Math.max(60, g.w - g.p*2); left = n.x - g.w/2 + g.p; top = n.y - g.h/2 + g.p; }
+    if (n.type === 'text'){ align = 'left'; w = g.maxW; left = n.x - g.w/2 + g.p; top = n.y - g.h/2 + g.p; }
+    else if (n.type === 'geo'){ align = 'left'; w = Math.max(60, g.w - g.p*2); left = n.x - g.w/2 + g.p; top = n.y - g.h/2 + g.p; }
     else if (n.type === 'lane'){ bold = true; align = 'left'; w = Math.min(320, n.w - g.hw - 20); left = n.x + g.hw + 12; top = n.y + 10; }
     else if (n.type === 'note'){ mono = true; align = 'left'; w = g.maxW; left = n.x - g.w/2 + g.p; top = n.y - g.h/2 + g.p; }
     else if (EVENTS.has(n.type) || g.below){ w = g.maxW; cx = n.x; cy = n.y + g.ly; }
@@ -1293,6 +1303,9 @@ function endEdit(){
   const now = n ? n.text : e ? e.label : null;
   if (now === ed.before) undoS.pop();
   if (n && n.type === 'lane' && !n.text.trim()) n.text = T('lane');
+  if (n && n.type === 'text' && !n.text.trim()){ // an empty free text is invisible, so it is removed (a brand-new one also drops its creation checkpoint)
+    doc.nodes = doc.nodes.filter(x => x !== n); reindex(); S.sel.delete(n.id); if (ed.before === '') undoS.pop();
+  }
   changed(); cv.focus({preventScroll:true});
 }
 ta.addEventListener('input', () => {
@@ -1577,7 +1590,7 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Escape'){ if (S.tool !== 'select') setTool('select'); else { S.sel = new Set(); } closePopovers(); draw(); return; }
   if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); deleteSel(); return; }
   if (e.key === 'Enter' && S.sel.size === 1){ e.preventDefault(); startEdit([...S.sel][0]); return; }
-  if (e.key === 'Tab'){ const n = S.sel.size === 1 ? N([...S.sel][0]) : null; if (n && n.type !== 'lane' && n.type !== 'geo'){ e.preventDefault(); quickAdd(n, e.shiftKey ? 'bottom' : 'right'); } return; }
+  if (e.key === 'Tab'){ const n = S.sel.size === 1 ? N([...S.sel][0]) : null; if (n && n.type !== 'lane' && n.type !== 'geo' && n.type !== 'text'){ e.preventDefault(); quickAdd(n, e.shiftKey ? 'bottom' : 'right'); } return; }
   if (e.key === '[' || e.key === ']'){ bumpFont(e.key === ']' ? 1 : -1); return; }
   if (e.key.startsWith('Arrow') && S.sel.size){
     e.preventDefault(); const s = e.shiftKey ? 10 : 1, dx = e.key === 'ArrowLeft' ? -s : e.key === 'ArrowRight' ? s : 0, dy = e.key === 'ArrowUp' ? -s : e.key === 'ArrowDown' ? s : 0;
@@ -1601,7 +1614,7 @@ function bumpFont(dir){ const ns = selNodes(); if (!ns.length) return; checkpoin
 function setProp(list, prop, val){ checkpoint(); list.forEach(x => x[prop] = val); changed(); }
 
 /* ---------- tool rail ---------- */
-const TOOL_GROUPS = [['select','hand'],['step','action','decision','screen','doc','data'],['start','end','pause','handoff'],['note','lane','geo','connector']];
+const TOOL_GROUPS = [['select','hand'],['step','action','decision','screen','doc','data'],['start','end','pause','handoff'],['note','text','lane','geo','connector']];
 const TOOL_KEY = {select:'V', hand:'H', connector:'C'};
 function buildTools(){
   const el = $('#tools'); el.innerHTML = '';
@@ -1709,7 +1722,7 @@ function buildCtx(ns, es){
     ctxEl.appendChild(sepEl());
     ctxEl.appendChild(swatches(ns));
     ctxEl.appendChild(sepEl());
-    { const th = shapes.filter(n => n.type !== 'note'); // outline weight: thin, medium, thick
+    { const th = shapes.filter(n => n.type !== 'note' && n.type !== 'text'); // outline weight: thin, medium, thick
       if (th.length && th.length === shapes.length && !lanes.length){ for (const v of [1,2,3]) ctxEl.appendChild(btn(ICON['lw'+v], T('lw'+v), () => setProp(th, 'lw', v), th.every(n => (n.lw || 2) === v))); ctxEl.appendChild(sepEl()); } }
     if (ns.length === 1) ctxEl.appendChild(btn(ICON.edit, T('editTextBtn'), () => startEdit(ns[0].id)));
   }
@@ -1740,7 +1753,7 @@ function buildCtx(ns, es){
 function autoLayout(){
   const lanes = doc.nodes.filter(n=>n.type==='lane').sort((a,b)=>a.y-b.y||a.x-b.x);
   const notes = doc.nodes.filter(n=>n.type==='note');
-  const items = doc.nodes.filter(n=>n.type!=='lane' && n.type!=='note' && n.type!=='geo');
+  const items = doc.nodes.filter(n=>n.type!=='lane' && n.type!=='note' && n.type!=='geo' && n.type!=='text');
   if (!items.length) return false;
   const GAPX = 90, GAPY = 50;
   const byId = new Map(items.map(n=>[n.id,n]));
@@ -1821,8 +1834,8 @@ function autoLayout(){
 /* Shift A: align to the grid the boxes already imply. Nothing is re-laid-out: shapes within 24 px of each other in the same lane
    share a row (same y), shapes within 24 px in x share a column (same x), and the shared values are rounded to 10 px. */
 function alignGrid(){
-  const picked = [...S.sel].map(N).filter(n => n && n.type !== 'lane' && n.type !== 'note' && n.type !== 'geo');
-  const items = picked.length >= 2 ? picked : doc.nodes.filter(n => n.type !== 'lane' && n.type !== 'note' && n.type !== 'geo');
+  const picked = [...S.sel].map(N).filter(n => n && n.type !== 'lane' && n.type !== 'note' && n.type !== 'geo' && n.type !== 'text');
+  const items = picked.length >= 2 ? picked : doc.nodes.filter(n => n.type !== 'lane' && n.type !== 'note' && n.type !== 'geo' && n.type !== 'text');
   if (!items.length) return null;
   const TOL = 24, snap = v => Math.round(v/10)*10, lanes = doc.nodes.filter(n => n.type === 'lane');
   const groups = (list, key) => { const s = [...list].sort((a,b) => key(a)-key(b)), out = []; for (const n of s){ const g = out[out.length-1]; if (g && key(n)-key(g[0]) <= TOL) g.push(n); else out.push([n]); } return out; };
@@ -1865,7 +1878,7 @@ function buildIds(d){
     if (code === 'N') code = 'NN';
     let c = code, k = 2; while (used.has(c)) c = code + (k++); used.add(c); laneCode.set(l.id, c);
   }
-  const shapes = d.nodes.filter(n=>n.type!=='lane' && n.type!=='note' && n.type!=='geo');
+  const shapes = d.nodes.filter(n=>n.type!=='lane' && n.type!=='note' && n.type!=='geo' && n.type!=='text');
   const groups = new Map();
   for (const n of shapes){ const l = laneOf(n, lanes); const key = l ? l.id : '_'; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(n); }
   const ids = new Map();
@@ -1905,7 +1918,7 @@ function exportAI(d){
     for (const e of (outs.get(id)||[])) if (!used.has(e.id)){ used.add(e.id); lines.push(`${ids.get(e.from)} ${opS(e)} ${ids.get(e.to)}${e.label ? ` [${clean(e.label)}]` : ''}`); }
   }
   if (lines.length){ out.push('', 'FLOW:'); out.push(...lines); }
-  const notes = d.nodes.filter(n=>n.type==='note' && clean(n.text));
+  const notes = d.nodes.filter(n=>(n.type==='note' || n.type==='text') && clean(n.text)); // free text travels with the notes
   if (notes.length){
     out.push('', 'NOTES:');
     for (const n of notes){

@@ -74,6 +74,10 @@ As secções de `app/index.html` estão marcadas com comentários `/* ----------
 - Não entram no fluxo: ficam de fora do texto IA, do Mermaid, do alinhamento à grelha e do layout, e não se ligam com setas.
 - **Espessuras:** `n.lw` (formas e formas geométricas) e `e.lw` (setas) valem 1, 2 ou 3 (2 por defeito). Nas formas multiplica a largura base (`LW_MUL`), nas formas geométricas é fixa (`GEO_W`) e nas setas define também o tamanho da cabeça (`EDGE_W`, `HEAD_S`). Validado em `sanitizeNodes` e `sanitizeEdges`.
 
+### Texto livre
+
+Tipo `text`: só texto, sem contorno nem fundo (`geom` mede-o com `layoutText`, largura de quebra de 24×o corpo; `drawNode` desenha-o alinhado à esquerda, com `n.color` a colorir o texto). Cria-se com a ferramenta `T` (um clique abre a edição); se ficar vazio ao fim da edição é apagado (`endEdit`), incluindo o ponto de histórico da criação. Não tem espessura, não entra no alinhamento à grelha nem no layout, e segue no texto IA como nota (secção `NOTES`); o Mermaid ignora-o.
+
 ### Decisões e gateways BPMN
 
 - O losango é sempre regular (`w = h`, o necessário para o texto caber: `L.w + L.h + padding`).
