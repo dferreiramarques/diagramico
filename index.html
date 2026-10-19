@@ -19,7 +19,7 @@
   document.documentElement.setAttribute('data-theme', t);
 })();
 </script>
-<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/fonts/inter.css">
 <link rel="stylesheet" href="product-page.css">
 <style>
 /* Diagramico accent. Colours only: every size, space and radius comes from product-page.css (shared with Roadmaps and Taskboards). */
@@ -34,8 +34,7 @@
   --ok:#5cc282;
 }
 :root{
-  /* Diagramico keeps its self-hosted IBM Plex (the page loads nothing from third parties) */
-  --font:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  /* fonts: Inter and JetBrains Mono from product-page.css, self-hosted in assets/fonts (the page loads nothing from third parties) */
   /* names used by the page-specific components below */
   --panel:var(--surface); --panel-2:var(--surface-2); --line:var(--border); --ink:var(--text);
   --accent:var(--primary); --accent-ink:var(--primary-ink); --accent-soft:var(--primary-soft); --code:var(--surface-2);
