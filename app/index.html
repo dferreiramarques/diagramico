@@ -363,7 +363,7 @@ pt: {
   swap:'Inverter direção', edgeLabel:'Rótulo da ligação (Enter)', duplicate:'Duplicar (Ctrl D)', delete:'Apagar (Delete)',
   copied:'Copiado', copiedClip:'Copiado para a área de transferência', selectedCopy:'Texto selecionado. Use Ctrl C para copiar.',
   fileSaved:'Ficheiro guardado', fileFail:'Não foi possível guardar o ficheiro',
-  exportOf:'Exportar · ', tabAi:'Texto para IA', tabMermaid:'Mermaid', tabJson:'JSON completo', tabPng:'Imagem PNG', tabLink:'Ligação', copyLink:'Copiar ligação', sharedSuffix:' (partilhado)',
+  exportOf:'Exportar · ', tabAi:'Texto para IA', tabMermaid:'Mermaid', tabJson:'JSON completo', tabPng:'Imagem PNG', tabLink:'Ligação', copyLink:'Copiar ligação', linkFull:'Completa', linkShort:'Curta', hintLinkShort:'Ligação curta: o servidor guarda uma cópia do diagrama (90 dias desde a última abertura) e a ligação aponta para ela. Quem tiver a ligação pode ver o diagrama; não ponhas dados confidenciais.', linkShortOff:'Ligação curta indisponível neste endereço.', linkShortFail:'Não foi possível criar a ligação curta. Tenta mais tarde ou usa a completa.', linkShortMissing:'A ligação curta não existe ou expirou.', sharedSuffix:' (partilhado)',
   hintLink:'Uma ligação que contém o próprio diagrama, sem contas nem servidor: quem a abrir recebe uma cópia no seu browser. Os dados vão no endereço (a parte a seguir ao #), que não é enviada a nenhum servidor. Alterações posteriores não mudam a ligação; gera outra.',
   linkBig:'Ligação muito longa: algumas aplicações de mensagens podem cortá-la. Para diagramas grandes, envia antes o ficheiro (JSON) ou o texto para IA.', linkNoSupport:'Este browser não suporta a compressão necessária para gerar a ligação.',
   linkOpened:'Diagrama aberto a partir da ligação (cópia local).', linkBad:'A ligação não é válida ou está incompleta.', tabSvg:'SVG (vetorial)', saveSvg:'Guardar SVG', hintSvg:'Imagem vetorial, nítida em qualquer tamanho e editável em Figma, Illustrator ou Inkscape. Os textos usam IBM Plex Sans/Mono; se a fonte não estiver instalada onde abrir o ficheiro, é substituída por outra.',
@@ -490,7 +490,7 @@ en: {
   swap:'Reverse direction', edgeLabel:'Connector label (Enter)', duplicate:'Duplicate (Ctrl D)', delete:'Delete (Delete)',
   copied:'Copied', copiedClip:'Copied to clipboard', selectedCopy:'Text selected. Press Ctrl C to copy.',
   fileSaved:'File saved', fileFail:'Could not save the file',
-  exportOf:'Export · ', tabAi:'AI text', tabMermaid:'Mermaid', tabJson:'Full JSON', tabPng:'PNG image', tabLink:'Link', copyLink:'Copy link', sharedSuffix:' (shared)',
+  exportOf:'Export · ', tabAi:'AI text', tabMermaid:'Mermaid', tabJson:'Full JSON', tabPng:'PNG image', tabLink:'Link', copyLink:'Copy link', linkFull:'Full', linkShort:'Short', hintLinkShort:'Short link: the server stores a copy of the diagram (90 days since last opened) and the link points to it. Anyone with the link can view the diagram; do not use it for confidential data.', linkShortOff:'Short links are not available at this address.', linkShortFail:'Could not create the short link. Try again later or use the full one.', linkShortMissing:'The short link does not exist or has expired.', sharedSuffix:' (shared)',
   hintLink:'A link that contains the diagram itself, with no accounts or server: whoever opens it gets a copy in their browser. The data travels in the address (the part after the #), which is never sent to a server. Later changes do not update the link; generate a new one.',
   linkBig:'Very long link: some messaging apps may truncate it. For large diagrams, send the file (JSON) or the AI text instead.', linkNoSupport:'This browser does not support the compression needed to build the link.',
   linkOpened:'Diagram opened from the link (local copy).', linkBad:'The link is not valid or is incomplete.', tabSvg:'SVG (vector)', saveSvg:'Save SVG', hintSvg:'Vector image, sharp at any size and editable in Figma, Illustrator or Inkscape. Text uses IBM Plex Sans/Mono; if the font is not installed where you open the file, another one is substituted.',
@@ -2114,7 +2114,7 @@ function openExport(tab){
   endEdit(); modalTab = tab; modalRender = renderModal; $('#modal').hidden = false; renderModal();
 }
 function closeModal(){ $('#modal').hidden = true; previewSeq++; if (lastImgUrl){ URL.revokeObjectURL(lastImgUrl); lastImgUrl = null; } cv.focus({preventScroll:true}); }
-let lastImgUrl = null, imgOpts = {sel:false, scale:2, transparent:false}, previewSeq = 0;
+let linkMode = 'full', lastImgUrl = null, imgOpts = {sel:false, scale:2, transparent:false}, previewSeq = 0;
 // Only the newest preview request may show an image; the previous object URL is revoked once the new image has loaded
 // (revoking it earlier, or from an older request that finishes late, left the visible <img> broken).
 // The preview uses a data: URL, not a blob: URL: hosts often send a Content-Security-Policy whose img-src allows data: but not blob:
@@ -2162,17 +2162,23 @@ function renderModal(){
     foot.appendChild(b); refresh(); return;
   }
   if (modalTab === 'link'){
-    const hp = document.createElement('p'); hp.className = 'hint'; hp.textContent = T('hintLink'); body.appendChild(hp);
+    const o = document.createElement('div'); o.className = 'opts';
+    o.innerHTML = `<label><input type="radio" name="lmode" value="full" ${linkMode==='full'?'checked':''}> ${T('linkFull')}</label>
+      <label><input type="radio" name="lmode" value="short" id="lmShort" ${linkMode==='short'?'checked':''} disabled> ${T('linkShort')}</label>`;
+    body.appendChild(o);
+    const hp = document.createElement('p'); hp.className = 'hint'; hp.textContent = T(linkMode === 'short' ? 'hintLinkShort' : 'hintLink'); body.appendChild(hp);
+    o.querySelectorAll('input').forEach(r => r.onchange = () => { linkMode = r.value; renderModal(); });
+    shortAvailable().then(ok => { const r = $('#lmShort'); if (!r) return; if (ok) r.disabled = false; else { r.parentElement.title = T('linkShortOff'); if (linkMode === 'short'){ linkMode = 'full'; renderModal(); } } });
     const area = document.createElement('textarea'); area.className = 'import'; area.readOnly = true; area.spellcheck = false; area.style.minHeight = '110px'; area.value = T('preparing'); body.appendChild(area);
     const warn = document.createElement('p'); warn.className = 'hint'; body.appendChild(warn);
     const stat = document.createElement('span'); stat.className = 'stat'; foot.appendChild(stat);
     const cp = document.createElement('button'); cp.className = 'btn primary'; cp.textContent = T('copyLink'); cp.disabled = true; foot.appendChild(cp);
     area.onfocus = () => area.select();
     if (!doc.nodes.length){ area.value = ''; warn.textContent = T('empty'); return; }
-    shareUrl().then(url => {
+    (linkMode === 'short' ? shortUrl() : shareUrl()).then(url => {
       area.value = url; stat.textContent = `${url.length.toLocaleString(LOC())} ${T('chars')}`; cp.disabled = false; cp.onclick = () => copyText(url);
       if (url.length > 8000){ warn.textContent = T('linkBig'); warn.style.color = 'var(--danger)'; }
-    }).catch(() => { area.value = ''; warn.textContent = T('linkNoSupport'); });
+    }).catch(e => { area.value = ''; warn.textContent = T(linkMode === 'short' ? 'linkShortFail' : 'linkNoSupport'); });
     return;
   }
   let text, hint, ext;
@@ -2986,15 +2992,33 @@ function unpackDoc(o){
   const nodes = sanitizeNodes(o.nodes);
   return {name:clipStr(o.n, 200), nodes, edges:sanitizeEdges(o.edges, nodes, false)};
 }
-async function shareUrl(){
-  const bytes = await deflateRaw(new TextEncoder().encode(JSON.stringify(packDoc(doc))));
-  return location.href.split('#')[0].split('?')[0] + '#d=' + b64u(bytes);
+async function sharePayload(){ return b64u(await deflateRaw(new TextEncoder().encode(JSON.stringify(packDoc(doc))))); }
+async function shareUrl(){ return location.href.split('#')[0].split('?')[0] + '#d=' + await sharePayload(); }
+/* Short link: the same payload is stored by the server (server/server.js) and opened as /s/ID, which redirects to /app/#s=ID. Only offered when the server says it is on. */
+let shortOk = null;
+function shortAvailable(){
+  if (shortOk === null) shortOk = !/^https?:$/.test(location.protocol) ? Promise.resolve(false)
+    : fetch('/api/health', {cache:'no-store'}).then(r => r.ok ? r.json() : null).then(j => !!(j && j.shortLinks)).catch(() => false);
+  return shortOk;
+}
+async function shortUrl(){
+  const r = await fetch('/api/short', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({d: await sharePayload()})});
+  if (!r.ok) throw new Error('short ' + r.status);
+  return location.origin + '/s/' + (await r.json()).id;
 }
 async function openFromHash(){
-  const m = /^#d=([A-Za-z0-9_-]+)$/.exec(location.hash); if (!m) return false;
+  const m = /^#([ds])=([A-Za-z0-9_-]+)$/.exec(location.hash); if (!m) return false;
   try {
-    if (m[1].length > 600000) throw new Error('too long');
-    const u = unpackDoc(JSON.parse(new TextDecoder().decode(await inflateRaw(unb64u(m[1]), 8 * 1024 * 1024))));
+    let data = m[2];
+    if (m[1] === 's'){
+      const r = await fetch('/api/short/' + encodeURIComponent(data), {cache:'no-store'});
+      if (r.status === 404){ history.replaceState(null, '', location.pathname + location.search); toast(T('linkShortMissing')); return true; }
+      if (!r.ok) throw new Error('short ' + r.status);
+      data = (await r.json()).d;
+      if (typeof data !== 'string' || !/^[A-Za-z0-9_-]+$/.test(data)) throw new Error('bad');
+    }
+    if (data.length > 600000) throw new Error('too long');
+    const u = unpackDoc(JSON.parse(new TextDecoder().decode(await inflateRaw(unb64u(data), 8 * 1024 * 1024))));
     const base = u.name || T('untitled'), suf = T('sharedSuffix');
     const d = newDoc(base.endsWith(suf) ? base : base + suf); d.nodes = u.nodes; d.edges = u.edges;
     openDoc(d.id); fit(); toast(T('linkOpened'));
@@ -3020,7 +3044,7 @@ if (EMBED && QS.get('t')) importFromText(QS.get('t')); // landing page: show a g
 const isPhone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
 function mobileNotice(){ modalRender = mobileNotice; dialog(T('mobTitle'), [el('p', 'hint', T('mobBody'))], [{label: T('mobOk'), primary: true, onClick: closeModal}]); }
 let tourSeen = true; try { tourSeen = !!localStorage.getItem(TOUR_KEY); } catch(e){}
-const fromLink = !EMBED && /^#d=/.test(location.hash);
+const fromLink = !EMBED && /^#[ds]=/.test(location.hash);
 if (fromLink) openFromHash();
 if (!EMBED){ if (isPhone) mobileNotice(); else if (!tourSeen && !fromLink) setTimeout(startTour, 600); }
 // expose for testing

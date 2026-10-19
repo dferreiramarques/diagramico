@@ -7,7 +7,7 @@ Estado em 2026-10-13. A versão pública e simplificada (NOW / NEXT / LATER) est
 | | **Free** (feito) | **Equipas** (pago) | **Premium** (pago, fora de âmbito por agora) |
 |---|---|---|---|
 | Desenhar, alinhar, lanes coladas, decisões BPMN | ✔ | ✔ | ✔ |
-| Exportar: texto IA, Mermaid, SVG, PNG, JSON, ligação `#d=` | ✔ | ✔ | ✔ |
+| Exportar: texto IA, Mermaid, SVG, PNG, JSON, ligação `#d=` (completa) e ligação curta `/s/ID` | ✔ | ✔ | ✔ |
 | Importar: draw.io, Visio, texto IA, Mermaid | ✔ | ✔ | ✔ |
 | Gravação | Só no browser (`localStorage`) | **Na conta Google** do utilizador | **Na infraestrutura do cliente** |
 | Colaboração em tempo real (lobby + mesa, cursor colorido com nome) | — | ✔ | Só na rede interna |

@@ -52,6 +52,12 @@ Arranque rápido:
 
 **Exportar → Ligação** gera um endereço que contém o próprio diagrama (JSON sem valores por defeito, comprimido e em base64url, no fragmento `#d=…`). Não precisa de conta nem de servidor: quem abrir recebe uma cópia nova no seu browser, com a visita guiada desligada, e o endereço é limpo para um refresh não a abrir outra vez. Os dados ficam depois do `#`, que o browser nunca envia a um servidor. O diagrama de exemplo dá cerca de 900 caracteres. Acima de ~8000 caracteres avisa que algumas aplicações podem cortar a ligação (usa então o ficheiro JSON ou o texto IA). A ligação não acompanha edições posteriores: gera outra.
 
+**Ligação curta** (opcional, precisa do servidor com `SHORTLINKS=on`): no mesmo separador, escolhe *Curta* para obter algo como `diagramico.monco.io/s/k7m2xq`. O servidor guarda uma cópia do diagrama (90 dias desde a última abertura) e `/s/ID` abre-o no editor. A opção só aparece quando o servidor a tem ligada. Ver `docs/ARQUITETURA.md`.
+
+## Servidor (`server/`)
+
+`npm start` serve o site (landing, `/app/`, assets) e, se `SHORTLINKS=on`, as ligações curtas. Sem dependências, só Node 20+. Variáveis: `PORT`, `SHORTLINKS`, `DATA_DIR` (pasta do `shorts.json`; no Railway, um Volume montado em `/data`), `SHORT_TTL_DAYS`, `TRUST_PROXY_HOPS`. `npm test` corre os testes.
+
 ## Importar texto (IA e Mermaid)
 
 Em **Diagramas → Importar texto (IA / Mermaid)** cola-se o texto e cria-se um diagrama novo, organizado automaticamente (também se pode largar um `.txt`, `.md` ou `.mmd` no quadro). Fecha o ciclo com a exportação: exportar para texto e voltar a importar dá o mesmo diagrama (mesmas formas, lanes e setas; as posições são recalculadas).

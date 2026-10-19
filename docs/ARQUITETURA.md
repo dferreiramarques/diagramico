@@ -128,6 +128,16 @@ Já não está ligado ao `Shift A`; é usado por `importFromText`, onde não há
 
 Limitações: só horizontal; não desenha arestas à volta de formas; a lane de cada forma é a atual, nunca é alterada.
 
+## Servidor e ligações curtas (`server/server.js`)
+
+Node sem dependências. Serve só uma lista fechada (`/index.html`, `/product-page.css`, `/app/`, `/assets/`) com cabeçalhos de segurança e CSP, e a API das ligações curtas, desligada por defeito (`SHORTLINKS=on`):
+
+- `GET /api/health` → `{shortLinks, ttlDays, idLen}` (o editor usa-o para mostrar ou não a opção *Curta*).
+- `POST /api/short` `{d}` → `201 {id}` (ou `200` se o mesmo diagrama já existir: deduplicação por sha256). `d` é o mesmo payload do `#d=`; só é aceite se descomprimir (limite 8 MB) para JSON com `nodes[]`.
+- `GET /api/short/:id` → `{d}`; `GET /s/:id` → 302 para `/app/#s=ID`. O editor revalida tudo com `unpackDoc`, como em `#d=`.
+- IDs de 6 caracteres de `23456789abcdefghjkmnpqrstuvwxyz` (sem caracteres ambíguos), gerados com `crypto.randomInt`.
+- Armazenamento num `shorts.json` (escrita atómica, 0,4 s depois de cada alteração). Expira 90 dias depois da última abertura. Limites: 120 000 caracteres por payload, 50 000 ligações, 50 MB, 20 criações/hora e 240 leituras/min por IP. Em produção precisa de um volume persistente (`DATA_DIR`).
+
 ## Partilha por ligação (`#d=…`)
 
 `packDoc` tira os valores por defeito (`fs` 14, `b`, `i`, `color`, `label`, `style`, `arrow`, `dash`) e troca os ids por índices em base 36; `deflateRaw` (CompressionStream) e `b64u` fazem o resto. `openFromHash` (no arranque e em `hashchange`) descomprime com `inflateRaw`, valida com `unpackDoc` (tipos conhecidos, números finitos, máx. 3000 formas, setas só para formas existentes), cria um diagrama novo "(partilhado)" e limpa o fragmento com `history.replaceState`. O separador **Ligação** do modal de exportação mostra o URL e avisa acima de 8000 caracteres. Não é uma ligação "viva": o URL não muda enquanto se desenha (seria um `replaceState` com compressão a cada edição) e só funciona em browsers com `CompressionStream` (Chrome 80+, Firefox 113+, Safari 16.4+).

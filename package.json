@@ -1,0 +1,11 @@
+{
+  "name": "diagramico",
+  "private": true,
+  "description": "Diagramico: editor de diagramas lógicos e user flows, com texto compacto para IA",
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node --test server/test.js"
+  }
+}
