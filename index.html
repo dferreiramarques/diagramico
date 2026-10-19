@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://roadmaps.monco.io; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://formspree.io https://roadmaps.monco.io; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Diagramico · Desenha o fluxo, a IA escreve a documentação</title>
 <meta name="description" content="Desenha processos e user flows com o teclado e exporta-os como texto compacto para uma IA escrever a documentação, os casos de teste e a revisão da lógica. Gratuito, sem registo.">
@@ -10,57 +10,59 @@
 <meta property="og:description" content="Desenha fluxos com o teclado, exporta texto compacto e deixa a IA escrever a documentação.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233347d4'/%3E%3Cpath d='M7 10h9l-2.5 6H7z M18 17l5 5-5 5-5-5z' fill='white'/%3E%3C/svg%3E">
+<script>
+/* theme first, before anything paints: saved choice, else the OS setting (this page keeps following the OS until you pick one) */
+(function () {
+  var t = '';
+  try { t = localStorage.getItem('diagramico-theme') || ''; } catch (e) {}
+  if (!t) t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
 <link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="product-page.css">
 <style>
-:root{
-  --bg:#f6f7fa; --panel:#ffffff; --panel-2:#eef0f5; --line:#dde1e9; --ink:#1b1f2a; --muted:#596072;
-  --accent:#3347d4; --accent-ink:#ffffff; --accent-soft:#e3e7ff; --code:#f0f2f7;
-  --shadow:0 1px 2px rgba(20,26,45,.06),0 10px 30px rgba(20,26,45,.08);
-  --sans:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+/* Diagramico accent. Colours only: every size, space and radius comes from product-page.css (shared with Roadmaps and Taskboards). */
+[data-theme="light"]{
+  --primary:#3347d4; --primary-h:#2a3bb0; --primary-ink:#ffffff;
+  --primary-soft:rgba(51,71,212,.12); --glow:rgba(51,71,212,.10);
+  --ok:#2c8048;
 }
-@media (prefers-color-scheme:dark){:root{
-  --bg:#12141a; --panel:#1b1e26; --panel-2:#242832; --line:#323743; --ink:#e7e9ef; --muted:#9aa1b0;
-  --accent:#8b98ff; --accent-ink:#11131a; --accent-soft:#2a3060; --code:#14161c; --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35); color-scheme:dark;
-}}
-*{box-sizing:border-box}
+[data-theme="dark"]{
+  --primary:#8b98ff; --primary-h:#a9b3ff; --primary-ink:#11131a;
+  --primary-soft:rgba(139,152,255,.16); --glow:rgba(139,152,255,.12);
+  --ok:#5cc282;
+}
+:root{
+  /* Diagramico keeps its self-hosted IBM Plex (the page loads nothing from third parties) */
+  --font:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  /* names used by the page-specific components below */
+  --panel:var(--surface); --panel-2:var(--surface-2); --line:var(--border); --ink:var(--text);
+  --accent:var(--primary); --accent-ink:var(--primary-ink); --accent-soft:var(--primary-soft); --code:var(--surface-2);
+  --sans:var(--font); --shadow:0 10px 30px var(--shadow-c);
+}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
-a{color:var(--accent)}
-.wrap{width:min(1080px,100% - 40px);margin:0 auto}
-header.nav{display:flex;align-items:center;gap:16px;padding:18px 0}
-.brand{font-weight:600;font-size:18px;text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:8px}
-.brand svg{width:26px;height:26px}.brand b{color:var(--accent);font-weight:600}
-.nav .sp{flex:1}
-.nav a.link{color:var(--muted);text-decoration:none;font-size:14px}.nav a.link:hover{color:var(--ink)}
-.btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 20px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font:500 15px var(--sans);text-decoration:none;cursor:pointer}
-.btn:hover{background:var(--panel-2)}
-.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.btn.primary:hover{filter:brightness(1.08)}
-.btn.sm{height:34px;padding:0 12px;font-size:13px}
-.btn:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.hero{text-align:center;padding:48px 0 28px}
-.eyebrow{display:inline-block;font:500 13px var(--sans);color:var(--accent);background:var(--accent-soft);padding:4px 12px;border-radius:99px;margin-bottom:18px}
-h1{font-size:clamp(32px,5.6vw,56px);line-height:1.08;letter-spacing:-.02em;margin:0 auto 16px;max-width:22ch;font-weight:600}
-.lead{font-size:clamp(17px,2.2vw,20px);color:var(--muted);max-width:60ch;margin:0 auto 26px}
-.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.demo{margin:36px auto 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);background:var(--panel)}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+a{color:inherit}
+.btn{text-decoration:none}
+.btn:focus-visible,a:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.sub{color:var(--muted);max-width:62ch;margin:0}
+.band{background:var(--surface-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.lp-sec.band + .lp-sec{border-top:0}
+.steps--3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:820px){.steps--3{grid-template-columns:1fr}}
+.split{display:grid;grid-template-columns:1fr 1.1fr;gap:32px;align-items:center}
+@media (max-width:820px){.split{grid-template-columns:1fr}}
+.split .lp-head{margin-bottom:0}
+.demo{margin:0 auto;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);background:var(--panel)}
 .demo .bar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);background:var(--panel-2)}
 .demo .dots{display:flex;gap:6px}.demo .dots i{width:10px;height:10px;border-radius:50%;background:var(--line)}
 .demo iframe{display:block;width:100%;height:clamp(300px,52vw,520px);border:0;background:var(--bg)}
 .demo .hint{padding:8px 14px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);text-align:left}
-section{padding:64px 0}
-h2{font-size:clamp(26px,3.6vw,36px);line-height:1.15;letter-spacing:-.01em;margin:0 0 12px;font-weight:600}
-.sub{color:var(--muted);max-width:62ch;margin:0 0 32px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}
-.card h3{margin:0 0 8px;font-size:18px;font-weight:600}.card p{margin:0 0 10px;color:var(--muted)}.card p:last-child{margin:0}
 kbd{font:500 12px var(--mono);background:var(--panel-2);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;color:var(--ink)}
-.split{display:grid;grid-template-columns:1fr 1.1fr;gap:32px;align-items:center}
-@media (max-width:820px){.split{grid-template-columns:1fr}}
 pre{margin:0;background:var(--code);border:1px solid var(--line);border-radius:12px;padding:16px 18px;font:12.5px/1.6 var(--mono);overflow:auto;color:var(--ink)}
 .stat{display:flex;gap:28px;margin-top:18px;flex-wrap:wrap}
-.stat div b{display:block;font-size:30px;font-weight:600;color:var(--accent);line-height:1.1}.stat div span{font-size:13px;color:var(--muted)}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;counter-reset:s}
-.steps .card{counter-increment:s}.steps .card::before{content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:600;margin-bottom:12px}
+.stat div b{display:block;font-size:30px;font-weight:600;color:var(--primary);line-height:1.1}.stat div span{font-size:13px;color:var(--muted)}
 .formats{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .formats span{font:500 13px var(--mono);background:var(--panel-2);border:1px solid var(--line);padding:3px 10px;border-radius:99px}
 .band{background:var(--panel);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -71,10 +73,6 @@ form.wl .chk input[type=checkbox]{flex:none;width:18px;height:18px;min-width:18p
 .fine2{margin:10px 0 0;font-size:13px;color:var(--muted);max-width:70ch}
 .msg{margin-top:10px;font-size:14px;color:var(--muted);min-height:1.4em}
 details{border-bottom:1px solid var(--line);padding:14px 0}details summary{cursor:pointer;font-weight:500}details p{margin:8px 0 0;color:var(--muted)}
-footer{padding:36px 0 48px;color:var(--muted);font-size:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
-footer .sp{flex:1}
-[hidden]{display:none!important}
-@media (max-width:560px){.nav a.link{display:none}}
 .tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;align-items:stretch}
 .tier{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:6px}
 .tier.hl{border-color:var(--accent);box-shadow:var(--shadow)}
@@ -86,22 +84,6 @@ footer .sp{flex:1}
 .tier li::before{content:"";position:absolute;left:2px;top:.45em;width:9px;height:5px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg)}
 .tier li.inc{color:var(--muted)}
 .tier .fine{margin:auto 0 0;padding-top:12px;font-size:13px;color:var(--muted)}
-.kan{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
-@media (max-width:820px){.kan{grid-template-columns:1fr}}
-.kcol{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:12px}
-.kcol h3{margin:2px 4px 10px;font:600 13px var(--mono);letter-spacing:.08em;display:flex;align-items:baseline;gap:8px}
-.kcol h3 small{font:400 12px var(--sans);letter-spacing:0;color:var(--muted)}
-.kcol h3 b{margin-left:auto;font:500 12px var(--mono);color:var(--muted)}
-.kcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
-.kcard:last-child{margin-bottom:0}
-.kcard h4{margin:0 0 4px;font-size:15px;font-weight:600}
-.kcard p{margin:0 0 8px;font-size:14px;color:var(--muted);line-height:1.5}
-.tag{display:inline-block;font:500 11px var(--mono);padding:2px 8px;border-radius:99px}
-.tag.free{color:#2c8048;background:rgba(44,128,72,.15)}
-.tag.teams{color:var(--accent);background:var(--accent-soft)}
-.tag.premium{color:#7347c9;background:rgba(115,71,201,.16)}
-@media (prefers-color-scheme:dark){.tag.free{color:#5cc282}.tag.premium{color:#b597ff}}
-.kfoot{font-size:13px;color:var(--muted);margin:12px 2px 0}
 .case2{display:grid;grid-template-columns:1fr;gap:18px}
 .dcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .dcard h3{margin:0;padding:12px 16px;font-size:15px;font-weight:600;border-bottom:1px solid var(--line)}
@@ -124,53 +106,75 @@ footer .sp{flex:1}
 .gifbox img{display:block;width:100%;height:auto}
 .gifbox figcaption{padding:10px 16px;font-size:13px;color:var(--muted);background:var(--panel);border-top:1px solid var(--line)}
 .note{font-size:13px;color:var(--muted);margin:12px 2px 0}
+.lp-center .btn{margin-top:4px}
+.fmts{margin-top:28px}.fmts .sub{margin-bottom:8px}
+.kfoot{font-size:13px;color:var(--muted);margin:12px 2px 0}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="nav">
-    <a class="brand" href="./"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#3347d4"/><path d="M7 10h9l-2.5 6H7z M18 17l5 5-5 5-5-5z" fill="#fff"/></svg><span>Diagram<b>ico</b></span></a>
-    <span class="sp"></span>
-    <a class="link" href="#ai" data-i18n="nav_ai"></a>
-    <a class="link" href="#plans" data-i18n="nav_plans"></a>
-    <a class="link" href="#roadmap" data-i18n="nav_road"></a>
-    <a class="link" href="#faq" data-i18n="nav_faq"></a>
-    <button class="btn sm" id="lang" type="button"></button>
-    <a class="btn sm primary" href="app/" data-i18n="open"></a>
-  </header>
+<header class="topbar">
+  <div class="wrap topbar__in">
+    <a class="brand" href="./">
+      <span class="brand__mark" aria-hidden="true"><svg class="ico" viewBox="0 0 32 32" fill="currentColor"><path d="M7 10h9l-2.5 6H7z M18 17l5 5-5 5-5-5z"/></svg></span>
+      Diagramico
+    </a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#ai" data-i18n="nav_ai"></a>
+      <a href="#plans" data-i18n="nav_plans"></a>
+      <a href="#roadmap" data-i18n="nav_road"></a>
+      <a href="#faq" data-i18n="nav_faq"></a>
+    </nav>
+    <span class="grow"></span>
+    <button class="btn btn--outline btn--sm" id="lang" type="button"></button>
+    <button class="btn btn--text btn--icon" id="themeToggle" type="button" aria-label="Toggle light / dark theme" title="Toggle theme"></button>
+    <a class="btn btn--primary" href="app/" data-i18n="open"></a>
+  </div>
+</header>
 
-  <main>
-    <div class="hero">
-      <span class="eyebrow" data-i18n="eyebrow"></span>
-      <h1 data-i18n="h1"></h1>
-      <p class="lead" data-i18n="lead"></p>
-      <div class="cta">
-        <a class="btn primary" href="app/" data-i18n="open"></a>
-        <a class="btn" href="#ai" data-i18n="see_ai"></a>
+<main>
+  <section class="wrap lp-hero">
+    <div class="eyebrow" data-i18n="eyebrow"></div>
+    <h1 data-i18n="h1"></h1>
+    <p data-i18n="lead"></p>
+    <div class="lp-cta">
+      <a class="btn btn--primary btn--lg" href="app/" data-i18n="open"></a>
+      <a class="btn btn--outline btn--lg" href="#ai" data-i18n="see_ai"></a>
+    </div>
+  </section>
+
+  <div class="lp-demo">
+    <div class="demo">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span data-i18n="demo_bar"></span></div>
+      <iframe id="demo" title="Diagramico" loading="lazy"></iframe>
+      <div class="hint" data-i18n="demo_hint"></div>
+    </div>
+  </div>
+
+  <section class="lp-sec" id="features">
+    <div class="wrap">
+      <div class="lp-head">
+        <div class="eyebrow" data-i18n="e_f"></div>
+        <h2 data-i18n="f_h"></h2>
+        <p data-i18n="f_sub"></p>
       </div>
-      <div class="demo">
-        <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span data-i18n="demo_bar"></span></div>
-        <iframe id="demo" title="Diagramico" loading="lazy"></iframe>
-        <div class="hint" data-i18n="demo_hint"></div>
+      <div class="grid2">
+        <article class="fcard"><span class="fcard__ico"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></span><h3 data-i18n="f1_t"></h3><p data-i18n-html="f1_p"></p></article>
+        <article class="fcard"><span class="fcard__ico"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h12M3 18h18"/><path d="M19 9l3 3-3 3"/></svg></span><h3 data-i18n="f2_t"></h3><p data-i18n-html="f2_p"></p></article>
+        <article class="fcard"><span class="fcard__ico"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h12"/><path d="M13 6l6 6-6 6"/><path d="M5 5v4M5 15v4"/></svg></span><h3 data-i18n="f3_t"></h3><p data-i18n-html="f3_p"></p></article>
+        <article class="fcard"><span class="fcard__ico"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 9-9 9-9-9z"/></svg></span><h3 data-i18n="f4_t"></h3><p data-i18n="f4_p"></p></article>
       </div>
     </div>
+  </section>
 
-    <section id="features">
-      <h2 data-i18n="f_h"></h2>
-      <p class="sub" data-i18n="f_sub"></p>
-      <div class="cards">
-        <div class="card"><h3 data-i18n="f1_t"></h3><p data-i18n-html="f1_p"></p></div>
-        <div class="card"><h3 data-i18n="f2_t"></h3><p data-i18n-html="f2_p"></p></div>
-        <div class="card"><h3 data-i18n="f3_t"></h3><p data-i18n-html="f3_p"></p></div>
-        <div class="card"><h3 data-i18n="f4_t"></h3><p data-i18n="f4_p"></p></div>
-      </div>
-    </section>
-
-    <section id="ai">
+  <section class="lp-sec" id="ai">
+    <div class="wrap">
       <div class="split">
         <div>
-          <h2 data-i18n="ai_h"></h2>
-          <p class="sub" style="margin-bottom:0" data-i18n="ai_p"></p>
+          <div class="lp-head">
+            <div class="eyebrow" data-i18n="e_ai"></div>
+            <h2 data-i18n="ai_h"></h2>
+            <p data-i18n="ai_p"></p>
+          </div>
           <div class="stat">
             <div><b>~3×</b><span data-i18n="ai_s1"></span></div>
             <div><b data-i18n="ai_n2"></b><span data-i18n="ai_s2"></span></div>
@@ -178,11 +182,16 @@ footer .sp{flex:1}
         </div>
         <pre id="aiSample" aria-label="Exemplo"></pre>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="case">
-      <h2 data-i18n="c_h"></h2>
-      <p class="sub" data-i18n="c_p"></p>
+  <section class="lp-sec" id="case">
+    <div class="wrap">
+      <div class="lp-head">
+        <div class="eyebrow" data-i18n="e_case"></div>
+        <h2 data-i18n="c_h"></h2>
+        <p data-i18n="c_p"></p>
+      </div>
       <div class="case2">
         <div class="dcard"><h3 id="c1t"></h3><iframe id="c1f" title="" loading="lazy"></iframe><details><summary data-i18n="c_txt"></summary><pre id="c1x"></pre></details></div>
         <div class="dcard"><h3 id="c2t"></h3><iframe id="c2f" title="" loading="lazy"></iframe><details><summary data-i18n="c_txt"></summary><pre id="c2x"></pre></details></div>
@@ -196,68 +205,100 @@ footer .sp{flex:1}
         </div>
       </div>
       <p class="note" data-i18n="c_note"></p>
-    </section>
+    </div>
+  </section>
 
-    <section>
-      <h2 data-i18n="how_h"></h2>
-      <figure class="gifbox"><img id="flowGif" width="800" height="450" loading="lazy" alt=""><figcaption data-i18n="how_gif"></figcaption></figure>
-      <div class="steps">
-        <div class="card"><h3 data-i18n="s1_t"></h3><p data-i18n="s1_p"></p></div>
-        <div class="card"><h3 data-i18n="s2_t"></h3><p data-i18n-html="s2_p"></p></div>
-        <div class="card"><h3 data-i18n="s3_t"></h3><p data-i18n="s3_p"></p></div>
+  <section class="lp-sec" id="how">
+    <div class="wrap">
+      <div class="lp-head">
+        <div class="eyebrow" data-i18n="e_how"></div>
+        <h2 data-i18n="how_h"></h2>
       </div>
-      <div style="margin-top:28px"><p class="sub" style="margin-bottom:8px" data-i18n="fmt_p"></p>
+      <figure class="gifbox"><img id="flowGif" width="800" height="450" loading="lazy" alt=""><figcaption data-i18n="how_gif"></figcaption></figure>
+      <div class="steps steps--3">
+        <article class="step"><h3 data-i18n="s1_t"></h3><p data-i18n="s1_p"></p></article>
+        <article class="step"><h3 data-i18n="s2_t"></h3><p data-i18n-html="s2_p"></p></article>
+        <article class="step"><h3 data-i18n="s3_t"></h3><p data-i18n="s3_p"></p></article>
+      </div>
+      <div class="fmts"><p class="sub" data-i18n="fmt_p"></p>
         <div class="formats"><span>Texto IA</span><span>Mermaid</span><span>SVG</span><span>PNG</span><span>JSON</span><span>draw.io</span><span>Visio (.vsdx)</span></div></div>
-    </section>
-  </main>
-</div>
-
-<div class="wrap">
-  <section id="plans">
-    <h2 data-i18n="p_h"></h2>
-    <p class="sub" data-i18n="p_sub"></p>
-    <div class="tiers" id="tiers"></div>
+    </div>
   </section>
-  <section id="roadmap" style="padding-top:8px">
-    <h2 data-i18n="r_h"></h2>
-    <p class="sub" data-i18n="r_sub"></p>
-    <div class="kan" id="kan"></div>
-    <p class="kfoot" data-i18n="r_note"></p>
-  </section>
-</div>
 
-<div class="band" id="teams">
-  <div class="wrap"><section>
-    <h2 data-i18n="t_h"></h2>
-    <p class="sub" data-i18n="t_p"></p>
-    <form class="wl" id="wl" hidden>
-      <input type="email" name="email" required autocomplete="email" data-i18n-ph="t_ph" aria-label="Email">
-      <input type="text" name="uso" data-i18n-ph="t_use" aria-label="Uso" maxlength="140">
-      <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"><!-- honeypot: bots fill it, Formspree drops those submissions -->
-      <label class="chk"><input type="checkbox" name="consent" required><span data-i18n="t_consent"></span></label>
-      <button class="btn primary" type="submit" data-i18n="t_btn"></button>
-    </form>
-    <p class="fine2" data-i18n="t_priv"></p>
-    <div class="msg" id="wlmsg" role="status"></div>
-  </section></div>
-</div>
-
-<div class="wrap">
-  <section id="faq">
-    <h2 data-i18n="q_h"></h2>
-    <details><summary data-i18n="q1"></summary><p data-i18n="a1"></p></details>
-    <details><summary data-i18n="q2"></summary><p data-i18n="a2"></p></details>
-    <details><summary data-i18n="q3"></summary><p data-i18n="a3"></p></details>
-    <details><summary data-i18n="q4"></summary><p data-i18n="a4"></p></details>
-    <details><summary data-i18n="q6"></summary><p data-i18n="a6"></p></details>
-    <details><summary data-i18n="q5"></summary><p data-i18n="a5"></p></details>
+  <section class="lp-sec" id="plans">
+    <div class="wrap">
+      <div class="lp-head">
+        <div class="eyebrow" data-i18n="e_plans"></div>
+        <h2 data-i18n="p_h"></h2>
+        <p data-i18n="p_sub"></p>
+      </div>
+      <div class="tiers" id="tiers"></div>
+    </div>
   </section>
-  <footer>
-    <span>© Diagramico</span><span class="sp"></span>
-    <a href="https://github.com/dferreiramarques/diagramico" data-i18n="gh"></a>
-    <a href="app/" data-i18n="open"></a>
-  </footer>
-</div>
+
+  <section class="lp-sec" id="roadmap">
+    <div class="wrap">
+      <div class="lp-head">
+        <div class="eyebrow" data-i18n="e_road"></div>
+        <h2 data-i18n="r_h"></h2>
+        <p data-i18n="r_sub"></p>
+      </div>
+      <div data-roadmap="141-N03uEN4QToONYEQMK8w1Ltpw-sGAx"></div>
+      <p class="kfoot" data-i18n="r_note"></p>
+    </div>
+  </section>
+
+  <section class="lp-sec band" id="teams">
+    <div class="wrap">
+      <div class="lp-head">
+        <div class="eyebrow" data-i18n="e_teams"></div>
+        <h2 data-i18n="t_h"></h2>
+        <p data-i18n="t_p"></p>
+      </div>
+      <form class="wl" id="wl" hidden>
+        <input type="email" name="email" required autocomplete="email" data-i18n-ph="t_ph" aria-label="Email">
+        <input type="text" name="uso" data-i18n-ph="t_use" aria-label="Uso" maxlength="140">
+        <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"><!-- honeypot: bots fill it, Formspree drops those submissions -->
+        <label class="chk"><input type="checkbox" name="consent" required><span data-i18n="t_consent"></span></label>
+        <button class="btn btn--primary" type="submit" data-i18n="t_btn"></button>
+      </form>
+      <p class="fine2" data-i18n="t_priv"></p>
+      <div class="msg" id="wlmsg" role="status"></div>
+    </div>
+  </section>
+
+  <section class="lp-sec" id="faq">
+    <div class="wrap">
+      <div class="lp-head">
+        <div class="eyebrow" data-i18n="e_faq"></div>
+        <h2 data-i18n="q_h"></h2>
+      </div>
+      <details><summary data-i18n="q1"></summary><p data-i18n="a1"></p></details>
+      <details><summary data-i18n="q2"></summary><p data-i18n="a2"></p></details>
+      <details><summary data-i18n="q3"></summary><p data-i18n="a3"></p></details>
+      <details><summary data-i18n="q4"></summary><p data-i18n="a4"></p></details>
+      <details><summary data-i18n="q6"></summary><p data-i18n="a6"></p></details>
+      <details><summary data-i18n="q5"></summary><p data-i18n="a5"></p></details>
+    </div>
+  </section>
+
+  <section class="lp-sec">
+    <div class="wrap lp-center">
+      <div class="lp-head lp-head--center">
+        <h2 data-i18n="cta_h"></h2>
+        <p data-i18n="cta_p"></p>
+      </div>
+      <a class="btn btn--primary btn--lg" href="app/" data-i18n="open"></a>
+    </div>
+  </section>
+</main>
+
+<footer class="lp-foot">
+  <div class="wrap">
+    <span>© Diagramico</span>
+    <span><a href="https://github.com/dferreiramarques/diagramico" data-i18n="gh"></a> · <a href="app/" data-i18n="open"></a></span>
+  </div>
+</footer>
 
 <script>
 (() => {
@@ -404,7 +445,7 @@ SY4 > US2 [asks again]`,
   a:`<p><b>Refund:</b> a request is only approved if the purchase is less than 30 days old. Yours is 40 days old, so it will be declined and you will get an explanation of why.</p><p><b>Password:</b> you can ask for a recovery link by email, valid for 1 hour. After that the link is rejected, but you can ask for another.</p><p>I cannot find any exception to the 30-day limit in the documentation.</p>`
 }};
 
-// Plans and public roadmap (what the page shows; the long version is docs/ROADMAP.md)
+// Plans (the roadmap is a Roadmaps embed: roadmaps.monco.io; the long version is docs/ROADMAP.md)
 const PLANS = {
 pt:[
   {k:'free', name:'Free', st:'Disponível', sub:'Para desenhar e documentar, sem conta.', hl:true,
@@ -421,22 +462,12 @@ en:[
   {k:'premium', name:'Premium', st:'Being considered', sub:'For companies with internal data.',
    inc:'Everything in Teams', items:['Saving on the company\'s own infrastructure instead of Google','Collaboration on the internal network only'], fine:'Price on request.'}]
 };
-const ROAD = {
-pt:{labels:{now:'A trabalhar', next:'A seguir', later:'Mais tarde'}, tags:{free:'Free', teams:'Equipas', premium:'Premium'}, cols:{
-  now:[{t:'Afinar o Free', d:'Corrigir e melhorar com o feedback de quem já o usa.', k:'free'},{t:'Lista de espera', d:'Perceber quem quer as Equipas e para quê, antes de as construir.', k:'teams'}],
-  next:[{t:'Gravar na conta Google', d:'Os teus diagramas disponíveis em qualquer computador.', k:'teams'},{t:'Colaboração em tempo real', d:'Ligação de colaboração, com um cursor colorido e o nome de cada pessoa.', k:'teams'},{t:'Acessos por papel', d:'Membro (lê e escreve) e revisor (só lê).', k:'teams'}],
-  later:[{t:'Comentários', d:'Conversas ancoradas às formas, com resolver.', k:'teams'},{t:'Premium', d:'Gravação na infraestrutura da empresa e colaboração na rede interna.', k:'premium'},{t:'Login único (SSO)', d:'Entrar com a conta da empresa.', k:'premium'}]}},
-en:{labels:{now:'Working on', next:'Up next', later:'Later'}, tags:{free:'Free', teams:'Teams', premium:'Premium'}, cols:{
-  now:[{t:'Polishing Free', d:'Fixing and improving with feedback from people already using it.', k:'free'},{t:'Waitlist', d:'Finding out who wants Teams and why, before building it.', k:'teams'}],
-  next:[{t:'Save to your Google account', d:'Your diagrams available on any computer.', k:'teams'},{t:'Real-time collaboration', d:'A collaboration link, with a coloured cursor and the name of each person.', k:'teams'},{t:'Role-based access', d:'Member (read and write) and reviewer (read only).', k:'teams'}],
-  later:[{t:'Comments', d:'Conversations anchored to shapes, with resolve.', k:'teams'},{t:'Premium', d:'Saving on the company infrastructure and collaboration on the internal network.', k:'premium'},{t:'Single sign-on (SSO)', d:'Sign in with the company account.', k:'premium'}]}}
-};
-
 const I18N = {
 pt:{
   c_h:'Exemplo: do diagrama ao assistente de suporte', c_p:'Dois processos simples, desenhados no Diagramico e exportados como texto. Colamos esse texto numa IA e fazemos uma pergunta de cliente: a resposta vem só do que está nos diagramas.',
   c_txt:'Ver o texto exportado', c_bot:'Assistente de suporte', c_ex:'exemplo ilustrativo',
   c_note:'Exemplo ilustrativo: a resposta foi escrita por uma IA (Claude) apenas a partir do texto dos dois diagramas, e apresentada aqui como uma conversa de suporte. O Diagramico não inclui um assistente: gera o texto que colas no que já usas.',
+  e_f:'O que ganhas', e_ai:'Texto para IA', e_case:'Exemplo', e_how:'Como funciona', e_plans:'Planos', e_road:'Roadmap', e_teams:'Equipas', e_faq:'Perguntas', cta_h:'Desenha o teu primeiro fluxo.', cta_p:'Gratuito, sem registo: os dados ficam no teu browser.',
   nav_plans:'Planos', nav_road:'Roadmap', p_h:'Planos', p_sub:'O Diagramico é gratuito para desenhar e documentar. As Equipas acrescentam gravação na conta, colaboração e comentários, e o Premium leva tudo para a infraestrutura da tua empresa.', r_h:'Roadmap', r_sub:'O que estamos a fazer e a ordem em que vem a seguir. Uma vista simples do nosso quadro de trabalho.', r_note:'Sem datas: a ordem pode mudar com o feedback que recebermos.',
   nav_ai:'Texto para IA', nav_faq:'Perguntas', open:'Abrir a app', see_ai:'Ver o texto para IA',
   eyebrow:'Gratuito · sem registo · os dados ficam no teu browser',
@@ -468,6 +499,7 @@ en:{
   c_h:'Example: from diagram to support assistant', c_p:'Two simple processes, drawn in Diagramico and exported as text. We paste that text into an AI and ask a customer question: the answer comes only from what is in the diagrams.',
   c_txt:'See the exported text', c_bot:'Support assistant', c_ex:'illustrative example',
   c_note:'Illustrative example: the answer was written by an AI (Claude) using only the text of the two diagrams, and shown here as a support chat. Diagramico does not include an assistant: it produces the text you paste into the one you already use.',
+  e_f:'What you get', e_ai:'AI text', e_case:'Example', e_how:'How it works', e_plans:'Plans', e_road:'Roadmap', e_teams:'Teams', e_faq:'FAQ', cta_h:'Draw your first flow.', cta_p:'Free, no sign-up: your data stays in your browser.',
   nav_plans:'Plans', nav_road:'Roadmap', p_h:'Plans', p_sub:'Diagramico is free for drawing and documenting. Teams adds saving to your account, collaboration and comments, and Premium moves everything onto your own company infrastructure.', r_h:'Roadmap', r_sub:'What we are working on and what comes next. A simple view of our work board.', r_note:'No dates: the order may change with the feedback we receive.',
   nav_ai:'AI text', nav_faq:'FAQ', open:'Open the app', see_ai:'See the AI text',
   eyebrow:'Free · no sign-up · your data stays in your browser',
@@ -515,9 +547,6 @@ function apply(){
     const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; e.textContent = txt; return e; };
     d.append(h('span', 'st', p.st), h('h3', '', p.name), h('p', 'sub2', p.sub)); const ul = document.createElement('ul');
     if (p.inc) ul.append(h('li', 'inc', p.inc)); for (const it of p.items) ul.append(h('li', '', it)); d.append(ul, h('p', 'fine', p.fine)); return d; }));
-  $('#kan').replaceChildren(...['now', 'next', 'later'].map(c => { const R = ROAD[lang], col = document.createElement('div'); col.className = 'kcol';
-    const hd = document.createElement('h3'); hd.innerHTML = ''; hd.append(c.toUpperCase()); const sm = document.createElement('small'); sm.textContent = R.labels[c]; const n = document.createElement('b'); n.textContent = R.cols[c].length; hd.append(sm, n); col.append(hd);
-    for (const k of R.cols[c]){ const card = document.createElement('div'); card.className = 'kcard'; const t = document.createElement('h4'); t.textContent = k.t; const p = document.createElement('p'); p.textContent = k.d; const tg = document.createElement('span'); tg.className = 'tag ' + k.k; tg.textContent = R.tags[k.k]; card.append(t, p, tg); col.append(card); } return col; }));
   const gif = $('#flowGif'), gsrc = 'assets/flow-' + lang + '.gif'; if (gif.getAttribute('src') !== gsrc) gif.setAttribute('src', gsrc); gif.alt = t('gif_alt');
   const C = CASE[lang];
   [['c1', C.d1], ['c2', C.d2]].forEach(([k, txt]) => {
@@ -545,6 +574,26 @@ if (WAITLIST_URL){
 }
 else $('#teams').hidden = true; // nothing to show until a waitlist endpoint is configured
 apply();
+})();
+</script>
+<script src="https://roadmaps.monco.io/embed.js" defer></script>
+<script>
+(function () {
+  var KEY = 'diagramico-theme';
+  var SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+  var MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+  var btn = document.getElementById('themeToggle');
+  function paint() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    btn.innerHTML = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (dark ? SUN : MOON) + '</svg>';
+  }
+  btn.addEventListener('click', function () {
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+    paint();
+  });
+  paint();
 })();
 </script>
 </body>
