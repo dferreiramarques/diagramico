@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://formspree.io; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://roadmaps.monco.io; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://formspree.io https://roadmaps.monco.io; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Diagramico · Desenha o fluxo, a IA escreve a documentação</title>
 <meta name="description" content="Desenha processos e user flows com o teclado e exporta-os como texto compacto para uma IA escrever a documentação, os casos de teste e a revisão da lógica. Gratuito, sem registo.">
@@ -221,7 +221,7 @@ footer .sp{flex:1}
   <section id="roadmap" style="padding-top:8px">
     <h2 data-i18n="r_h"></h2>
     <p class="sub" data-i18n="r_sub"></p>
-    <div class="kan" id="kan"></div>
+    <div data-roadmap="141-N03uEN4QToONYEQMK8w1Ltpw-sGAx"></div>
     <p class="kfoot" data-i18n="r_note"></p>
   </section>
 </div>
@@ -404,7 +404,7 @@ SY4 > US2 [asks again]`,
   a:`<p><b>Refund:</b> a request is only approved if the purchase is less than 30 days old. Yours is 40 days old, so it will be declined and you will get an explanation of why.</p><p><b>Password:</b> you can ask for a recovery link by email, valid for 1 hour. After that the link is rejected, but you can ask for another.</p><p>I cannot find any exception to the 30-day limit in the documentation.</p>`
 }};
 
-// Plans and public roadmap (what the page shows; the long version is docs/ROADMAP.md)
+// Plans (the roadmap is a Roadmaps embed: roadmaps.monco.io; the long version is docs/ROADMAP.md)
 const PLANS = {
 pt:[
   {k:'free', name:'Free', st:'Disponível', sub:'Para desenhar e documentar, sem conta.', hl:true,
@@ -421,17 +421,6 @@ en:[
   {k:'premium', name:'Premium', st:'Being considered', sub:'For companies with internal data.',
    inc:'Everything in Teams', items:['Saving on the company\'s own infrastructure instead of Google','Collaboration on the internal network only'], fine:'Price on request.'}]
 };
-const ROAD = {
-pt:{labels:{now:'A trabalhar', next:'A seguir', later:'Mais tarde'}, tags:{free:'Free', teams:'Equipas', premium:'Premium'}, cols:{
-  now:[{t:'Afinar o Free', d:'Corrigir e melhorar com o feedback de quem já o usa.', k:'free'},{t:'Lista de espera', d:'Perceber quem quer as Equipas e para quê, antes de as construir.', k:'teams'}],
-  next:[{t:'Gravar na conta Google', d:'Os teus diagramas disponíveis em qualquer computador.', k:'teams'},{t:'Colaboração em tempo real', d:'Ligação de colaboração, com um cursor colorido e o nome de cada pessoa.', k:'teams'},{t:'Acessos por papel', d:'Membro (lê e escreve) e revisor (só lê).', k:'teams'}],
-  later:[{t:'Comentários', d:'Conversas ancoradas às formas, com resolver.', k:'teams'},{t:'Premium', d:'Gravação na infraestrutura da empresa e colaboração na rede interna.', k:'premium'},{t:'Login único (SSO)', d:'Entrar com a conta da empresa.', k:'premium'}]}},
-en:{labels:{now:'Working on', next:'Up next', later:'Later'}, tags:{free:'Free', teams:'Teams', premium:'Premium'}, cols:{
-  now:[{t:'Polishing Free', d:'Fixing and improving with feedback from people already using it.', k:'free'},{t:'Waitlist', d:'Finding out who wants Teams and why, before building it.', k:'teams'}],
-  next:[{t:'Save to your Google account', d:'Your diagrams available on any computer.', k:'teams'},{t:'Real-time collaboration', d:'A collaboration link, with a coloured cursor and the name of each person.', k:'teams'},{t:'Role-based access', d:'Member (read and write) and reviewer (read only).', k:'teams'}],
-  later:[{t:'Comments', d:'Conversations anchored to shapes, with resolve.', k:'teams'},{t:'Premium', d:'Saving on the company infrastructure and collaboration on the internal network.', k:'premium'},{t:'Single sign-on (SSO)', d:'Sign in with the company account.', k:'premium'}]}}
-};
-
 const I18N = {
 pt:{
   c_h:'Exemplo: do diagrama ao assistente de suporte', c_p:'Dois processos simples, desenhados no Diagramico e exportados como texto. Colamos esse texto numa IA e fazemos uma pergunta de cliente: a resposta vem só do que está nos diagramas.',
@@ -515,9 +504,6 @@ function apply(){
     const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; e.textContent = txt; return e; };
     d.append(h('span', 'st', p.st), h('h3', '', p.name), h('p', 'sub2', p.sub)); const ul = document.createElement('ul');
     if (p.inc) ul.append(h('li', 'inc', p.inc)); for (const it of p.items) ul.append(h('li', '', it)); d.append(ul, h('p', 'fine', p.fine)); return d; }));
-  $('#kan').replaceChildren(...['now', 'next', 'later'].map(c => { const R = ROAD[lang], col = document.createElement('div'); col.className = 'kcol';
-    const hd = document.createElement('h3'); hd.innerHTML = ''; hd.append(c.toUpperCase()); const sm = document.createElement('small'); sm.textContent = R.labels[c]; const n = document.createElement('b'); n.textContent = R.cols[c].length; hd.append(sm, n); col.append(hd);
-    for (const k of R.cols[c]){ const card = document.createElement('div'); card.className = 'kcard'; const t = document.createElement('h4'); t.textContent = k.t; const p = document.createElement('p'); p.textContent = k.d; const tg = document.createElement('span'); tg.className = 'tag ' + k.k; tg.textContent = R.tags[k.k]; card.append(t, p, tg); col.append(card); } return col; }));
   const gif = $('#flowGif'), gsrc = 'assets/flow-' + lang + '.gif'; if (gif.getAttribute('src') !== gsrc) gif.setAttribute('src', gsrc); gif.alt = t('gif_alt');
   const C = CASE[lang];
   [['c1', C.d1], ['c2', C.d2]].forEach(([k, txt]) => {
@@ -547,5 +533,6 @@ else $('#teams').hidden = true; // nothing to show until a waitlist endpoint is 
 apply();
 })();
 </script>
+<script src="https://roadmaps.monco.io/embed.js" defer></script>
 </body>
 </html>
