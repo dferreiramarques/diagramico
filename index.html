@@ -575,7 +575,17 @@ else $('#teams').hidden = true; // nothing to show until a waitlist endpoint is 
 apply();
 })();
 </script>
-<script src="https://roadmaps.monco.io/embed.js" defer></script>
+<script>
+// The Roadmaps widget is third-party code that runs with this page's powers, so it is only loaded when the visitor gets near the roadmap section.
+(function () {
+  var box = document.querySelector('[data-roadmap]'); if (!box) return;
+  var done = false;
+  function load() { if (done) return; done = true; var s = document.createElement('script'); s.src = 'https://roadmaps.monco.io/embed.js'; s.defer = true; document.head.appendChild(s); }
+  if (!('IntersectionObserver' in window)) { load(); return; }
+  var io = new IntersectionObserver(function (e) { if (e.some(function (x) { return x.isIntersecting; })) { io.disconnect(); load(); } }, { rootMargin: '300px 0px' });
+  io.observe(box);
+})();
+</script>
 <script>
 (function () {
   var KEY = 'diagramico-theme';
