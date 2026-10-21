@@ -56,7 +56,7 @@ Arranque rápido:
 
 ## Servidor (`server/`)
 
-`npm start` serve o site (landing, `/app/`, assets) e, se `SHORTLINKS=on`, as ligações curtas. Sem dependências, só Node 20+. Variáveis: `PORT`, `SHORTLINKS`, `DATA_DIR` (pasta do `shorts.json`; no Railway, um Volume montado em `/data`), `SHORT_TTL_DAYS`, `TRUST_PROXY_HOPS`, e as do modo IA (abaixo). `npm test` corre os testes.
+`npm start` serve o site (landing, `/app/`, assets) e, se `SHORTLINKS=on`, as ligações curtas. Sem dependências, só Node 20+. Variáveis: `PORT`, `SHORTLINKS`, `DATA_DIR` (pasta do `shorts.json`; no Railway, um Volume montado em `/data`), `SHORT_TTL_DAYS`, `TRUST_PROXY_HOPS`. `npm test` corre os testes.
 
 ## Resumir e Guia (walkthrough)
 
@@ -65,10 +65,10 @@ Dois botões ao lado de **Exportar**:
 - **Resumir**: resumo, decomposição por lane com o caminho principal, regras-chave (decisões e ramos, ciclos, passagens entre lanes, esperas, notas) e pontos-chave, incluindo lacunas do diagrama (ramos sem rótulo, passos sem saída, passos inalcançáveis).
 - **Guia**: job aid para quem segue o processo pela primeira vez: objetivo, quem participa, antes de começar, passo a passo numerado (com "Se X → passo N" nas decisões e a passagem de lane) e lista de verificação.
 
-Os dois têm dois motores e dão Markdown (copiar ou guardar `.md`):
+Cada um tem dois modos:
 
-- **Local** (por defeito, sempre disponível, também no GitHub Pages): lê o próprio grafo no browser. Sem rede, sem custos, sempre o mesmo resultado. Rótulos nas setas das decisões e notas ligadas às formas enriquecem o texto.
-- **IA** (opcional, só com o servidor e `AI=on`): o servidor envia o texto para IA do diagrama a um modelo compatível com a API da OpenAI e devolve a prosa. A chave fica no servidor; o browser só fala com `/api/ai`, que aceita apenas um diagrama e os dois tipos de documento (não serve de proxy de chat). Variáveis: `AI_BASE_URL` (por defeito Groq, que tem plano gratuito; serve também OpenRouter com modelos `:free`, Gemini em `/v1beta/openai` ou um Ollama local em `http://localhost:11434/v1`), `AI_API_KEY`, `AI_MODEL` (por defeito `llama-3.3-70b-versatile`), `AI_RATE` (pedidos por IP por hora, 30) e `AI_MAX_CHARS` (24000).
+- **Gerado aqui** (por defeito): lê o próprio grafo no browser e mostra o texto pronto, em Markdown (copiar ou guardar `.md`). Sem rede, sem custos, sempre o mesmo resultado; funciona também no GitHub Pages. Rótulos nas setas das decisões e notas ligadas às formas enriquecem o texto.
+- **Prompt para a tua IA**: um prompt completo (instruções com as secções pedidas e o diagrama em texto para IA), para copiar e colar no ChatGPT, Claude, Gemini, Copilot ou outra. A app não chama nenhuma IA, nem precisa de chaves ou servidor.
 
 ## Importar texto (IA e Mermaid)
 

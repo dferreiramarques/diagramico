@@ -128,7 +128,6 @@ button{font:inherit;color:inherit}
 .modal footer{display:flex;gap:8px;justify-content:flex-end;padding:10px 16px 14px;flex-wrap:wrap;align-items:center}
 .modal footer .stat{margin-right:auto;font:11px var(--mono);color:var(--muted)}
 .modal .md{font-size:13.5px;line-height:1.6;max-width:74ch;user-select:text}
-.modal .md.wait{color:var(--muted)}
 .modal .md h3{font-size:14px;margin:18px 0 6px}
 .modal .md h3:first-child{margin-top:2px}
 .modal .md h4{font-size:13px;margin:12px 0 4px}
@@ -320,9 +319,43 @@ pt: {
   saved:'Gravado', saving:'A gravar…', notSaved:'Não gravado', storageFail:'Este browser não permite gravar localmente. Guarde uma cópia de segurança.',
   export:'Exportar', exportTitle:'Exportar texto para IA, Mermaid, JSON ou imagem', tools:'Ferramentas',
   summarize:'Resumir', summarizeTitle:'Resumo, decomposição, regras-chave e pontos-chave do diagrama', walkthrough:'Guia', walkthroughTitle:'Guia passo a passo (job aid) para quem vai seguir o processo pela primeira vez',
-  ins_tabSum:'Resumo', ins_tabWalk:'Guia passo a passo', ins_local:'Local (no browser)', ins_ai:'IA', ins_aiOff:'IA indisponível neste endereço: o servidor precisa de AI=on.', ins_words:'palavras', ins_regen:'Gerar outra vez',
+  ins_tabSum:'Resumo', ins_tabWalk:'Guia passo a passo', ins_local:'Gerado aqui', ins_prompt:'Prompt para a tua IA', ins_words:'palavras', ins_copyPrompt:'Copiar prompt',
   ins_hintLocal:'Gerado no teu browser a partir das formas, setas, lanes e notas; nada sai do computador. Rótulos nas setas das decisões e notas ligadas às formas tornam o texto mais rico.',
-  ins_hintAi:'Escrito por um modelo de IA a partir do texto para IA do diagrama, que é enviado ao servidor. Pode errar: revê antes de partilhar.', ins_working:'A gerar…', ins_aiFail:'A IA não respondeu. Tenta mais tarde ou usa o modo local.', ins_aiRate:'Limite de pedidos à IA atingido. Tenta daqui a uma hora ou usa o modo local.',
+  ins_hintPrompt:'Copia e cola na IA que preferires (ChatGPT, Claude, Gemini, Copilot…). O prompt já leva as instruções e o diagrama em texto compacto.',
+  ins_prSum:`És um analista de processos. Abaixo está um diagrama de processo no formato de texto compacto do Diagramico: a linha SYNTAX explica a notação (cada ID começa pelo código da lane; "A > B" é uma seta; "[x]" é o rótulo de um ramo).
+
+Escreve em português de Portugal, em Markdown, com estas secções, por esta ordem:
+## Resumo
+2 a 4 frases: o que o processo faz, onde começa e como pode terminar.
+## Decomposição
+Um ponto por lane (ou por fase, se não houver lanes): "**Lane**: o que faz".
+## Regras-chave
+As regras de negócio do diagrama: cada decisão com os seus ramos ("se X, então Y"), caminhos paralelos ou inclusivos, ciclos, esperas, passagens de responsabilidade entre lanes e regras escritas nas notas.
+## Pontos-chave
+3 a 6 pontos: o que mais importa, riscos, estrangulamentos e lacunas do diagrama (ramos sem rótulo, passos sem saída).
+
+Regras: usa só o que está no diagrama e não inventes passos, regras nem papéis. Refere os passos pelo texto, nunca pelos IDs (como CL3). Sem introdução nem conclusão.
+
+Diagrama:`,
+  ins_prWalk:`És um formador. Abaixo está um diagrama de processo no formato de texto compacto do Diagramico: a linha SYNTAX explica a notação (cada ID começa pelo código da lane; "A > B" é uma seta; "[x]" é o rótulo de um ramo).
+
+Escreve um guia passo a passo (job aid) para ensinar alguém que vai seguir este processo pela primeira vez. Em português de Portugal, em Markdown, com estas secções, por esta ordem:
+## Objetivo
+1 ou 2 frases.
+## Quem participa
+Um ponto por lane, com o seu papel.
+## Antes de começar
+O que dá início ao processo e o que é preciso ter à mão (documentos, dados, ecrãs, acessos).
+## Passo a passo
+Lista numerada que segue o fluxo desde o início. Cada passo começa por "**Lane**:" quando há lanes e diz a ação no imperativo ("Preenche…", "Verifica…"). Nas decisões, sub-pontos "Se <condição> → vai para o passo N". Assinala quando a responsabilidade passa para outra lane e onde o processo termina.
+## Dicas e erros comuns
+Só o que as notas ou a estrutura justificam (esperas, ciclos, decisões fáceis de errar). Omite a secção se não houver nada.
+## Lista de verificação
+Itens "- [ ]" que a pessoa possa ir marcando.
+
+Regras: usa só o que está no diagrama e não inventes passos, regras nem papéis. Refere os passos pelo texto, nunca pelos IDs (como CL3). Linguagem simples, para quem nunca fez o processo. Sem introdução nem conclusão.
+
+Diagrama:`,
   ins_sumH:'Resumo', ins_brkH:'Decomposição', ins_rulesH:'Regras-chave', ins_takeH:'Pontos-chave', ins_main:'Caminho principal', ins_noLane:'Sem lane', ins_onlyEvents:'só eventos', ins_more:n => `mais ${n}`,
   ins_intro:(name, n, k, lanes) => `${name} descreve um processo com ${n} ${n===1?'passo':'passos'}` + (k ? `, repartido por ${k===1?'uma lane':k+' lanes'}: ${lanes}.` : '.'),
   ins_starts:s => `Começa em ${s}`, ins_ends:(k, s) => k===1 ? ` e termina em ${s}.` : ` e tem ${k} desfechos possíveis: ${s}.`, ins_noEnd:', mas não tem um fim marcado.',
@@ -471,9 +504,43 @@ en: {
   saved:'Saved', saving:'Saving…', notSaved:'Not saved', storageFail:'This browser does not allow local saving. Download a backup.',
   export:'Export', exportTitle:'Export AI text, Mermaid, JSON or image', tools:'Tools',
   summarize:'Summarize', summarizeTitle:'Summary, breakdown, key rules and takeaways of the diagram', walkthrough:'Walkthrough', walkthroughTitle:'Step-by-step job aid for people following the process for the first time',
-  ins_tabSum:'Summary', ins_tabWalk:'Walkthrough', ins_local:'Local (in the browser)', ins_ai:'AI', ins_aiOff:'AI is not available at this address: the server needs AI=on.', ins_words:'words', ins_regen:'Generate again',
+  ins_tabSum:'Summary', ins_tabWalk:'Walkthrough', ins_local:'Generated here', ins_prompt:'Prompt for your AI', ins_words:'words', ins_copyPrompt:'Copy prompt',
   ins_hintLocal:'Generated in your browser from the shapes, arrows, lanes and notes; nothing leaves your computer. Labels on decision arrows and notes linked to shapes make the text richer.',
-  ins_hintAi:'Written by an AI model from the diagram\'s AI text, which is sent to the server. It can be wrong: review it before sharing.', ins_working:'Generating…', ins_aiFail:'The AI did not answer. Try again later or use the local mode.', ins_aiRate:'AI request limit reached. Try again in an hour or use the local mode.',
+  ins_hintPrompt:'Copy and paste it into the AI you prefer (ChatGPT, Claude, Gemini, Copilot…). The prompt already holds the instructions and the diagram as compact text.',
+  ins_prSum:`You are a process analyst. Below is a process diagram in Diagramico's compact text format: the SYNTAX line explains the notation (each ID starts with its lane code; "A > B" is an arrow; "[x]" is a branch label).
+
+Write in English, in Markdown, with these sections, in this order:
+## Summary
+2 to 4 sentences: what the process does, where it starts and how it can end.
+## Breakdown
+One bullet per lane (or per phase if there are no lanes): "**Lane**: what it does".
+## Key rules
+The business rules the diagram encodes: every decision with its branches ("if X, then Y"), parallel or inclusive paths, loops, waits, handoffs of responsibility between lanes, and rules written in notes.
+## Takeaways
+3 to 6 bullets: what matters most, risks, bottlenecks and gaps in the diagram (unlabelled branches, steps with no way out).
+
+Rules: use only what the diagram says and never invent steps, rules or roles. Refer to steps by their text, never by their IDs (like CU3). No introduction or conclusion.
+
+Diagram:`,
+  ins_prWalk:`You are a trainer. Below is a process diagram in Diagramico's compact text format: the SYNTAX line explains the notation (each ID starts with its lane code; "A > B" is an arrow; "[x]" is a branch label).
+
+Write a step-by-step job aid that teaches someone following this process for the first time. In English, in Markdown, with these sections, in this order:
+## Purpose
+1 or 2 sentences.
+## Who is involved
+One bullet per lane, with its role.
+## Before you start
+What triggers the process and what to have at hand (documents, data, screens, access).
+## Step by step
+A numbered list following the flow from the start. Each step begins with "**Lane**:" when there are lanes and states the action as an instruction ("Fill in…", "Check…"). For decisions, nested bullets "If <condition> → go to step N". Mark where responsibility passes to another lane and where the process ends.
+## Tips and common mistakes
+Only what the notes or the structure support (waits, loops, decisions that are easy to get wrong). Omit the section if there is nothing.
+## Checklist
+"- [ ]" items the person can tick off.
+
+Rules: use only what the diagram says and never invent steps, rules or roles. Refer to steps by their text, never by their IDs (like CU3). Plain language, for someone who has never done the process. No introduction or conclusion.
+
+Diagram:`,
   ins_sumH:'Summary', ins_brkH:'Breakdown', ins_rulesH:'Key rules', ins_takeH:'Takeaways', ins_main:'Main path', ins_noLane:'No lane', ins_onlyEvents:'events only', ins_more:n => `${n} more`,
   ins_intro:(name, n, k, lanes) => `${name} describes a process with ${n} ${n===1?'step':'steps'}` + (k ? `, across ${k===1?'one lane':k+' lanes'}: ${lanes}.` : '.'),
   ins_starts:s => `It starts at ${s}`, ins_ends:(k, s) => k===1 ? ` and ends at ${s}.` : ` and has ${k} possible outcomes: ${s}.`, ins_noEnd:', but has no marked end.',
@@ -2260,9 +2327,8 @@ $('#mClose').onclick = closeModal;
 $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') closeModal(); });
 
 /* ---------- summarize and walkthrough ---------- */
-// Two engines write the same Markdown. Local (default): reads the graph itself (shapes, arrows, lanes, notes) in the browser,
-// with no network and the same answer every time. AI (only when the server has AI=on): the server sends exportAI() to an
-// OpenAI-compatible model and returns its prose. Either way the Markdown is shown with mdRender, which only uses textContent.
+// Local (default): reads the graph itself (shapes, arrows, lanes, notes) in the browser, with no network and the same answer
+// every time, shown with mdRender (textContent only). Prompt: a ready-made prompt plus exportAI() for the user to paste into the AI they prefer.
 const plainT = t => clean(t).replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1').replace(/ \| /g,' ');
 const qt = s => lang === 'pt' ? `«${s}»` : `“${s}”`;
 const listFmt = a => { try { return new Intl.ListFormat(LOC(), {type:'conjunction'}).format(a); } catch(e){ return a.join(', '); } };
@@ -2444,18 +2510,9 @@ function mdRender(md){
   return root;
 }
 const INS_MODE_KEY = 'diagramico.insightMode';
-let insTab = 'summary', insMode = (() => { try { return localStorage.getItem(INS_MODE_KEY) === 'ai' ? 'ai' : 'local'; } catch(e){ return 'local'; } })(), insSeq = 0;
-const insCache = new Map();
+let insTab = 'summary', insMode = (() => { try { return localStorage.getItem(INS_MODE_KEY) === 'prompt' ? 'prompt' : 'local'; } catch(e){ return 'local'; } })();
 function openInsight(kind){ endEdit(); insTab = kind; modalRender = renderInsight; $('#modal').hidden = false; renderInsight(); }
-function insightAI(kind){
-  const text = exportAI(doc), key = kind + '|' + lang + '|' + text;
-  if (!insCache.has(key)){
-    const p = fetch('/api/ai', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({kind, lang, text})})
-      .then(async r => { if (!r.ok) throw new Error(r.status === 429 ? 'rate' : 'fail'); return (await r.json()).md; });
-    p.catch(() => insCache.delete(key)); insCache.set(key, p);
-  }
-  return {key, p: insCache.get(key)};
-}
+const insightPrompt = kind => T(kind === 'summary' ? 'ins_prSum' : 'ins_prWalk') + '\n\n```\n' + exportAI(doc) + '\n```\n';
 function renderInsight(){
   const title = T(insTab === 'summary' ? 'ins_tabSum' : 'ins_tabWalk');
   $('#mTabs').hidden = false; $('#mTitle').textContent = title + ' · ' + doc.name;
@@ -2463,13 +2520,21 @@ function renderInsight(){
   for (const [k,l] of [['summary',T('ins_tabSum')],['walkthrough',T('ins_tabWalk')]]){ const b = document.createElement('button'); b.textContent = l; b.className = insTab === k ? 'on' : ''; b.onclick = () => { insTab = k; renderInsight(); }; tabsEl.appendChild(b); }
   const body = $('#mBody'), foot = $('#mFoot'); body.innerHTML = ''; foot.innerHTML = '';
   const o = el('div', 'opts', `<label><input type="radio" name="imode" value="local" ${insMode==='local'?'checked':''}> ${T('ins_local')}</label>
-    <label><input type="radio" name="imode" value="ai" id="imAi" ${insMode==='ai'?'checked':''} disabled> ${T('ins_ai')}</label>`);
+    <label><input type="radio" name="imode" value="prompt" ${insMode==='prompt'?'checked':''}> ${T('ins_prompt')}</label>`);
   body.appendChild(o);
   o.querySelectorAll('input').forEach(r => r.onchange = () => { insMode = r.value; try { localStorage.setItem(INS_MODE_KEY, insMode); } catch(e){} renderInsight(); });
-  aiAvailable().then(ok => { const r = $('#imAi'); if (!r) return; if (ok) r.disabled = false; else { r.parentElement.title = T('ins_aiOff'); if (insMode === 'ai'){ insMode = 'local'; renderInsight(); } } });
-  const hp = el('p', 'hint'); hp.textContent = T(insMode === 'ai' ? 'ins_hintAi' : 'ins_hintLocal'); body.appendChild(hp);
-  const out = el('div', 'md'); body.appendChild(out);
+  const hp = el('p', 'hint'); hp.textContent = T(insMode === 'prompt' ? 'ins_hintPrompt' : 'ins_hintLocal'); body.appendChild(hp);
+  const empty = !doc.nodes.some(n => !['lane','note','geo','text'].includes(n.type));
   const stat = el('span', 'stat'); foot.appendChild(stat);
+  if (insMode === 'prompt'){
+    const text = insightPrompt(insTab), pre = el('pre'); pre.textContent = empty ? T('empty') : text; body.appendChild(pre);
+    if (empty) return;
+    stat.textContent = `${text.length.toLocaleString(LOC())} ${T('chars')} · ~${tokEst(text).toLocaleString(LOC())} ${T('tokens')}`;
+    const s = el('button', 'btn'); s.textContent = T('saveFile'); s.onclick = () => saveFile(slug(doc.name) + (insTab === 'summary' ? '.summary-prompt.txt' : '.walkthrough-prompt.txt'), text);
+    const c = el('button', 'btn primary'); c.textContent = T('ins_copyPrompt'); c.onclick = () => copyText(text);
+    foot.append(s, c); return;
+  }
+  const out = el('div', 'md'); body.appendChild(out);
   const cp = el('button', 'btn'); cp.textContent = T('copy'); cp.disabled = true;
   const sv = el('button', 'btn primary'); sv.textContent = T('saveFile'); sv.disabled = true;
   const show = md => {
@@ -2478,15 +2543,9 @@ function renderInsight(){
     cp.onclick = () => copyText(md); sv.onclick = () => saveFile(slug(doc.name) + (insTab === 'summary' ? '.summary.md' : '.walkthrough.md'), file);
     stat.textContent = `${(md.match(/\S+/g) || []).length.toLocaleString(LOC())} ${T('ins_words')}`;
   };
-  if (!doc.nodes.some(n => !['lane','note','geo','text'].includes(n.type))){ out.textContent = T('empty'); foot.append(cp, sv); return; }
-  if (insMode === 'local'){ show(insTab === 'summary' ? localSummary(doc) : localWalkthrough(doc)); foot.append(cp, sv); return; }
-  const my = ++insSeq, {key, p} = insightAI(insTab);
-  const again = el('button', 'btn'); again.textContent = T('ins_regen'); again.disabled = true;
-  again.onclick = () => { insCache.delete(key); renderInsight(); };
-  foot.append(again, cp, sv);
-  out.textContent = T('ins_working'); out.classList.add('wait');
-  p.then(md => { if (my !== insSeq || !out.isConnected) return; out.classList.remove('wait'); show(md); again.disabled = false; })
-   .catch(e => { if (my !== insSeq || !out.isConnected) return; out.classList.remove('wait'); out.textContent = ''; hp.textContent = T(e.message === 'rate' ? 'ins_aiRate' : 'ins_aiFail'); hp.style.color = 'var(--danger)'; again.disabled = false; });
+  foot.append(cp, sv);
+  if (empty){ out.textContent = T('empty'); return; }
+  show(insTab === 'summary' ? localSummary(doc) : localWalkthrough(doc));
 }
 
 /* ---------- import: shared ---------- */
@@ -3290,12 +3349,11 @@ function unpackDoc(o){
 async function sharePayload(){ return b64u(await deflateRaw(new TextEncoder().encode(JSON.stringify(packDoc(doc))))); }
 async function shareUrl(){ return location.href.split('#')[0].split('?')[0] + '#d=' + await sharePayload(); }
 /* Short link: the same payload is stored by the server (server/server.js) and opened as /s/ID, which redirects to /app/#s=ID. Only offered when the server says it is on. */
-// The same health answer also says whether the AI engine for Summarize / Walkthrough is on (AI=on). Static hosting (GitHub Pages, file://) has neither.
+// Static hosting (GitHub Pages, file://) has no server, so no health answer and no short links.
 let healthP = null;
 const health = () => healthP || (healthP = !/^https?:$/.test(location.protocol) ? Promise.resolve(null)
   : fetch('/api/health', {cache:'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null));
 const shortAvailable = () => health().then(j => !!(j && j.shortLinks));
-const aiAvailable = () => health().then(j => !!(j && j.ai));
 async function shortUrl(){
   const r = await fetch('/api/short', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({d: await sharePayload()})});
   if (!r.ok) throw new Error('short ' + r.status);

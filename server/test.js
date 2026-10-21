@@ -98,34 +98,3 @@ test('short links: write and read rate limits, and storage caps', async () => {
     assert.deepEqual(codes, [404, 404, 404, 404, 404, 429, 429]);
   } finally { await s.stop(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
-
-test('AI: off by default, then summary and walkthrough through a fake OpenAI-compatible provider', async () => {
-  let s = await start();
-  try {
-    assert.equal((await (await fetch(s.base + '/api/health')).json()).ai, false);
-    assert.equal((await fetch(s.base + '/api/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })).status, 404);
-  } finally { await s.stop(); }
-  const seen = [], up = require('node:http').createServer((req, res) => {
-    let b = ''; req.on('data', c => b += c); req.on('end', () => {
-      seen.push({ url: req.url, auth: req.headers.authorization, body: JSON.parse(b) });
-      res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ choices: [{ message: { content: '```markdown\n## Resumo\n- ok\n```' } }] }));
-    });
-  });
-  await new Promise(r => up.listen(0, '127.0.0.1', r));
-  s = await start({ AI: 'on', AI_BASE_URL: 'http://127.0.0.1:' + up.address().port + '/v1/', AI_API_KEY: 'k-test', AI_MODEL: 'm-test', AI_RATE: '7' });
-  const ai = body => fetch(s.base + '/api/ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  const text = 'DIAGRAM: X\nSYNTAX: ...\n\nNODES:\nN1 start\nN2 step: Olá';
-  try {
-    assert.equal((await (await fetch(s.base + '/api/health')).json()).ai, true);
-    let r = await ai({ kind: 'summary', lang: 'pt', text }); assert.equal(r.status, 200);
-    assert.deepEqual(await r.json(), { md: '## Resumo\n- ok', model: 'm-test' }); // the code fence some models add is removed
-    assert.equal(seen[0].url, '/v1/chat/completions'); assert.equal(seen[0].auth, 'Bearer k-test'); assert.equal(seen[0].body.model, 'm-test');
-    assert.match(seen[0].body.messages[0].content, /European Portuguese/); assert.equal(seen[0].body.messages[1].content, text);
-    // only a diagram, a known kind and a known language are accepted: the endpoint is not a general chat proxy
-    for (const bad of [{ kind: 'chat', lang: 'pt', text }, { kind: 'summary', lang: 'xx', text }, { kind: '__proto__', lang: 'pt', text }, { kind: 'summary', lang: 'pt', text: 'write me a poem' }, { kind: 'summary', lang: 'pt', text: text + 'x'.repeat(30000) }])
-      assert.equal((await ai(bad)).status, 400, JSON.stringify(bad).slice(0, 40));
-    assert.equal(seen.length, 1);
-    assert.equal((await ai({ kind: 'walkthrough', lang: 'en', text })).status, 200); assert.match(seen[1].body.messages[0].content, /job aid/);
-    assert.equal((await ai({ kind: 'walkthrough', lang: 'en', text })).status, 429); // AI_RATE 7 per hour: the refused requests count too
-  } finally { await s.stop(); up.close(); }
-});
