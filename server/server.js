@@ -12,7 +12,14 @@
      SHORT_MAX_CHARS      largest accepted payload, in characters (default 120000)
      SHORT_MAX_ITEMS      most links stored (default 50000);  SHORT_MAX_BYTES  most payload bytes stored (default 50 MB)
      SHORT_RATE_WRITE     links one IP may create per hour (default 20);  SHORT_RATE_READ  lookups per IP per minute (default 240)
-     TRUST_PROXY_HOPS     proxies in front of this server whose X-Forwarded-For entry can be trusted (default 1; 0 = use the socket address) */
+     TRUST_PROXY_HOPS     proxies in front of this server whose X-Forwarded-For entry can be trusted (default 1; 0 = use the socket address)
+
+   AI summaries and walkthroughs (optional; the editor has a local engine that always works without this):
+     AI                   on|off  (default off: /api/ai answers 404 and the editor only offers the local engine)
+     AI_BASE_URL          any OpenAI-compatible API (default https://api.groq.com/openai/v1; also OpenRouter, Gemini's /v1beta/openai, a local Ollama at http://localhost:11434/v1)
+     AI_API_KEY           the provider's key (not needed for Ollama). Stays on the server, never reaches the browser
+     AI_MODEL             model name (default llama-3.3-70b-versatile)
+     AI_MAX_CHARS         largest diagram text accepted (default 24000);  AI_RATE  requests one IP may make per hour (default 30) */
 const http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto'), zlib = require('zlib');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -29,6 +36,12 @@ const CFG = {
   rateWrite: int(process.env.SHORT_RATE_WRITE, 1, 100000, 20),
   rateRead: int(process.env.SHORT_RATE_READ, 1, 100000, 240),
   hops: int(process.env.TRUST_PROXY_HOPS, 0, 5, 1),
+  aiOn: /^(1|on|true|yes)$/i.test(process.env.AI || ''),
+  aiBase: String(process.env.AI_BASE_URL || 'https://api.groq.com/openai/v1').replace(/\/+$/, ''),
+  aiKey: process.env.AI_API_KEY || '',
+  aiModel: process.env.AI_MODEL || 'llama-3.3-70b-versatile',
+  aiMaxChars: int(process.env.AI_MAX_CHARS, 1000, 200000, 24000),
+  aiRate: int(process.env.AI_RATE, 1, 100000, 30),
 };
 const ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz'; // 31 symbols: no 0 1 i l o, so ids survive being read aloud or retyped
 const ID_RE = /^[2-9a-hj-km-np-z]{4,12}$/;
@@ -71,6 +84,30 @@ function validPayload(d){
     const o = JSON.parse(zlib.inflateRawSync(raw, { maxOutputLength: 8 * 1024 * 1024 }).toString('utf8'));
     return !!o && Array.isArray(o.nodes) && o.nodes.length <= 3000;
   } catch (e) { return false; }
+}
+
+/* ---------- AI: summary and walkthrough ----------
+   The browser sends only the diagram as Diagramico AI text (exportAI) and which document it wants; the prompt lives here,
+   so the endpoint cannot be used as a general-purpose chat proxy. */
+const AI_LANG = { pt: 'European Portuguese (pt-PT)', en: 'English' };
+const AI_HEAD = {
+  summary: { pt: ['Resumo', 'Decomposição', 'Regras-chave', 'Pontos-chave'], en: ['Summary', 'Breakdown', 'Key rules', 'Takeaways'] },
+  walkthrough: { pt: ['Objetivo', 'Quem participa', 'Antes de começar', 'Passo a passo', 'Dicas e erros comuns', 'Lista de verificação'], en: ['Purpose', 'Who is involved', 'Before you start', 'Step by step', 'Tips and common mistakes', 'Checklist'] },
+};
+function aiPrompt(kind, lang){
+  const h = AI_HEAD[kind][lang], common = `You read process diagrams written in the Diagramico compact text format (its SYNTAX line explains it) and explain them to people. Write in ${AI_LANG[lang]}. Answer in Markdown only: "## " headings, "- " bullets, "1. " numbered lists, **bold**; no tables, no code blocks, no preamble. Use only what the diagram says; never invent steps, rules or roles. Refer to steps by their text, never by their IDs (like CL3). Lanes are the people, teams or systems responsible.`;
+  if (kind === 'summary') return common + `\nWrite these sections, in this order:\n## ${h[0]}: 2 to 4 sentences on what the process does, where it starts and how it can end.\n## ${h[1]}: one bullet per lane (or per phase if there are no lanes), "**Lane**: what it does".\n## ${h[2]}: the business rules the diagram encodes: every decision with its branches ("if X, then Y"), parallel or inclusive gateways, loops, waits, handoffs between lanes and rules written in notes.\n## ${h[3]}: 3 to 6 bullets: what matters most, risks, bottlenecks, and gaps in the diagram (unlabelled branches, steps with no way out).`;
+  return common + `\nWrite a job aid that teaches a first-time user to run this process. Sections, in this order:\n## ${h[0]}: one or two sentences.\n## ${h[1]}: one bullet per lane, with its role.\n## ${h[2]}: what triggers the process and what the user needs (documents, data, screens).\n## ${h[3]}: a numbered list following the flow from the start. Each item begins with "**Lane**:" when there are lanes, then the action as an instruction (imperative). For decisions, nest bullets "If <condition> → go to step N". Mark where responsibility passes to another lane and where the process ends.\n## ${h[4]}: only what the notes or the structure support (waits, loops, decisions that are easy to get wrong). Omit the section if there is nothing.\n## ${h[5]}: "- [ ] " items a new user can tick off.`;
+}
+async function aiComplete(kind, lang, text){
+  const headers = { 'Content-Type': 'application/json' }; if (CFG.aiKey) headers.Authorization = 'Bearer ' + CFG.aiKey;
+  const r = await fetch(CFG.aiBase + '/chat/completions', { method: 'POST', headers, signal: AbortSignal.timeout(60000), body: JSON.stringify({
+    model: CFG.aiModel, temperature: 0.2, max_tokens: 2500,
+    messages: [{ role: 'system', content: aiPrompt(kind, lang) }, { role: 'user', content: text }] }) });
+  if (!r.ok){ console.error('ai upstream', r.status, (await r.text().catch(() => '')).slice(0, 300)); throw Object.assign(new Error('upstream'), { status: 502 }); }
+  const j = await r.json(), md = j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+  if (typeof md !== 'string' || !md.trim()) throw Object.assign(new Error('empty'), { status: 502 });
+  return md.replace(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/, '$1').trim().slice(0, 20000);
 }
 
 /* ---------- rate limits ---------- */
@@ -146,7 +183,20 @@ async function handle(req, res){
   const url = new URL(req.url, 'http://x'), p = url.pathname;
   const get = req.method === 'GET' || req.method === 'HEAD';
 
-  if (p === '/api/health' && get) return json(req, res, 200, { ok: true, shortLinks: CFG.shortOn, ttlDays: CFG.ttlDays, idLen: CFG.idLen });
+  if (p === '/api/health' && get) return json(req, res, 200, { ok: true, shortLinks: CFG.shortOn, ttlDays: CFG.ttlDays, idLen: CFG.idLen, ai: CFG.aiOn });
+
+  if (p === '/api/ai'){
+    if (!CFG.aiOn) return json(req, res, 404, { error: 'disabled' });
+    if (req.method !== 'POST') return json(req, res, 405, { error: 'method' }, { Allow: 'POST' });
+    if (limited('ai:' + clientIp(req), CFG.aiRate, 3600000)) return json(req, res, 429, { error: 'rate' }, { 'Retry-After': '3600' });
+    if (!/^application\/json\b/i.test(String(req.headers['content-type'] || ''))) return json(req, res, 415, { error: 'type' });
+    let body; try { body = JSON.parse((await readBody(req, CFG.aiMaxChars * 4 + 2000)).toString('utf8')); }
+    catch (e) { if (e.status === 413){ res.on('finish', () => req.destroy()); return json(req, res, 413, { error: 'size' }, { Connection: 'close' }); } return json(req, res, 400, { error: 'json' }); }
+    const kind = body && body.kind, lang = body && body.lang, text = body && body.text;
+    if (!Object.hasOwn(AI_HEAD, kind) || !Object.hasOwn(AI_LANG, lang) || typeof text !== 'string' || text.length > CFG.aiMaxChars || !/^DIAGRAM: /.test(text) || !/\nNODES:\n/.test(text)) return json(req, res, 400, { error: 'payload' });
+    try { return json(req, res, 200, { md: await aiComplete(kind, lang, text), model: CFG.aiModel }); }
+    catch (e) { if (e.status !== 502) console.error('ai', e.message); return json(req, res, 502, { error: 'upstream' }); }
+  }
 
   if (p === '/api/short'){
     if (!CFG.shortOn) return json(req, res, 404, { error: 'disabled' });
@@ -196,7 +246,7 @@ function createServer(){
 if (require.main === module){
   loadStore(); expire();
   const srv = createServer();
-  srv.listen(CFG.port, () => console.log(`diagramico listening on ${srv.address().port}; short links ${CFG.shortOn ? 'on (' + store.items.size + ' stored, data in ' + CFG.dataDir + ')' : 'off'}`));
+  srv.listen(CFG.port, () => console.log(`diagramico listening on ${srv.address().port}; short links ${CFG.shortOn ? 'on (' + store.items.size + ' stored, data in ' + CFG.dataDir + ')' : 'off'}; ai ${CFG.aiOn ? 'on (' + CFG.aiModel + ')' : 'off'}`));
   setInterval(() => { sweepBuckets(); expire(); }, 3600000).unref();
   for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => { saveStore(); process.exit(0); });
 }
