@@ -132,7 +132,7 @@ Limitações: só horizontal; não desenha arestas à volta de formas; a lane de
 
 Node sem dependências. Serve só uma lista fechada (`/index.html`, `/product-page.css`, `/app/`, `/assets/`) com cabeçalhos de segurança e CSP, e a API das ligações curtas, desligada por defeito (`SHORTLINKS=on`):
 
-- `GET /api/health` → `{shortLinks, ttlDays, idLen}` (o editor usa-o para mostrar ou não a opção *Curta*).
+- `GET /api/health` → `{ok, commit, shortLinks, ttlDays, idLen}` (o editor usa `shortLinks` para mostrar ou não a opção *Curta*; `commit` são os 7 primeiros caracteres do `RAILWAY_GIT_COMMIT_SHA`, ou `null`, e serve para confirmar que versão está em produção).
 - `POST /api/short` `{d}` → `201 {id}` (ou `200` se o mesmo diagrama já existir: deduplicação por sha256). `d` é o mesmo payload do `#d=`; só é aceite se descomprimir (limite 8 MB) para JSON com `nodes[]`.
 - `GET /api/short/:id` → `{d}`; `GET /s/:id` → 302 para `/app/#s=ID`. O editor revalida tudo com `unpackDoc`, como em `#d=`.
 - IDs de 6 caracteres de `23456789abcdefghjkmnpqrstuvwxyz` (sem caracteres ambíguos), gerados com `crypto.randomInt`.

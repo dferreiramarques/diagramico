@@ -12,7 +12,8 @@
      SHORT_MAX_CHARS      largest accepted payload, in characters (default 120000)
      SHORT_MAX_ITEMS      most links stored (default 50000);  SHORT_MAX_BYTES  most payload bytes stored (default 50 MB)
      SHORT_RATE_WRITE     links one IP may create per hour (default 20);  SHORT_RATE_READ  lookups per IP per minute (default 240)
-     TRUST_PROXY_HOPS     proxies in front of this server whose X-Forwarded-For entry can be trusted (default 1; 0 = use the socket address) */
+     TRUST_PROXY_HOPS     proxies in front of this server whose X-Forwarded-For entry can be trusted (default 1; 0 = use the socket address)
+     RAILWAY_GIT_COMMIT_SHA / GIT_COMMIT   set by Railway (or by hand) to show which version is live in /api/health */
 const http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto'), zlib = require('zlib');
 
 const ROOT = path.resolve(__dirname, '..');
@@ -29,6 +30,7 @@ const CFG = {
   rateWrite: int(process.env.SHORT_RATE_WRITE, 1, 100000, 20),
   rateRead: int(process.env.SHORT_RATE_READ, 1, 100000, 240),
   hops: int(process.env.TRUST_PROXY_HOPS, 0, 5, 1),
+  commit: String(process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || '').trim().slice(0, 7),
 };
 const ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz'; // 31 symbols: no 0 1 i l o, so ids survive being read aloud or retyped
 const ID_RE = /^[2-9a-hj-km-np-z]{4,12}$/;
@@ -146,7 +148,7 @@ async function handle(req, res){
   const url = new URL(req.url, 'http://x'), p = url.pathname;
   const get = req.method === 'GET' || req.method === 'HEAD';
 
-  if (p === '/api/health' && get) return json(req, res, 200, { ok: true, shortLinks: CFG.shortOn, ttlDays: CFG.ttlDays, idLen: CFG.idLen });
+  if (p === '/api/health' && get) return json(req, res, 200, { ok: true, commit: CFG.commit || null, shortLinks: CFG.shortOn, ttlDays: CFG.ttlDays, idLen: CFG.idLen });
 
   if (p === '/api/short'){
     if (!CFG.shortOn) return json(req, res, 404, { error: 'disabled' });
@@ -196,7 +198,7 @@ function createServer(){
 if (require.main === module){
   loadStore(); expire();
   const srv = createServer();
-  srv.listen(CFG.port, () => console.log(`diagramico listening on ${srv.address().port}; short links ${CFG.shortOn ? 'on (' + store.items.size + ' stored, data in ' + CFG.dataDir + ')' : 'off'}`));
+  srv.listen(CFG.port, () => console.log(`diagramico${CFG.commit ? ' ' + CFG.commit : ''} listening on ${srv.address().port}; short links ${CFG.shortOn ? 'on (' + store.items.size + ' stored, data in ' + CFG.dataDir + ')' : 'off'}`));
   setInterval(() => { sweepBuckets(); expire(); }, 3600000).unref();
   for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => { saveStore(); process.exit(0); });
 }

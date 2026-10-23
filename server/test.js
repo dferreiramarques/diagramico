@@ -36,6 +36,14 @@ test('static site: only the landing, the editor and assets are served, with secu
   } finally { await s.stop(); }
 });
 
+test('health reports which commit is live', async () => {
+  const s = await start({ RAILWAY_GIT_COMMIT_SHA: '', GIT_COMMIT: 'abc1234def5678' });
+  try {
+    const h = await (await fetch(s.base + '/api/health')).json();
+    assert.equal(h.commit, 'abc1234');
+  } finally { await s.stop(); }
+});
+
 test('short links are off by default', async () => {
   const s = await start();
   try {
