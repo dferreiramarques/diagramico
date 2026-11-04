@@ -707,6 +707,7 @@ const TYPES = {
   text:{name:'Texto', key:'t'},
   lane:{name:'Swimlane', key:'l'},
   geo:{name:'Forma geométrica', key:'g'},
+  img:{name:'Imagem', key:''},
 };
 const EVENTS = new Set(['start','end','pause','handoff']);
 // BPMN gateway kinds a decision can take (n.gate); unset = plain decision with the text inside.
@@ -860,6 +861,7 @@ function geom(n){
   const fs = n.fs || 14;
   if (n.type === 'point') return {w:0, h:0, fs};
   if (n.type === 'text'){ const pad = fs*0.3, maxW = fs*24, L = layoutText(n.text||'', fs, n.b, n.i, false, maxW); return {w: Math.max(L.w, fs*0.6) + pad*2, h: Math.max(L.h, fs*1.4) + pad*2, L, maxW, fs, p:pad}; }
+  if (n.type === 'img') return {w:Math.max(8, finite(n.w)), h:Math.max(8, finite(n.h)), fs};
   if (n.type === 'geo'){ const w = Math.max(0, finite(n.w)), h = Math.max(0, finite(n.h)), pad = fs*0.6; return {w, h, fs, p:pad, L:layoutText(n.text||'', fs, n.b, n.i, false, Math.max(40, w - pad*2))}; }
   if (n.type === 'lane'){ const hw = 44*fs/14; return {w:n.w, h:n.h, hw, fs}; }
   if (EVENTS.has(n.type)){
@@ -1036,7 +1038,22 @@ function drawLane(c, n, pal, opts){
     c.restore();
   }
 }
+const IMGS = new Map();
+function imgOf(src){
+  let im = IMGS.get(src);
+  if (!im){ im = new Image(); im.onload = () => draw(); im.src = src; IMGS.set(src, im); if (IMGS.size > 200) IMGS.delete(IMGS.keys().next().value); }
+  return im;
+}
+function drawImg(c, n, pal){
+  const g = geom(n), im = imgOf(n.src);
+  c.save(); c.translate(n.x, n.y);
+  if (im.complete && im.naturalWidth) c.drawImage(im, -g.w/2, -g.h/2, g.w, g.h);
+  else { c.fillStyle = pal.bg; c.fillRect(-g.w/2, -g.h/2, g.w, g.h); }
+  c.strokeStyle = pal.edge; c.globalAlpha = .35; c.lineWidth = 1; c.strokeRect(-g.w/2, -g.h/2, g.w, g.h); c.globalAlpha = 1;
+  c.restore();
+}
 function drawNode(c, n, pal, opts){
+  if (n.type === 'img'){ drawImg(c, n, pal); return; }
   const g = geom(n), {fill, stroke} = nodeColors(n, pal);
   c.save(); c.translate(n.x, n.y);
   const lw = Math.max(1.25, g.fs/11) * (LW_MUL[n.lw] || 1);
@@ -1129,9 +1146,10 @@ function drawGeo(c, n, pal, opts){
   c.restore();
 }
 function renderScene(c, pal, opts){
-  const lanes = doc.nodes.filter(n=>n.type==='lane'), geos = doc.nodes.filter(n=>n.type==='geo'), rest = doc.nodes.filter(n=>n.type!=='lane' && n.type!=='geo');
+  const lanes = doc.nodes.filter(n=>n.type==='lane'), geos = doc.nodes.filter(n=>n.type==='geo'), imgs = doc.nodes.filter(n=>n.type==='img'), rest = doc.nodes.filter(n=>n.type!=='lane' && n.type!=='geo' && n.type!=='img');
   for (const n of lanes) drawLane(c, n, pal, opts);
   for (const n of geos) drawGeo(c, n, pal, opts); // containers sit above lanes and below arrows and shapes
+  for (const n of imgs) drawImg(c, n, pal);
   for (const e of doc.edges) drawEdge(c, e, pal, opts, opts.overlay && S.sel.has(e.id));
   for (const n of rest) drawNode(c, n, pal, opts);
 }
@@ -1164,7 +1182,7 @@ function drawOverlay(c){
     }
     const b = bbox(n), p = 4/z;
     c.strokeStyle = A; c.lineWidth = 1.5/z; c.strokeRect(b.x0-p, b.y0-p, b.x1-b.x0+2*p, b.y1-b.y0+2*p);
-    if (n.type === 'geo' && S.sel.size === 1) for (const h of geoHandles(n)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
+    if ((n.type === 'geo' || n.type === 'img') && S.sel.size === 1) for (const h of geoHandles(n).filter(h => n.type === 'geo' || h.k.length === 2)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
     if (n.type === 'lane' && S.sel.size === 1) for (const h of laneHandles(n)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
   }
   // connection handles
@@ -1421,7 +1439,7 @@ function paste(offset=28){
 /* ---------- text editing ---------- */
 function startEdit(id){
   const n = N(id), e = n ? null : E(id); if (!n && !e) return;
-  if (n && n.type === 'geo' && n.kind === 'line') return;
+  if (n && ((n.type === 'geo' && n.kind === 'line') || n.type === 'img')) return;
   S.editing = {id, before: n ? n.text : e.label, kind: n ? 'node' : 'edge'};
   undoS.push(snap()); redoS.length = 0;
   ta.value = n ? (n.text||'') : (e.label||''); ta.hidden = false;
@@ -1517,8 +1535,8 @@ function onDown(e){
     if (t === 'lane') glueLane(n, new Set([n.id]), null);
     S.sel = new Set([n.id]); setTool('select'); changed(); startEdit(n.id); return;
   }
-  if (S.sel.size === 1){ const n = N([...S.sel][0]); if (n && n.type === 'geo'){ const h = geoHandles(n).find(h => Math.abs(h.x-p.x) <= 7/view.z && Math.abs(h.y-p.y) <= 7/view.z);
-    if (h){ const g = geom(n); S.drag = {kind:'georesize', id:n.id, k:h.k, box:{x0:n.x-g.w/2, y0:n.y-g.h/2, x1:n.x+g.w/2, y1:n.y+g.h/2}, moved:false}; return; } } }
+  if (S.sel.size === 1){ const n = N([...S.sel][0]); if (n && (n.type === 'geo' || n.type === 'img')){ const h = geoHandles(n).filter(h => n.type === 'geo' || h.k.length === 2).find(h => Math.abs(h.x-p.x) <= 7/view.z && Math.abs(h.y-p.y) <= 7/view.z);
+    if (h){ const g = geom(n); S.drag = {kind:'georesize', id:n.id, k:h.k, ratio:n.type === 'img' ? g.w/g.h : 0, box:{x0:n.x-g.w/2, y0:n.y-g.h/2, x1:n.x+g.w/2, y1:n.y+g.h/2}, moved:false}; return; } } }
   // glued-lane controls: chain (separate) and + (add a glued lane)
   { const lc = laneControlAt(p); if (lc){ runLaneControl(lc); return; } }
   // lane resize handles
@@ -1607,6 +1625,11 @@ function onMove(e){
     if (d.k.includes('e')) b.x1 = Math.max(Math.round(p.x), b.x0 + min);
     if (d.k.includes('n')) b.y0 = Math.min(Math.round(p.y), b.y1 - min);
     if (d.k.includes('s')) b.y1 = Math.max(Math.round(p.y), b.y0 + min);
+    if (d.ratio){ // images keep their proportions: the corner opposite the handle stays fixed
+      const fx = d.k.includes('w') ? d.box.x1 : d.box.x0, fy = d.k.includes('n') ? d.box.y1 : d.box.y0;
+      const w = Math.max(24, Math.abs(p.x - fx), Math.abs(p.y - fy) * d.ratio), h = w / d.ratio;
+      b.x0 = d.k.includes('w') ? fx - w : fx; b.x1 = d.k.includes('w') ? fx : fx + w; b.y0 = d.k.includes('n') ? fy - h : fy; b.y1 = d.k.includes('n') ? fy : fy + h;
+    }
     n.x = (b.x0+b.x1)/2; n.y = (b.y0+b.y1)/2; n.w = b.x1-b.x0; n.h = b.y1-b.y0; draw(); return;
   }
   if (d.kind === 'resize'){
@@ -1730,7 +1753,7 @@ window.addEventListener('keydown', e => {
   if (mod && k === 'a'){ e.preventDefault(); S.sel = new Set([...doc.nodes.map(n=>n.id), ...doc.edges.map(x=>x.id)]); draw(); return; }
   if (mod && k === 'c'){ if (copySel()) { e.preventDefault(); toast(T('copied')); } return; }
   if (mod && k === 'x'){ if (copySel()){ e.preventDefault(); deleteSel(); } return; }
-  if (mod && k === 'v'){ if (clip){ e.preventDefault(); paste(); } return; }
+  if (mod && k === 'v') return; // handled by the paste event (screenshot from the clipboard, or the internal copy)
   if (mod && k === 'd'){ e.preventDefault(); if (copySel()) paste(); return; }
   if (mod && (k === 'b' || k === 'i')){ e.preventDefault(); toggleStyle(k === 'b' ? 'b' : 'i'); return; }
   if (mod && (k === '=' || k === '+')){ e.preventDefault(); zoomAt(W/2, H/2, 1.25); return; }
@@ -1912,7 +1935,7 @@ function buildCtx(ns, es){
 function autoLayout(){
   const lanes = doc.nodes.filter(n=>n.type==='lane').sort((a,b)=>a.y-b.y||a.x-b.x);
   const notes = doc.nodes.filter(n=>n.type==='note');
-  const items = doc.nodes.filter(n=>n.type!=='lane' && n.type!=='note' && n.type!=='geo' && n.type!=='text');
+  const items = doc.nodes.filter(n=>n.type!=='lane' && n.type!=='note' && n.type!=='geo' && n.type!=='img' && n.type!=='text');
   if (!items.length) return false;
   const GAPX = 90, GAPY = 50;
   const byId = new Map(items.map(n=>[n.id,n]));
@@ -2037,7 +2060,7 @@ function buildIds(d){
     if (code === 'N') code = 'NN';
     let c = code, k = 2; while (used.has(c)) c = code + (k++); used.add(c); laneCode.set(l.id, c);
   }
-  const shapes = d.nodes.filter(n=>n.type!=='lane' && n.type!=='note' && n.type!=='geo' && n.type!=='text');
+  const shapes = d.nodes.filter(n=>n.type!=='lane' && n.type!=='note' && n.type!=='geo' && n.type!=='img' && n.type!=='text');
   const groups = new Map();
   for (const n of shapes){ const l = laneOf(n, lanes); const key = l ? l.id : '_'; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(n); }
   const ids = new Map();
@@ -2213,6 +2236,7 @@ class SvgCtx {
     const k = svgColor(this.fillStyle), o = k.o * this.globalAlpha;
     this.body.push(`<text x="${svgNum(x)}" y="${svgNum(y)}" font-family="${svgEsc(f[4].replace(/"/g,"'"))}" font-size="${f[3]}" font-weight="${f[2]}"${f[1] ? ' font-style="italic"' : ''} fill="${svgEsc(k.c)}"${o < 1 ? ` fill-opacity="${svgNum(o)}"` : ''} text-anchor="${this.textAlign === 'center' ? 'middle' : 'start'}"${this.textBaseline === 'middle' ? ' dominant-baseline="central"' : ''} xml:space="preserve"${this.tf()}>${svgEsc(t)}</text>`);
   }
+  drawImage(im, x, y, w, h){ this.body.push(`<image href="${svgEsc(im.src)}" x="${svgNum(x)}" y="${svgNum(y)}" width="${svgNum(w)}" height="${svgNum(h)}"${this.globalAlpha < 1 ? ` opacity="${svgNum(this.globalAlpha)}"` : ''}${this.tf()}/>`); }
   svg(w, h, bg){
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">\n<defs><filter id="sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#1e1e0a" flood-opacity=".14"/></filter></defs>\n${bg ? `<rect width="${w}" height="${h}" fill="${bg}"/>\n` : ''}${this.body.join('\n')}\n</svg>\n`;
   }
@@ -3183,9 +3207,35 @@ $('#fileIn').onchange = e => { const f = e.target.files[0]; e.target.value = '';
 $('#fileImp').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f){ closeModal(); importFile(f, importKind); } };
 $('#btnImpDrawio').onclick = () => showImportInfo('drawio');
 $('#btnImpVisio').onclick = () => showImportInfo('visio');
+function addImageFile(f){
+  const rd = new FileReader();
+  rd.onload = () => {
+    const im = new Image();
+    im.onload = () => {
+      const MAXPX = 1600, k = Math.min(1, MAXPX / Math.max(im.naturalWidth, im.naturalHeight));
+      const cw = Math.max(1, Math.round(im.naturalWidth*k)), ch = Math.max(1, Math.round(im.naturalHeight*k));
+      const c = document.createElement('canvas'); c.width = cw; c.height = ch; c.getContext('2d').drawImage(im, 0, 0, cw, ch);
+      let src = c.toDataURL('image/webp', .92); if (!src.startsWith('data:image/webp')) src = c.toDataURL('image/png');
+      const dk = Math.min(1, clamp(0.45*Math.min(W, H)/view.z, 120, 800) / Math.max(cw, ch)), ctr = toWorld(W/2, H/2);
+      checkpoint();
+      const n = addNode('img', Math.round(ctr.x), Math.round(ctr.y), {src, w:Math.round(cw*dk), h:Math.round(ch*dk)});
+      S.sel = new Set([n.id]); setTool('select'); changed();
+    };
+    im.onerror = () => toast(T('importFail'));
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(f);
+}
+window.addEventListener('paste', e => {
+  const t = e.target; if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT' || t.isContentEditable) || S.editing || EMBED) return;
+  const item = [...(e.clipboardData ? e.clipboardData.items : [])].find(i => i.kind === 'file' && /^image\/(png|jpeg|webp|gif)$/.test(i.type));
+  if (item){ e.preventDefault(); const f = item.getAsFile(); if (f) addImageFile(f); return; }
+  if (clip){ e.preventDefault(); paste(); }
+});
 window.addEventListener('dragover', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
 window.addEventListener('drop', e => {
   const f = e.dataTransfer && e.dataTransfer.files[0]; if (!f) return; e.preventDefault();
+  if (/^image\/(png|jpeg|webp|gif)$/.test(f.type)){ addImageFile(f); return; }
   if (/\.(drawio|dio|xml|vsdx|vsd|json)$/i.test(f.name)) importFile(f, null);
   else if (/\.(txt|md|mmd|mermaid)$/i.test(f.name)) importTextFile(f);
   else toast(T('importFail'));
@@ -3322,6 +3372,10 @@ function sanitizeNodes(arr){
     if (c.lw !== undefined && ![1,2,3].includes(c.lw)) delete c.lw;
     if (c.grp !== undefined){ c.grp = clipStr(c.grp, 40); if (!c.grp || c.type === 'lane') delete c.grp; }
     if (!GATES.includes(c.gate)) delete c.gate;
+    if (c.type === 'img'){
+      if (typeof n.src !== 'string' || n.src.length > 8e6 || !/^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(n.src)) continue;
+      c.src = n.src; c.w = clamp(finite(n.w), 8, 20000); c.h = clamp(finite(n.h), 8, 20000); c.text = '';
+    }
     out.push(c);
   }
   return out;
