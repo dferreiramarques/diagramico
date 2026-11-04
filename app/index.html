@@ -988,9 +988,21 @@ function route(e){
 }
 function bez(r, t){ const [p1,p2]=r.pts, a=r.c1, b=r.c2, u=1-t; return {x:u*u*u*p1.x+3*u*u*t*a.x+3*u*t*t*b.x+t*t*t*p2.x, y:u*u*u*p1.y+3*u*u*t*a.y+3*u*t*t*b.y+t*t*t*p2.y}; }
 function polyOf(r){ if (!r.curve) return r.pts; const out=[]; for (let k=0;k<=24;k++) out.push(bez(r,k/24)); return out; }
-function midOf(r){
+function midOf(r){ return pointAt(r, 0.5); }
+// Point at fraction t (0..1) of the arrow's length. Edge labels sit at e.lt (default 0.5, the middle) so they follow the arrow when shapes move.
+const labelPt = (e, r) => pointAt(r, e.lt === undefined ? 0.5 : e.lt);
+function tOnPath(r, q){ // fraction of the path length closest to point q
+  const P = polyOf(r); let total = 0, best = Infinity, bt = 0.5;
+  const lens = []; for (let k=1;k<P.length;k++){ const l = Math.hypot(P[k].x-P[k-1].x, P[k].y-P[k-1].y); lens.push(l); total += l; }
+  if (!total) return 0.5;
+  let acc = 0;
+  for (let k=1;k<P.length;k++){ const a = P[k-1], b = P[k], dx = b.x-a.x, dy = b.y-a.y, l2 = dx*dx+dy*dy; let u = l2 ? ((q.x-a.x)*dx+(q.y-a.y)*dy)/l2 : 0; u = clamp(u,0,1);
+    const dd = Math.hypot(q.x-(a.x+u*dx), q.y-(a.y+u*dy)); if (dd < best){ best = dd; bt = (acc + u*lens[k-1]) / total; } acc += lens[k-1]; }
+  return bt;
+}
+function pointAt(r, t){
   const P = polyOf(r); let total = 0; for (let k=1;k<P.length;k++) total += Math.hypot(P[k].x-P[k-1].x, P[k].y-P[k-1].y);
-  let half = total/2;
+  let half = total*clamp(t, 0, 1);
   for (let k=1;k<P.length;k++){ const l = Math.hypot(P[k].x-P[k-1].x, P[k].y-P[k-1].y); if (half <= l){ const t = l ? half/l : 0; return {x:P[k-1].x+(P[k].x-P[k-1].x)*t, y:P[k-1].y+(P[k].y-P[k-1].y)*t}; } half -= l; }
   return P[0];
 }
@@ -1120,7 +1132,7 @@ function drawEdge(c, e, pal, opts, selected){
   if (e.arrow === 'end' || e.arrow === 'both') head(P_[P_.length-1], endFrom);
   if (e.arrow === 'both') head(P_[0], startFrom);
   if (e.label && opts.editing !== e.id){
-    const m = midOf(r), L = edgeLabelLayout(e), pad = 4;
+    const m = labelPt(e, r), L = edgeLabelLayout(e), pad = 4;
     c.fillStyle = pal.labelBg; c.beginPath(); c.roundRect(m.x - L.w/2 - pad*1.5, m.y - L.h/2 - pad, L.w + pad*3, L.h + pad*2, 4); c.fill();
     drawText(c, L, m.x, m.y, EDGE_FS, false, 'center', selected ? pal.accent : pal.muted);
   }
@@ -1233,7 +1245,7 @@ function zoomAt(sx, sy, f){ const z = clamp(view.z*f, 0.08, 5); const w = toWorl
 function sceneBounds(onlySel){
   let b = null; const add = (x0,y0,x1,y1) => { b = b ? {x0:Math.min(b.x0,x0),y0:Math.min(b.y0,y0),x1:Math.max(b.x1,x1),y1:Math.max(b.y1,y1)} : {x0,y0,x1,y1}; };
   for (const n of doc.nodes){ if (onlySel && !S.sel.has(n.id)) continue; const k = bbox(n); add(k.x0,k.y0,k.x1,k.y1); }
-  for (const e of doc.edges){ if (onlySel && !(S.sel.has(e.from) && S.sel.has(e.to)) && !S.sel.has(e.id)) continue; const r = route(e); if (!r) continue; for (const p of polyOf(r)) add(p.x-2,p.y-2,p.x+2,p.y+2); if (e.label){ const m = midOf(r), L = edgeLabelLayout(e); add(m.x-L.w/2-8, m.y-L.h/2-6, m.x+L.w/2+8, m.y+L.h/2+6); } }
+  for (const e of doc.edges){ if (onlySel && !(S.sel.has(e.from) && S.sel.has(e.to)) && !S.sel.has(e.id)) continue; const r = route(e); if (!r) continue; for (const p of polyOf(r)) add(p.x-2,p.y-2,p.x+2,p.y+2); if (e.label){ const m = labelPt(e, r), L = edgeLabelLayout(e); add(m.x-L.w/2-8, m.y-L.h/2-6, m.x+L.w/2+8, m.y+L.h/2+6); } }
   return b;
 }
 function fit(){
@@ -1272,7 +1284,7 @@ function hitTest(p){
   const tol = 7/view.z;
   for (let k = doc.edges.length-1; k >= 0; k--){
     const e = doc.edges[k], r = route(e); if (!r) continue;
-    if (e.label){ const m = midOf(r), L = edgeLabelLayout(e); if (Math.abs(p.x-m.x) <= L.w/2+6 && Math.abs(p.y-m.y) <= L.h/2+5) return {kind:'edge', id:e.id}; }
+    if (e.label){ const m = labelPt(e, r), L = edgeLabelLayout(e); if (Math.abs(p.x-m.x) <= L.w/2+6 && Math.abs(p.y-m.y) <= L.h/2+5) return {kind:'edge', id:e.id}; }
     const P_ = polyOf(r); for (let i=1;i<P_.length;i++) if (distSeg(p, P_[i-1], P_[i]) <= tol) return {kind:'edge', id:e.id};
   }
   for (let k = doc.nodes.length-1; k >= 0; k--){ const n = doc.nodes[k]; if (n.type === 'geo' && geoHit(n, p)) return {kind:'node', id:n.id}; }
@@ -1424,15 +1436,18 @@ let clip = null;
 function expandSel(){ const ids = new Set(S.sel); for (const id of S.sel){ const n = N(id); if (n && (n.type === 'lane' || n.type === 'geo')) for (const c of containerChildren(n)) ids.add(c.id); } return ids; }
 function copySel(){ const ids = expandSel(); const nodes = doc.nodes.filter(n=>ids.has(n.id)); if (!nodes.length) return false;
   clip = {nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(doc.edges.filter(e=>(!e.from||ids.has(e.from)) && (!e.to||ids.has(e.to)) && (e.from||e.to||ids.has(e.id)))))}; return true; }
-function paste(offset=28){
+function paste(at){ // at = world point where the centre of the copied shapes should land; without it, a small diagonal offset
   if (!clip) return; checkpoint();
+  let ox = 28, oy = 28;
+  if (at){ let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const n of clip.nodes){ const b = bbox(n); x0 = Math.min(x0, b.x0); y0 = Math.min(y0, b.y0); x1 = Math.max(x1, b.x1); y1 = Math.max(y1, b.y1); }
+    if (isFinite(x0)){ ox = Math.round(at.x - (x0+x1)/2); oy = Math.round(at.y - (y0+y1)/2); } }
   const map = {}, newSel = new Set();
   const gmap = {};
-  for (const n of clip.nodes){ const c = {...n, id:uid('n'), x:n.x+offset, y:n.y+offset}; map[n.id] = c.id; if (n.grp) c.grp = gmap[n.grp] || (gmap[n.grp] = uid('g')); if (c.type==='lane') doc.nodes.unshift(c); else doc.nodes.push(c); newSel.add(c.id); }
+  for (const n of clip.nodes){ const c = {...n, id:uid('n'), x:n.x+ox, y:n.y+oy}; map[n.id] = c.id; if (n.grp) c.grp = gmap[n.grp] || (gmap[n.grp] = uid('g')); if (c.type==='lane') doc.nodes.unshift(c); else doc.nodes.push(c); newSel.add(c.id); }
   reindex();
-  const mv = e => { const c = {...e, id:uid('e'), from:e.from ? map[e.from] : null, to:e.to ? map[e.to] : null}; if (!e.from){ c.fx += offset; c.fy += offset; } if (!e.to){ c.tx += offset; c.ty += offset; } return c; };
+  const mv = e => { const c = {...e, id:uid('e'), from:e.from ? map[e.from] : null, to:e.to ? map[e.to] : null}; if (!e.from){ c.fx += ox; c.fy += oy; } if (!e.to){ c.tx += ox; c.ty += oy; } return c; };
   for (const e of clip.edges) if ((!e.from || map[e.from]) && (!e.to || map[e.to])) doc.edges.push(mv(e));
-  clip = {nodes: clip.nodes.map(n=>({...n, x:n.x+offset, y:n.y+offset})), edges: clip.edges.map(e => ({...e, ...(e.from ? {} : {fx:e.fx+offset, fy:e.fy+offset}), ...(e.to ? {} : {tx:e.tx+offset, ty:e.ty+offset})}))};
+  clip = {nodes: clip.nodes.map(n=>({...n, x:n.x+ox, y:n.y+oy})), edges: clip.edges.map(e => ({...e, ...(e.from ? {} : {fx:e.fx+ox, fy:e.fy+oy}), ...(e.to ? {} : {tx:e.tx+ox, ty:e.ty+oy})}))};
   S.sel = newSel; changed();
 }
 
@@ -1451,7 +1466,7 @@ function startEdit(id){
 function placeTA(){
   const ed = S.editing; if (!ed) return;
   const z = view.z; let fs, mono=false, bold=false, ital=false, align='center', cx, cy, w, left=null, top=null;
-  if (ed.kind === 'edge'){ const e = E(ed.id); if (!e){ endEdit(); return; } const r = route(e); const m = midOf(r); fs = EDGE_FS; w = 170; cx = m.x; cy = m.y; }
+  if (ed.kind === 'edge'){ const e = E(ed.id); if (!e){ endEdit(); return; } const r = route(e); const m = labelPt(e, r); fs = EDGE_FS; w = 170; cx = m.x; cy = m.y; }
   else {
     const n = N(ed.id); if (!n){ endEdit(); return; } const g = geom(n); fs = n.fs||14; bold = !!n.b; ital = !!n.i;
     if (n.type === 'text'){ align = 'left'; w = g.maxW; left = n.x - g.w/2 + g.p; top = n.y - g.h/2 + g.p; }
@@ -1565,6 +1580,8 @@ function onDown(e){
   }
   if (hit && hit.kind === 'edge'){
     if (e.shiftKey){ S.sel.has(hit.id) ? S.sel.delete(hit.id) : S.sel.add(hit.id); } else S.sel = new Set([hit.id]);
+    { const e1 = E(hit.id), r = e1 && e1.label && route(e1); // pressing on the label and dragging slides it along the arrow
+      if (r){ const m = labelPt(e1, r), L = edgeLabelLayout(e1); if (Math.abs(p.x-m.x) <= L.w/2+6 && Math.abs(p.y-m.y) <= L.h/2+5) S.drag = {kind:'edgelabel', id:e1.id, moved:false}; } }
     draw(); return;
   }
   // empty
@@ -1587,6 +1604,7 @@ function onMove(e){
   }
   if (e.target !== cv && !S.drag) return;
   const p = evPt(e), d = S.drag;
+  S.cursor = e.target === cv ? {x:p.x, y:p.y} : null;
   if (!d){
     const hit = hitTest(p);
     let hov = hit && hit.kind === 'node' && N(hit.id).type !== 'lane' ? hit.id : null;
@@ -1638,6 +1656,13 @@ function onMove(e){
     if (d.k === 'r' || d.k === 'br'){ n.w = Math.max(200, Math.round(d.orig.w + dx)); for (const l of [...d.above, ...d.below]) l.w = n.w; } // glued lanes keep the same width
     if (d.k === 'b' || d.k === 'br'){ n.h = Math.max(80, Math.round(d.orig.h + dy)); if (n.h !== d.lastH){ shiftLanes(d.below, n.h - d.lastH); d.lastH = n.h; } }
     if (d.k === 't'){ const nh = Math.max(80, Math.round(d.orig.h - dy)); n.y = d.orig.y + d.orig.h - nh; n.h = nh; if (n.y !== d.lastY){ shiftLanes(d.above, n.y - d.lastY); d.lastY = n.y; } }
+    draw(); return;
+  }
+  if (d.kind === 'edgelabel'){
+    const e1 = E(d.id), r = e1 && route(e1); if (!r) return;
+    if (!d.moved){ d.moved = true; checkpoint(); }
+    let t = tOnPath(r, p); if (!e.altKey && Math.abs(t - 0.5) < 0.03) t = 0.5;
+    e1.lt = Math.round(clamp(t, 0.03, 0.97)*1000)/1000; if (e1.lt === 0.5) delete e1.lt;
     draw(); return;
   }
   if (d.kind === 'endpoint'){
@@ -1704,7 +1729,7 @@ function onUp(e){
     else if (d.wasSel && !d.shift && S.sel.size > 1){ S.sel = new Set(groupMates(d.clickId)); draw(); }
     return;
   }
-  if (d.kind === 'resize' || d.kind === 'endpoint' || d.kind === 'georesize'){ if (d.moved) changed(); return; }
+  if (d.kind === 'resize' || d.kind === 'endpoint' || d.kind === 'georesize' || d.kind === 'edgelabel'){ if (d.moved) changed(); return; }
   if (d.kind === 'geodraw'){ // a click without dragging drops a default-sized shape
     const n = N(d.id); if (!d.moved || (n.w < 8 && n.h < 8)){ n.w = 200; n.h = n.kind === 'line' ? 0 : 120; n.x = Math.round(d.start.x); n.y = Math.round(d.start.y); }
     setTool('select'); changed(); return;
@@ -3231,7 +3256,7 @@ window.addEventListener('paste', e => {
   const t = e.target; if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT' || t.isContentEditable) || S.editing || EMBED) return;
   const item = [...(e.clipboardData ? e.clipboardData.items : [])].find(i => i.kind === 'file' && /^image\/(png|jpeg|webp|gif)$/.test(i.type));
   if (item){ e.preventDefault(); const f = item.getAsFile(); if (f) addImageFile(f); return; }
-  if (clip){ e.preventDefault(); paste(); }
+  if (clip){ e.preventDefault(); paste(S.cursor); }
 });
 window.addEventListener('dragover', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
 window.addEventListener('drop', e => {
@@ -3392,6 +3417,7 @@ function sanitizeEdges(arr, nodes, keepIds){
     for (const k of ['sa','sb']) if (c[k] !== undefined && !SIDES.includes(c[k])) delete c[k];
     if (c.lw !== undefined && ![1,2,3].includes(c.lw)) delete c.lw;
     if (c.route !== undefined && !ROUTES.includes(c.route)) delete c.route;
+    if (c.lt !== undefined){ c.lt = clamp(finite(c.lt), 0, 1); if (c.lt === 0.5) delete c.lt; }
     out.push(c);
   }
   return out;
