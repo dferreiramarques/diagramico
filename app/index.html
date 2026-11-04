@@ -1596,6 +1596,18 @@ function dropTarget(p, prev, ok){
   if (!id && prev && N(prev) && handleAt(N(prev), p, 24)) id = prev; // keep the shape while the pointer travels over its side dots
   return [id, id ? handleAt(N(id), p) : null];
 }
+const AUTOSCROLL = new Set(['connect','endpoint','move']);
+let lastPtr = null, autoRaf = 0;
+function edgePush(x, y){ // view shift per frame (px) when the pointer is within 48px of a board edge; faster the closer it gets
+  const m = 48, k = v => Math.round(Math.min(1, v/m) * 22);
+  return {x: x < m ? k(m - x) : x > W - m ? -k(x - (W - m)) : 0, y: y < m ? k(m - y) : y > H - m ? -k(y - (H - m)) : 0};
+}
+function autoScroll(){
+  autoRaf = 0; if (!S.drag || !AUTOSCROLL.has(S.drag.kind) || !lastPtr) return;
+  const v = edgePush(lastPtr.clientX, lastPtr.clientY); if (!v.x && !v.y) return;
+  view.ox += v.x; view.oy += v.y; saveView();
+  onMove(lastPtr); // re-evaluates the drag at the new world position and schedules the next frame
+}
 function onMove(e){
   if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
   if (pinch && ptrs.size === 2){
@@ -1603,6 +1615,10 @@ function onMove(e){
     view.ox += cx - pinch.cx; view.oy += cy - pinch.cy; zoomAt(cx, cy, d/pinch.d); pinch = {d, cx, cy}; return;
   }
   if (e.target !== cv && !S.drag) return;
+  if (S.drag && AUTOSCROLL.has(S.drag.kind) && (v => v.x || v.y)(edgePush(e.clientX, e.clientY))){ // pointer near the board edge while drawing an arrow (or moving shapes): keep panning that way
+    lastPtr = {clientX:e.clientX, clientY:e.clientY, altKey:e.altKey, shiftKey:e.shiftKey, pointerType:e.pointerType, target:cv};
+    if (!autoRaf) autoRaf = requestAnimationFrame(autoScroll);
+  }
   const p = evPt(e), d = S.drag;
   S.cursor = e.target === cv ? {x:p.x, y:p.y} : null;
   if (!d){
