@@ -1848,7 +1848,8 @@ function updateCtx(){
 function buildCtx(ns, es){
   ctxEl.innerHTML = '';
   const shapes = ns.filter(n => n.type !== 'lane'), lanes = ns.filter(n => n.type === 'lane');
-  if (ns.length){
+  const onlyImg = ns.length > 0 && ns.every(n => n.type === 'img'); // pictures have no text, colour or outline: only duplicate / delete
+  if (ns.length && !onlyImg){
     if (shapes.length && shapes.every(n => n.type === 'geo')){
       const s = document.createElement('select'); s.title = T('geoKind'); s.setAttribute('aria-label', T('geoKind'));
       const cur = shapes.every(n => n.kind === shapes[0].kind) ? shapes[0].kind : '';
@@ -1901,8 +1902,8 @@ function buildCtx(ns, es){
     ctxEl.appendChild(sepEl());
     ctxEl.appendChild(swatches(ns));
     ctxEl.appendChild(sepEl());
-    { const th = shapes.filter(n => n.type !== 'note' && n.type !== 'text'); // outline weight: thin, medium, thick
-      if (th.length && th.length === shapes.length && !lanes.length){ for (const v of [1,2,3]) ctxEl.appendChild(btn(ICON['lw'+v], T('lw'+v), () => setProp(th, 'lw', v), th.every(n => (n.lw || 2) === v))); ctxEl.appendChild(sepEl()); } }
+    { const th = shapes.filter(n => n.type !== 'note' && n.type !== 'text' && n.type !== 'img'); // outline weight: thin, medium, thick
+      if (th.length && th.length === shapes.filter(n => n.type !== 'img').length && !lanes.length){ for (const v of [1,2,3]) ctxEl.appendChild(btn(ICON['lw'+v], T('lw'+v), () => setProp(th, 'lw', v), th.every(n => (n.lw || 2) === v))); ctxEl.appendChild(sepEl()); } }
     if (ns.length === 1) ctxEl.appendChild(btn(ICON.edit, T('editTextBtn'), () => startEdit(ns[0].id)));
   }
   if (es.length && !ns.length){
