@@ -1,6 +1,6 @@
 # Roadmap do Diagramico
 
-Estado em 2026-10-13. A versão pública e simplificada (NOW / NEXT / LATER) está na landing, na secção Roadmap; esta é a versão completa. As datas e os esforços são estimativas de uma pessoa a trabalhar sozinha, para ordenar o trabalho, não compromissos.
+Estado em 2026-11-04 (avaliação dos próximos passos no fim). A versão pública e simplificada (NOW / NEXT / LATER) está na landing, na secção Roadmap; esta é a versão completa. As datas e os esforços são estimativas de uma pessoa a trabalhar sozinha, para ordenar o trabalho, não compromissos.
 
 ## Os três níveis
 
@@ -105,3 +105,52 @@ Reaproveita as salas, sessões e reconexão do `bitnik-platform`.
 ## Estimativa total
 
 Fases 1 a 4: **cerca de 10 a 15 semanas** de trabalho contínuo, com a Fase 2 a pesar mais de um terço. Sem a Fase 0 concluída, nenhuma destas semanas deve ser gasta.
+
+## Avaliação de 2026-11-04: próximos passos e como rentabilizar
+
+**Ponto de partida.** O Free está completo e entretanto ganhou imagens coladas, labels de setas arrastáveis, colar no cursor e auto-scroll ao ligar setas. Ainda não há audiência, não há medição de visitas e a lista de espera está ligada mas sem tráfego. Por isso o plano das Fases 1 a 4 (10 a 15 semanas) está **prematuro**: a Fase 0 do próprio roadmap diz que nenhuma dessas semanas se gasta sem procura medida.
+
+### Onde estão as probabilidades de dinheiro
+| Via | Esforço | Receita realista | Comentário |
+|---|---|---|---|
+| **Equipas** (conta Google + colaboração + comentários) | 10-15 semanas | Média/alta, mas só com utilizadores | Faz sentido **depois** de haver uso recorrente. É o plano atual. |
+| **Pro individual** barato (gravar na conta Google, exportar PNG/SVG sem marca, histórico de versões) | 2-3 semanas (Fase 1) | Baixa/média | Mais rápido de lançar do que colaboração; testa se alguém paga. |
+| **Serviço de IA** (resumir/documentar o fluxo com IA a partir do texto compacto) | 1-2 semanas, mas tem custo por chamada | Média | É o diferencial do produto ("o fluxo vira documentação"). Cobrar por créditos ou dentro do Pro. O modo "prompt copiável" atual é o Free. |
+| **Embed / white-label** para docs e blogs (o editor já funciona em `EMBED`) | 1-2 semanas | Baixa | Boa para distribuição, fraca para receita direta. |
+| **Serviços**: workshops e mapeamento de processos para empresas, usando o Diagramico | 0 (só tempo) | **Imediata**, mas não escala | Ganha dinheiro e dá clientes e feedback já, antes de qualquer fase técnica. |
+| **Premium** (infraestrutura do cliente, SSO) | Grande | Alta por cliente, ciclo longo | Só com procura explícita de uma empresa. Fora de âmbito. |
+
+### Recomendação (por ordem)
+1. **Distribuição e medição primeiro (2-3 semanas, quase só marketing):**
+   - Instalar analítica sem cookies (GoatCounter/Plausible) na landing e na app, com os eventos: abrir a app, primeiro diagrama, exportar texto IA, inscrição na lista.
+   - Publicar no Show HN, Product Hunt, r/ProductManagement, r/sysadmin, comunidades de BPMN e de documentação com IA, e LinkedIn em PT. Mensagem única: *"desenha o fluxo, a IA escreve a documentação"*.
+   - 3 a 5 artigos/tutoriais curtos com GIFs (já existem `assets/flow-pt.gif` e `flow-en.gif`) e exemplos prontos de fluxos que as pessoas pesquisam (onboarding, aprovações, tickets).
+   - Verificar SEO básico: título/descrição já existem; falta `og:image`, sitemap e uma página por caso de uso.
+2. **Medir o critério da Fase 0:** 50 emails ou 5% das visitas únicas. Sem isso, não construir contas.
+3. **Em paralelo, 1 a 2 conversas por semana com utilizadores** (quem usa e para quê). Perguntar o que pagariam e quanto.
+4. **Se houver sinal:** lançar o **Pro individual (Fase 1)** antes das Equipas, com cobrança por Stripe e gravação na conta Google. É o teste mais barato de disposição para pagar. Preço de partida a validar: 4 a 6 EUR/mês ou 40 a 50 EUR/ano.
+5. **Só depois** colaboração e comentários (Fases 2 e 3), com preço por *team member* e *reviewers* gratuitos.
+
+### O que não fazer já
+- Construir colaboração em tempo real sem utilizadores recorrentes.
+- Esforço em Premium/SSO sem uma empresa a pedir.
+- Mexer na licença do editor (continua MIT; servidor das Equipas privado desde o primeiro commit).
+
+### Riscos
+- **Concorrência forte e gratuita** (draw.io, Excalidraw, Mermaid Live, Lucidchart, Miro). O diferencial tem de ser o fluxo "diagrama → texto compacto → IA" e a rapidez com teclado, não "mais um editor".
+- **Custo e abuso** do modo IA se for alojado: limitar por conta e por dia.
+- **IVA e faturação** (Stripe Tax) desde o primeiro pagamento.
+- **Privacidade:** a promessa "os dados ficam no browser" deve continuar verdadeira no Free; imagens coladas ficam no diagrama (localStorage e ligações), o que aumenta o tamanho dos links partilhados.
+
+### Plano de 30 dias
+| Semana | Foco | Saída |
+|---|---|---|
+| 1 | Analítica, `og:image`, sitemap, página de preços honesta ("Equipas em preparação") | Visitas e eventos medidos |
+| 2 | 3 tutoriais + lançamento em 2 comunidades | Primeiros utilizadores e inscrições |
+| 3 | 5 conversas com utilizadores; corrigir o que bloquear o primeiro diagrama | Lista de dores e do que pagariam |
+| 4 | Decisão: ≥ marco da Fase 0? Sim: arrancar Pro (Fase 1). Não: iterar na mensagem e canais | Decisão registada neste ficheiro |
+
+### Decisões que preciso de ti
+1. **Objetivo de receita:** rendimento complementar rápido (então, serviços e Pro) ou construir um produto de equipas a prazo?
+2. **Tempo semanal** disponível, porque define se o Pro (2-3 semanas) ou as Equipas (10-15) são realistas.
+3. **Mercado:** PT/EU primeiro ou global em inglês? Condiciona canais, preço e IVA.
