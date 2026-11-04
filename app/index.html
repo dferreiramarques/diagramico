@@ -1599,7 +1599,7 @@ function dropTarget(p, prev, ok){
 const AUTOSCROLL = new Set(['connect','endpoint','move']);
 let lastPtr = null, autoRaf = 0;
 function edgePush(x, y){ // view shift per frame (px) when the pointer is within 48px of a board edge; faster the closer it gets
-  const m = 48, k = v => Math.round(Math.min(1, v/m) * 22);
+  const m = 48, k = v => Math.round(1 + Math.min(1, v/m)**2 * 13); // eased: gentle at the start of the zone, 14 px/frame at the very edge
   return {x: x < m ? k(m - x) : x > W - m ? -k(x - (W - m)) : 0, y: y < m ? k(m - y) : y > H - m ? -k(y - (H - m)) : 0};
 }
 function autoScroll(){
@@ -1615,9 +1615,9 @@ function onMove(e){
     view.ox += cx - pinch.cx; view.oy += cy - pinch.cy; zoomAt(cx, cy, d/pinch.d); pinch = {d, cx, cy}; return;
   }
   if (e.target !== cv && !S.drag) return;
-  if (S.drag && AUTOSCROLL.has(S.drag.kind) && (v => v.x || v.y)(edgePush(e.clientX, e.clientY))){ // pointer near the board edge while drawing an arrow (or moving shapes): keep panning that way
-    lastPtr = {clientX:e.clientX, clientY:e.clientY, altKey:e.altKey, shiftKey:e.shiftKey, pointerType:e.pointerType, target:cv};
-    if (!autoRaf) autoRaf = requestAnimationFrame(autoScroll);
+  if (S.drag && AUTOSCROLL.has(S.drag.kind)){ // near a board edge while drawing an arrow (or moving shapes): keep panning that way, slower the further from the edge
+    lastPtr = {clientX:e.clientX, clientY:e.clientY, altKey:e.altKey, shiftKey:e.shiftKey, pointerType:e.pointerType, target:cv}; // always the latest position, so moving back stops the pan
+    const v = edgePush(e.clientX, e.clientY); if ((v.x || v.y) && !autoRaf) autoRaf = requestAnimationFrame(autoScroll);
   }
   const p = evPt(e), d = S.drag;
   S.cursor = e.target === cv ? {x:p.x, y:p.y} : null;
