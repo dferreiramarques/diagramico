@@ -946,7 +946,23 @@ function autoOther(s, q, y){
 }
 // An edge end is either a shape (from/to = id) or a loose point (fx,fy / tx,ty). sa/sb force the side an end leaves/enters from.
 const endNode = (e, k) => k === 'from' ? (e.from ? N(e.from) : {type:'point', x:e.fx, y:e.fy}) : (e.to ? N(e.to) : {type:'point', x:e.tx, y:e.ty});
+// e.bd = manual offset (px) of the middle segment of a 4-point elbow arrow, perpendicular to that segment.
+function bendAxis(r){ const q = r.pts; if (r.curve || q.length !== 4) return null; return Math.abs(q[1].x-q[2].x) < 0.5 ? 'x' : Math.abs(q[1].y-q[2].y) < 0.5 ? 'y' : null; }
 function route(e){
+  const r = route0(e);
+  if (r && e.bd && e.style === 'elbow'){
+    const q = r.pts, ax = bendAxis(r);
+    if (ax) r.pts = [q[0], {...q[1], [ax]: q[1][ax]+e.bd}, {...q[2], [ax]: q[2][ax]+e.bd}, q[3]];
+    else if (!r.curve && q.length === 3){ // L-shaped: dragging one of its two segments turns it into a Z. bk=1: first segment, else second
+      const [a, c, b] = q, first = e.bk === 1, hor = first ? Math.abs(a.y-c.y) < 0.5 : Math.abs(c.y-b.y) < 0.5;
+      // the dragged segment is horizontal -> new middle segment is horizontal at y, otherwise vertical at x
+      if (hor){ const y = (first ? a.y : b.y) + e.bd; r.pts = [a, {x:a.x, y}, {x:b.x, y}, b]; }
+      else { const x = (first ? a.x : b.x) + e.bd; r.pts = [a, {x, y:a.y}, {x, y:b.y}, b]; }
+    }
+  }
+  return r;
+}
+function route0(e){
   const a = endNode(e, 'from'), b = endNode(e, 'to'); if (!a || !b || !isFinite(a.x + a.y + b.x + b.y)) return null;
   const forced = !!(e.sa || e.sb) && a.type !== 'point' || !!e.sb && b.type !== 'point';
   const mode = forced ? 'z' : routeMode(e, a, b), {dx, dy} = gaps(a, b);
@@ -1582,6 +1598,14 @@ function onDown(e){
     if (e.shiftKey){ S.sel.has(hit.id) ? S.sel.delete(hit.id) : S.sel.add(hit.id); } else S.sel = new Set([hit.id]);
     { const e1 = E(hit.id), r = e1 && e1.label && route(e1); // pressing on the label and dragging slides it along the arrow
       if (r){ const m = labelPt(e1, r), L = edgeLabelLayout(e1); if (Math.abs(p.x-m.x) <= L.w/2+6 && Math.abs(p.y-m.y) <= L.h/2+5) S.drag = {kind:'edgelabel', id:e1.id, moved:false}; } }
+    { const e1 = E(hit.id), r = e1 && !S.drag && e1.style === 'elbow' && route(e1), ax = r && bendAxis(r); // pressing on the middle segment and dragging shifts it sideways
+      if (r && !r.curve && r.pts.length === 3){ // L-shaped arrow: either segment can be dragged (it becomes a Z)
+        const tol = 6/view.z, q = r.pts;
+        for (let i = 0; i < 2; i++){ const a = q[i], b = q[i+1], hor = Math.abs(a.y-b.y) < 0.5, ax2 = hor ? 'y' : 'x', o = hor ? 'x' : 'y';
+          if (Math.abs(p[ax2]-a[ax2]) <= tol && p[o] >= Math.min(a[o],b[o])-tol && p[o] <= Math.max(a[o],b[o])+tol){ S.drag = {kind:'edgebend', id:e1.id, ax:ax2, start:p[ax2], bd0:0, bk:i === 0 ? 1 : 0, moved:false}; break; } }
+      }
+      if (ax){ const q = r.pts, o = ax === 'x' ? 'y' : 'x', lo = Math.min(q[1][o], q[2][o]), hi = Math.max(q[1][o], q[2][o]);
+        if (Math.abs(p[ax]-q[1][ax]) <= 6/view.z && p[o] >= lo-6/view.z && p[o] <= hi+6/view.z) S.drag = {kind:'edgebend', id:e1.id, ax, start:p[ax], bd0:e1.bd || 0, moved:false}; } }
     draw(); return;
   }
   // empty
@@ -1674,6 +1698,13 @@ function onMove(e){
     if (d.k === 't'){ const nh = Math.max(80, Math.round(d.orig.h - dy)); n.y = d.orig.y + d.orig.h - nh; n.h = nh; if (n.y !== d.lastY){ shiftLanes(d.above, n.y - d.lastY); d.lastY = n.y; } }
     draw(); return;
   }
+  if (d.kind === 'edgebend'){
+    const e1 = E(d.id); if (!e1) return;
+    if (!d.moved){ d.moved = true; checkpoint(); }
+    e1.bd = Math.round(d.bd0 + p[d.ax] - d.start); if (!e1.bd) delete e1.bd;
+    if (d.bk === undefined) { /* already a Z: keep any existing bk */ } else if (d.bk && e1.bd) e1.bk = 1; else delete e1.bk;
+    draw(); return;
+  }
   if (d.kind === 'edgelabel'){
     const e1 = E(d.id), r = e1 && route(e1); if (!r) return;
     if (!d.moved){ d.moved = true; checkpoint(); }
@@ -1745,7 +1776,7 @@ function onUp(e){
     else if (d.wasSel && !d.shift && S.sel.size > 1){ S.sel = new Set(groupMates(d.clickId)); draw(); }
     return;
   }
-  if (d.kind === 'resize' || d.kind === 'endpoint' || d.kind === 'georesize' || d.kind === 'edgelabel'){ if (d.moved) changed(); return; }
+  if (d.kind === 'resize' || d.kind === 'endpoint' || d.kind === 'georesize' || d.kind === 'edgelabel' || d.kind === 'edgebend'){ if (d.moved) changed(); return; }
   if (d.kind === 'geodraw'){ // a click without dragging drops a default-sized shape
     const n = N(d.id); if (!d.moved || (n.w < 8 && n.h < 8)){ n.w = 200; n.h = n.kind === 'line' ? 0 : 120; n.x = Math.round(d.start.x); n.y = Math.round(d.start.y); }
     setTool('select'); changed(); return;
@@ -1768,6 +1799,11 @@ cv.addEventListener('dblclick', e => dbl(evPt(e)));
 function dbl(p){
   if (EMBED) return;
   const hit = hitTest(p);
+  if (hit && hit.kind === 'edge'){ // double-click on a re-routed arrow (away from its label) restores the automatic path
+    const e1 = E(hit.id), r = e1 && e1.bd && route(e1);
+    if (r){ const m = e1.label && labelPt(e1, r), L = m && edgeLabelLayout(e1);
+      if (!m || Math.abs(p.x-m.x) > L.w/2+6 || Math.abs(p.y-m.y) > L.h/2+5){ checkpoint(); delete e1.bd; delete e1.bk; S.sel = new Set([e1.id]); changed(); return; } }
+  }
   if (hit){ if (hit.kind === 'node' || hit.kind === 'edge'){ S.sel = new Set([hit.id]); startEdit(hit.id); } return; }
   checkpoint(); const n = addNode('step', Math.round(p.x), Math.round(p.y)); S.sel = new Set([n.id]); changed(); startEdit(n.id);
 }
@@ -3433,6 +3469,7 @@ function sanitizeEdges(arr, nodes, keepIds){
     for (const k of ['sa','sb']) if (c[k] !== undefined && !SIDES.includes(c[k])) delete c[k];
     if (c.lw !== undefined && ![1,2,3].includes(c.lw)) delete c.lw;
     if (c.route !== undefined && !ROUTES.includes(c.route)) delete c.route;
+    if (c.bd !== undefined){ c.bd = Math.round(finite(c.bd)); if (!c.bd) delete c.bd; }
     if (c.lt !== undefined){ c.lt = clamp(finite(c.lt), 0, 1); if (c.lt === 0.5) delete c.lt; }
     out.push(c);
   }
