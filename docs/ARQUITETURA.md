@@ -30,7 +30,12 @@ doc   = { id, name, created, updated, view: {ox, oy, z}|null, nodes: [], edges: 
 
 A largura/altura das formas **não é guardada**: deriva do texto e do `fs` (`layoutText` + `geom`).
 
-**Edge** (conector): `{ id, from, to, label, style: elbow|straight|curve, arrow: end|both|none, dash, route? }`.
+**Edge** (conector): `{ id, from, to, label, style: elbow|straight|curve, arrow: end|both|none, dash, route?, lw?, sa?, sb?, lt?, bd?, bk? }`.
+
+- `lt` (0–1): posição do rótulo ao longo da seta (omitido = 0,5); arrasto `edgelabel`, `labelPt`, `tOnPath`.
+- `bd` (px): deslocamento manual do segmento do meio de uma seta em cotovelo, perpendicular a esse segmento. `route()` envolve `route0()` (o cálculo automático) e aplica `bd`: com 4 pontos (`bendAxis`) desloca o segmento do meio; com 3 pontos (L) converte em Z, e `bk = 1` indica que foi arrastado o primeiro segmento (senão o segundo). Arrasto `edgebend` (`onDown`/`onMove`); duplo clique (`dbl`) apaga `bd` e `bk`. Validado em `sanitizeEdges`.
+- Tipo `img` (`src`, `w`, `h`): imagem colada ou largada; redimensiona com proporção fixa (`georesize`), desenha-se com `drawImg` e exporta-se em SVG.
+- Deslocamento automático da vista (`AUTOSCROLL`, `edgePush`, `autoScroll`) durante os arrastos `connect`, `endpoint` e `move`.
 
 ## Mapa do código
 

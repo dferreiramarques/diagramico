@@ -44,6 +44,11 @@ Arranque rápido:
 - **Alinhar à grelha** (`Shift A` ou botão no canto inferior direito): não reorganiza nada, só alinha. Formas a menos de 24 px entre si, na mesma lane, ficam na mesma linha; as que estão próximas em x ficam na mesma coluna; os valores arredondam-se a 10 px e as notas seguem a forma a que estão ligadas. Com 2 ou mais formas selecionadas, só essas. Desfazível com `Ctrl Z`.
 - **Várias setas entre as mesmas formas**: cada ponto lateral cria a sua seta (duas formas podem ligar-se por cima, por baixo, etc.). Ao arrastar, a forma de destino mostra os seus pontos laterais: largar sobre um deles escolhe o lado (por exemplo cima com cima desenha um U invertido). Setas que saem do mesmo lado partilham o tronco; ligar duas vezes pelo mesmo lado não duplica.
 - **Setas soltas**: com o conector (`C`), arraste de uma forma ou do vazio e largue onde quiser. Também se larga um ponto lateral no vazio com `Alt` premido. Arrastando uma ponta de uma seta selecionada, liga-se a uma forma ou desliga-se. Setas soltas não entram no texto para IA nem no Mermaid.
+- **Ajustar o trajeto de uma seta**: nas setas em cotovelo, clicar e arrastar o segmento do meio desloca-o para o lado (um segmento vertical para a esquerda/direita, um horizontal para cima/baixo), sem pegas nem indicação visual. Numa seta em L, qualquer dos dois segmentos pode ser arrastado e a seta passa a Z. **Duplo clique** na seta (fora do rótulo) repõe o trajeto automático. Retas e curvas não têm este ajuste.
+- **Rótulos das setas**: arrastar o rótulo desliza-o ao longo da seta (encaixa ao meio; `Alt` desativa o encaixe) e acompanha a seta quando as formas se movem. Duplo clique no rótulo edita o texto.
+- **Imagens**: colar (`Ctrl V`) um screenshot ou largar um ficheiro de imagem cria uma forma de imagem, com redimensionamento que mantém a proporção, 4 pontos de ligação para setas e exportação em SVG. A barra só oferece duplicar e apagar. Não entram no texto para IA.
+- **Colar no cursor**: `Ctrl V` cola as formas copiadas centradas no cursor.
+- **Deslocamento automático**: ao arrastar uma seta, uma ponta ou formas junto à margem do quadro, a vista desloca-se sozinha (mais depressa quanto mais perto da margem).
 - **Tema** automático, claro ou escuro (botão na barra superior ou `Shift T`).
 - **Idioma** português ou inglês (botão PT/EN ou `Shift L`). Na primeira visita segue a língua do browser.
 - **Gravação automática** no `localStorage` do browser, lista de diagramas, cópia de segurança e importação em JSON.
@@ -141,7 +146,8 @@ LO2: O stock é verificado em tempo real.
 | `T` | Texto livre, sem forma |
 | `Ctrl G` / `Ctrl Shift G` | Agrupar / desagrupar |
 | `V` / `H` | Selecionar / mover quadro |
-| Duplo clique | No vazio cria um passo; numa forma edita o texto |
+| Duplo clique | No vazio cria um passo; numa forma edita o texto; numa seta ajustada repõe o trajeto automático |
+| Arrastar um segmento de seta | Ajusta o trajeto (cotovelo) |
 | `Tab` | Cria o passo seguinte ligado |
 | `[` `]` | Diminuir / aumentar texto |
 | `Ctrl B` / `Ctrl I` | Negrito / itálico |
