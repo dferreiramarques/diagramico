@@ -830,12 +830,6 @@ function layoutText(text, fs, B, I_, mono, maxW){
     for (const tk of toks){
       mctx.font = fontStr(fs, tk.b, tk.i, mono); tk.w = mctx.measureText(tk.t).width;
       if (tk.sp && !line.length) continue;
-      if (!tk.sp && tk.w > maxW){ // break long word
-        let chunk = '';
-        for (const ch of tk.t){ const w = mctx.measureText(chunk+ch).width; if (lw + w > maxW && (chunk || line.length)){ if (chunk){ line.push({...tk,t:chunk,w:mctx.measureText(chunk).width}); lw += mctx.measureText(chunk).width; } flush(); mctx.font = fontStr(fs, tk.b, tk.i, mono); chunk = ch; } else chunk += ch; }
-        if (chunk){ const w = mctx.measureText(chunk).width; line.push({...tk,t:chunk,w}); lw += w; }
-        continue;
-      }
       if (!tk.sp && lw + tk.w > maxW && line.length) flush();
       line.push(tk); lw += tk.w;
     }
@@ -857,10 +851,14 @@ function drawText(c, L, x, cy, fs, mono, align, color){
 
 /* ---------- geometry ---------- */
 const MAXW = {step:15, action:14, decision:10, screen:15, doc:15, data:13, note:16};
+const GATES_OK = n => n.type === 'decision';
+const TW_NO = new Set(['point','img','geo','lane','decision']);
+const hasTW = n => !TW_NO.has(n.type) && !EVENTS.has(n.type);
+function twHandles(n){ const g = geom(n); return [{k:'w', x:n.x-g.w/2, y:n.y},{k:'e', x:n.x+g.w/2, y:n.y}]; }
 function geom(n){
   const fs = n.fs || 14;
   if (n.type === 'point') return {w:0, h:0, fs};
-  if (n.type === 'text'){ const pad = fs*0.3, maxW = fs*24, L = layoutText(n.text||'', fs, n.b, n.i, false, maxW); return {w: Math.max(L.w, fs*0.6) + pad*2, h: Math.max(L.h, fs*1.4) + pad*2, L, maxW, fs, p:pad}; }
+  if (n.type === 'text'){ const pad = fs*0.3, maxW = n.tw || fs*24, L = layoutText(n.text||'', fs, n.b, n.i, false, maxW); return {padW: pad*2, w: n.tw ? n.tw + pad*2 : Math.max(L.w, fs*0.6) + pad*2, h: Math.max(L.h, fs*1.4) + pad*2, L, maxW, fs, p:pad}; }
   if (n.type === 'img') return {w:Math.max(8, finite(n.w)), h:Math.max(8, finite(n.h)), fs};
   if (n.type === 'geo'){ const w = Math.max(0, finite(n.w)), h = Math.max(0, finite(n.h)), pad = fs*0.6; return {w, h, fs, p:pad, L:layoutText(n.text||'', fs, n.b, n.i, false, Math.max(40, w - pad*2))}; }
   if (n.type === 'lane'){ const hw = 44*fs/14; return {w:n.w, h:n.h, hw, fs}; }
@@ -869,10 +867,10 @@ function geom(n){
     const L = layoutText(n.text||'', fs, n.b, n.i, false, maxW);
     return {w:r*2, h:r*2, r, L, maxW, fs, ly: r + fs*0.45 + L.h/2};
   }
-  const mono = n.type === 'note'; let maxW = fs*(MAXW[n.type]||15);
+  const mono = n.type === 'note'; let maxW = n.tw && !GATES_OK(n) ? n.tw : fs*(MAXW[n.type]||15);
   let L = layoutText(n.text||'', fs, n.b, n.i, mono, maxW);
   const px = fs*1.05, py = fs*0.7;
-  let w, h, tox = 0, toy = 0, extra = {};
+  let w, h, tox = 0, toy = 0, extra = {}, padW = px*2;
   switch (n.type){
     case 'decision': // regular rhombus (equal diagonals). BPMN gateways keep the symbol inside and the label below, like events.
       if (GATES.includes(n.gate)){ w = h = fs*4; extra.below = true; extra.ly = h/2 + fs*0.45 + L.h/2; }
@@ -882,14 +880,15 @@ function geom(n){
         L = best.L; maxW = fs*best.m; w = h = Math.max(best.S + fs*1.1, fs*4.6);
       }
       break;
-    case 'action': { h = Math.max(L.h + py*2, fs*3); const sk = h*0.32; w = Math.max(L.w + px*2 + sk, fs*8); extra.sk = sk; break; }
+    case 'action': { h = Math.max(L.h + py*2, fs*3); const sk = h*0.32; padW = px*2 + sk; w = Math.max(L.w + padW, fs*8); extra.sk = sk; break; }
     case 'screen': { const bar = fs*1.25; w = Math.max(L.w + px*2, fs*8); h = Math.max(L.h + py*2, fs*2.6) + bar; toy = bar/2; extra.bar = bar; break; }
     case 'doc': { const wave = fs*0.7; w = Math.max(L.w + px*2, fs*8); h = Math.max(L.h + py*2, fs*3) + wave; toy = -wave/2; extra.wave = wave; break; }
     case 'data': { const ry = fs*0.55; w = Math.max(L.w + px*2, fs*6.5); h = Math.max(L.h + py*2, fs*2.4) + ry*2; toy = ry; extra.ry = ry; break; }
-    case 'note': { const p = fs*1.1; w = Math.max(L.w + p*2, fs*11); h = Math.max(L.h + p*2, fs*5); extra.p = p; break; }
+    case 'note': { const p = fs*1.1; padW = p*2; w = Math.max(L.w + p*2, fs*11); h = Math.max(L.h + p*2, fs*5); extra.p = p; break; }
     default: w = Math.max(L.w + px*2, fs*7); h = Math.max(L.h + py*2, fs*3);
   }
-  return Object.assign({w, h, L, maxW, fs, tox, toy, mono}, extra);
+  if (n.tw && n.type !== 'decision') w = Math.max(n.tw + padW, fs*3);
+  return Object.assign({w, h, L, maxW, fs, tox, toy, mono, padW}, extra);
 }
 function bbox(n){
   if (n.type === 'point') return {x0:n.x, y0:n.y, x1:n.x, y1:n.y};
@@ -1130,8 +1129,9 @@ function drawNode(c, n, pal, opts){
 function drawEdge(c, e, pal, opts, selected){
   const r = route(e); if (!r) return;
   const z = opts.z;
-  c.strokeStyle = selected ? pal.accent : pal.edge; c.fillStyle = c.strokeStyle;
-  c.lineWidth = (EDGE_W[e.lw] || 1.5) + (selected ? 0.7 : 0); c.lineJoin = 'round'; c.lineCap = 'round';
+  const ecol = e.color && e.color !== 'none' && pal.stroke[e.color] ? pal.stroke[e.color] : null;
+  c.strokeStyle = ecol || (selected ? pal.accent : pal.edge); c.fillStyle = c.strokeStyle;
+  c.lineWidth = (EDGE_W[e.lw] || 1.5) + (selected ? (ecol ? 1.2 : 0.7) : 0); c.lineJoin = 'round'; c.lineCap = 'round';
   c.setLineDash(e.dash ? [6,5] : []);
   const P_ = r.pts;
   c.beginPath(); c.moveTo(P_[0].x, P_[0].y);
@@ -1150,7 +1150,7 @@ function drawEdge(c, e, pal, opts, selected){
   if (e.label && opts.editing !== e.id){
     const m = labelPt(e, r), L = edgeLabelLayout(e), pad = 4;
     c.fillStyle = pal.labelBg; c.beginPath(); c.roundRect(m.x - L.w/2 - pad*1.5, m.y - L.h/2 - pad, L.w + pad*3, L.h + pad*2, 4); c.fill();
-    drawText(c, L, m.x, m.y, EDGE_FS, false, 'center', selected ? pal.accent : pal.muted);
+    drawText(c, L, m.x, m.y, EDGE_FS, false, 'center', ecol || (selected ? pal.accent : pal.muted));
   }
 }
 function drawGrid(c, pal){
@@ -1211,6 +1211,7 @@ function drawOverlay(c){
     const b = bbox(n), p = 4/z;
     c.strokeStyle = A; c.lineWidth = 1.5/z; c.strokeRect(b.x0-p, b.y0-p, b.x1-b.x0+2*p, b.y1-b.y0+2*p);
     if ((n.type === 'geo' || n.type === 'img') && S.sel.size === 1) for (const h of geoHandles(n).filter(h => n.type === 'geo' || h.k.length === 2)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
+    if (hasTW(n) && S.sel.size === 1) for (const h of twHandles(n)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
     if (n.type === 'lane' && S.sel.size === 1) for (const h of laneHandles(n)){ c.fillStyle = P.bg; c.fillRect(h.x-4/z,h.y-4/z,8/z,8/z); c.strokeRect(h.x-4/z,h.y-4/z,8/z,8/z); }
   }
   // connection handles
@@ -1568,6 +1569,8 @@ function onDown(e){
   }
   if (S.sel.size === 1){ const n = N([...S.sel][0]); if (n && (n.type === 'geo' || n.type === 'img')){ const h = geoHandles(n).filter(h => n.type === 'geo' || h.k.length === 2).find(h => Math.abs(h.x-p.x) <= 7/view.z && Math.abs(h.y-p.y) <= 7/view.z);
     if (h){ const g = geom(n); S.drag = {kind:'georesize', id:n.id, k:h.k, ratio:n.type === 'img' ? g.w/g.h : 0, box:{x0:n.x-g.w/2, y0:n.y-g.h/2, x1:n.x+g.w/2, y1:n.y+g.h/2}, moved:false}; return; } } }
+  if (S.sel.size === 1){ const n = N([...S.sel][0]); if (n && hasTW(n)){ const h = twHandles(n).find(h => Math.abs(h.x-p.x) <= 7/view.z && Math.abs(h.y-p.y) <= 7/view.z);
+    if (h){ const g = geom(n); S.drag = {kind:'twresize', id:n.id, k:h.k, padW:g.padW, fs:g.fs, x0:n.x-g.w/2, x1:n.x+g.w/2, moved:false}; return; } } }
   // glued-lane controls: chain (separate) and + (add a glued lane)
   { const lc = laneControlAt(p); if (lc){ runLaneControl(lc); return; } }
   // lane resize handles
@@ -1690,6 +1693,13 @@ function onMove(e){
     }
     n.x = (b.x0+b.x1)/2; n.y = (b.y0+b.y1)/2; n.w = b.x1-b.x0; n.h = b.y1-b.y0; draw(); return;
   }
+  if (d.kind === 'twresize'){
+    const n = N(d.id); if (!n) return;
+    if (!d.moved){ d.moved = true; checkpoint(); }
+    const minW = d.fs*3 + d.padW; let x0 = d.x0, x1 = d.x1;
+    if (d.k === 'e') x1 = Math.max(x0 + minW, p.x); else x0 = Math.min(x1 - minW, p.x);
+    n.tw = Math.round(x1 - x0 - d.padW); n.x = (x0 + x1)/2; draw(); return;
+  }
   if (d.kind === 'resize'){
     const n = N(d.id), dx = p.x - d.start.x, dy = p.y - d.start.y;
     if (!d.moved){ d.moved = true; checkpoint(); }
@@ -1776,7 +1786,7 @@ function onUp(e){
     else if (d.wasSel && !d.shift && S.sel.size > 1){ S.sel = new Set(groupMates(d.clickId)); draw(); }
     return;
   }
-  if (d.kind === 'resize' || d.kind === 'endpoint' || d.kind === 'georesize' || d.kind === 'edgelabel' || d.kind === 'edgebend'){ if (d.moved) changed(); return; }
+  if (d.kind === 'resize' || d.kind === 'twresize' || d.kind === 'endpoint' || d.kind === 'georesize' || d.kind === 'edgelabel' || d.kind === 'edgebend'){ if (d.moved) changed(); return; }
   if (d.kind === 'geodraw'){ // a click without dragging drops a default-sized shape
     const n = N(d.id); if (!d.moved || (n.w < 8 && n.h < 8)){ n.w = 200; n.h = n.kind === 'line' ? 0 : 120; n.x = Math.round(d.start.x); n.y = Math.round(d.start.y); }
     setTool('select'); changed(); return;
@@ -1908,7 +1918,7 @@ function updateCtx(){
   const hide = !S.sel.size || S.editing || (S.drag && S.drag.kind !== 'pan');
   if (hide){ ctxEl.hidden = true; ctxKey = ''; return; }
   const ns = selNodes(), es = selEdges();
-  const key = [...S.sel].join(',') + '|' + JSON.stringify(ns.map(n=>[n.fs,n.b,n.i,n.color,n.type,n.laneType,n.gate,n.kind,n.fill,n.lw,n.dash,n.flip,n.grp])) + JSON.stringify(es.map(e=>[e.style,e.arrow,e.dash,e.route,e.lw])) + document.documentElement.getAttribute('data-theme') + P.bg;
+  const key = [...S.sel].join(',') + '|' + JSON.stringify(ns.map(n=>[n.fs,n.b,n.i,n.color,n.type,n.laneType,n.gate,n.kind,n.fill,n.lw,n.dash,n.flip,n.grp])) + JSON.stringify(es.map(e=>[e.style,e.arrow,e.dash,e.route,e.lw,e.color])) + document.documentElement.getAttribute('data-theme') + P.bg;
   if (key !== ctxKey){ ctxKey = key; buildCtx(ns, es); }
   ctxEl.hidden = false;
   // position above selection
@@ -1996,6 +2006,8 @@ function buildCtx(ns, es){
     ctxEl.appendChild(btn(ICON.aNone, T('aNone'), () => setProp(es,'arrow','none'), ar==='none'));
     ctxEl.appendChild(btn(ICON.dash, T('dash'), () => setProp(es,'dash',!es.every(e=>e.dash)), es.every(e=>e.dash)));
     for (const v of [1,2,3]) ctxEl.appendChild(btn(ICON['lw'+v], T('aw'+v), () => setProp(es, 'lw', v), es.every(e => (e.lw || 2) === v)));
+    ctxEl.appendChild(sepEl());
+    ctxEl.appendChild(swatches(es));
     ctxEl.appendChild(sepEl());
     ctxEl.appendChild(btn(ICON.swap, T('swap'), () => { checkpoint(); es.forEach(e => { [e.from, e.to] = [e.to, e.from]; [e.fx, e.tx] = [e.tx, e.fx]; [e.fy, e.ty] = [e.ty, e.fy]; [e.sa, e.sb] = [e.sb, e.sa]; }); changed(); }));
     if (es.length === 1) ctxEl.appendChild(btn(ICON.edit, T('edgeLabel'), () => startEdit(es[0].id)));
@@ -3430,7 +3442,7 @@ function packDoc(d){
     if (e.from) o.from = ids.get(e.from); else delete o.from;
     if (e.to) o.to = ids.get(e.to); else delete o.to;
     if ((e.from && !o.from) || (e.to && !o.to)) return null;
-    if (!o.label) delete o.label; if (o.style === 'elbow') delete o.style; if (o.arrow === 'end') delete o.arrow; if (!o.dash) delete o.dash; return o;
+    if (!o.label) delete o.label; if (o.style === 'elbow') delete o.style; if (o.arrow === 'end') delete o.arrow; if (!o.dash) delete o.dash; if (!o.color || o.color === 'none') delete o.color; return o;
   }).filter(Boolean);
   return {v:1, n:d.name, nodes, edges};
 }
@@ -3448,6 +3460,7 @@ function sanitizeNodes(arr){
     if (c.type === 'lane'){ c.w = finite(n.w) || 1100; c.h = finite(n.h) || 180; if (c.laneType !== undefined && !Object.hasOwn(LANE_TYPES, c.laneType)) delete c.laneType; }
     if (c.type === 'geo'){ c.w = clamp(finite(n.w), 0, 20000); c.h = clamp(finite(n.h), 0, 20000); if (!GEO_KINDS.includes(c.kind)) c.kind = 'rect'; c.fill = !!c.fill; c.dash = !!c.dash; c.flip = !!c.flip; }
     if (c.lw !== undefined && ![1,2,3].includes(c.lw)) delete c.lw;
+    if (c.tw !== undefined){ c.tw = clamp(Math.round(finite(c.tw)), 20, 4000); if (TW_NO.has(c.type) || EVENTS.has(c.type)) delete c.tw; }
     if (c.grp !== undefined){ c.grp = clipStr(c.grp, 40); if (!c.grp || c.type === 'lane') delete c.grp; }
     if (!GATES.includes(c.gate)) delete c.gate;
     if (c.type === 'img'){
@@ -3468,6 +3481,7 @@ function sanitizeEdges(arr, nodes, keepIds){
     for (const k of ['fx','fy','tx','ty']) if (k in c) c[k] = finite(c[k]);
     for (const k of ['sa','sb']) if (c[k] !== undefined && !SIDES.includes(c[k])) delete c[k];
     if (c.lw !== undefined && ![1,2,3].includes(c.lw)) delete c.lw;
+    if (c.color !== undefined && (!COLORS.includes(c.color) || c.color === 'none')) delete c.color;
     if (c.route !== undefined && !ROUTES.includes(c.route)) delete c.route;
     if (c.bd !== undefined){ c.bd = Math.round(finite(c.bd)); if (!c.bd) delete c.bd; }
     if (c.lt !== undefined){ c.lt = clamp(finite(c.lt), 0, 1); if (c.lt === 0.5) delete c.lt; }
