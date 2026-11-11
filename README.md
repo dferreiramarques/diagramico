@@ -38,6 +38,7 @@ Arranque rápido:
 - **Agrupar** (`Ctrl G`) e **desagrupar** (`Ctrl Shift G`): as formas agrupadas selecionam-se e movem-se em conjunto, e uma moldura tracejada mostra o grupo. Ajuda a desenhar; não aparece no texto para IA nem nas exportações. Copiar e colar mantém o grupo (como um grupo novo).
 - **Espessuras:** 3 espessuras de linha para as formas e para as formas geométricas (fina, média, grossa), e 3 para as setas (a cabeça da seta acompanha).
 - **Notas** em IBM Plex Mono.
+- **Comentários** (`M`): pontos amarelos a pulsar, para observações de revisão que não mudam a lógica do diagrama. Com a ferramenta, clicar no quadro abre uma caixa: escrever e `Enter` (`Shift Enter` muda de linha, `Esc` cancela). Passar o rato mostra o comentário; clicar edita; o **X** no canto superior direito elimina. Criado sobre uma forma ou seta (ou mesmo ao lado de uma forma), fica **preso** a ela e acompanha-a (amarelo limão); no vazio fica **fixo** no quadro (amarelo torrado). Arrastar o ponto prende-o a outra forma ou seta, ou solta-o. Se a forma for apagada, o comentário fica onde estava. Não saem no PNG nem no SVG; vão na ligação partilhada, no JSON e, à parte, no texto para IA e no Mermaid.
 - **Texto** que ajusta o tamanho da caixa; o tamanho de letra controla o tamanho da forma. Regular, **negrito** e *itálico* por forma ou inline (`**negrito**`, `*itálico*`).
 - **Conectores** ligados às formas: cotovelo (com escolha de percurso), reta ou curva; seta no fim, nos dois lados ou nenhuma; tracejado; rótulos.
 - **Quadro infinito** com zoom, pinça, alinhamento automático, seleção por área, copiar/colar, desfazer/refazer.
@@ -79,7 +80,7 @@ Cada um tem dois modos:
 
 Em **Diagramas → Importar texto (IA / Mermaid)** cola-se o texto e cria-se um diagrama novo, organizado automaticamente (também se pode largar um `.txt`, `.md` ou `.mmd` no quadro). Fecha o ciclo com a exportação: exportar para texto e voltar a importar dá o mesmo diagrama (mesmas formas, lanes e setas; as posições são recalculadas).
 
-- **Texto para IA** do Diagramico (`DIAGRAM`, `LANES`, `NODES`, `FLOW`, `NOTES`): é a forma de pedir a uma IA que desenhe um fluxo, ou de editar o diagrama por texto.
+- **Texto para IA** do Diagramico (`DIAGRAM`, `LANES`, `NODES`, `FLOW`, `NOTES`, `COMMENTS`): é a forma de pedir a uma IA que desenhe um fluxo, ou de editar o diagrama por texto.
 - **Mermaid** `flowchart`/`graph`: formas (`[ ]`, `{ }`, `(( ))`, `[/ /]`, `[[ ]]`, `[( )]`, `> ]`), ligações (`-->`, `---`, `-.->`, `<-->`, com rótulo `|x|` ou `-- x -->`), cadeias (`A --> B --> C`) e `subgraph` como lanes. Estilos (`classDef`, `style`, etc.) são ignorados. Não suporta `A & B --> C`, nem outros tipos de diagrama.
 - As linhas que não são percebidas são ignoradas e contadas no aviso final.
 
@@ -128,12 +129,18 @@ LO1 ~ AR1 [consulta]
 
 NOTES:
 LO2: O stock é verificado em tempo real.
+
+COMMENTS (reviewer remarks about the diagram; NOT part of the process logic, do not turn into steps, rules or flow):
+C1 @LO2: confirmar com a equipa se o stock é por armazém
+C2 @CL1>CL2: falta o caso do cliente sem conta
+C3 @general: rever os nomes das lanes
 ```
 
 - Tipos: `start`, `end`, `wait`, `handoff`, `step`, `user_action`, `decision`, `screen`, `document`, `data`. Gateways BPMN: `decision_exclusive`, `decision_parallel`, `decision_inclusive`, `decision_complex` (no Mermaid vão como prefixo `✕`, `＋`, `○`, `✱` no texto).
 - O ID de cada forma é o prefixo da lane onde está o seu centro mais a ordem da esquerda para a direita (`N` = fora de lanes).
 - `>` fluxo, `<>` dois sentidos, `-` ligação sem direção, `~>` / `~` tracejado (indireto, acesso a dados), `[x]` rótulo.
 - Sequências lineares são encadeadas numa só linha; o fluxo segue a ordem a partir dos eventos de início.
+- `COMMENTS` vem sempre no fim e separado da lógica: são observações de revisão, não passos nem regras. Cada linha é `C<n> @<onde>: texto`, em que `<onde>` é o ID da forma, a seta (`A>B`), o código da lane ou `general`. A caixa **Incluir comentários** do separador de exportação tira-os (também no Mermaid, onde vão como linhas `%% COMMENT`). Os prompts de **Resumir** e **Guia** nunca os incluem. Ao importar o texto, voltam presos à mesma forma, seta ou lane.
 
 ## Atalhos
 
@@ -144,6 +151,7 @@ LO2: O stock é verificado em tempo real.
 | `N` `L` `C` | Nota, Swimlane, Conector |
 | `G` | Forma geométrica (arrastar no quadro) |
 | `T` | Texto livre, sem forma |
+| `M` | Comentário (clicar no quadro, escrever, `Enter`) |
 | `Ctrl G` / `Ctrl Shift G` | Agrupar / desagrupar |
 | `V` / `H` | Selecionar / mover quadro |
 | Duplo clique | No vazio cria um passo; numa forma edita o texto; numa seta ajustada repõe o trajeto automático |

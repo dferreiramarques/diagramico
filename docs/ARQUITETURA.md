@@ -15,7 +15,7 @@ Estado global em `store` (chave `diagramico.v1`):
 
 ```js
 store = { current: "<docId>", docs: { "<docId>": doc, ... } }
-doc   = { id, name, created, updated, view: {ox, oy, z}|null, nodes: [], edges: [] }
+doc   = { id, name, created, updated, view: {ox, oy, z}|null, nodes: [], edges: [], comments: [] }
 ```
 
 **Node** (forma, evento, nota ou lane):
@@ -52,6 +52,7 @@ As secções de `app/index.html` estão marcadas com comentários `/* ----------
 | view / hit testing | Pan/zoom (`view`, `toWorld`, `zoomAt`, `fit`); `hitTest`, handles de ligação |
 | mutations / clipboard | `addNode`, `addEdge`, `deleteSel`, `quickAdd` (Tab), copiar/colar |
 | text editing | `<textarea id="ta">` sobreposto, `startEdit` / `endEdit` |
+| comments | Comentários de revisão: pontos DOM, ancoragem, caixa de edição (ver abaixo) |
 | pointer / keyboard | `onDown/onMove/onUp` (seleção, arrasto, alinhamento `snapMove`, ligar), atalhos |
 | tool rail / contextual bar | `buildTools`, `buildCtx` (barra que muda conforme a seleção) |
 | auto layout | `autoLayout` / `runAutoLayout` (ver abaixo) |
@@ -86,6 +87,16 @@ Só ajudam a desenhar: formas com o mesmo `n.grp` (um id) selecionam-se e movem-
 ### Texto livre
 
 Tipo `text`: só texto, sem contorno nem fundo (`geom` mede-o com `layoutText`, largura de quebra de 24×o corpo; `drawNode` desenha-o alinhado à esquerda, com `n.color` a colorir o texto). Cria-se com a ferramenta `T` (um clique abre a edição); se ficar vazio ao fim da edição é apagado (`endEdit`), incluindo o ponto de histórico da criação. Não tem espessura, não entra no alinhamento à grelha nem no layout, e segue no texto IA como nota (secção `NOTES`); o Mermaid ignora-o.
+
+### Comentários
+
+- `doc.comments = [{id, x, y, text, on?, dx?, dy?, t?}]`, **fora de `doc.nodes`** (pode faltar em diagramas antigos: usar sempre `CM()`). Assim nunca entram na seleção, nos grupos, no alinhamento, no layout, no PNG/SVG nem no fluxo exportado.
+- **Ancoragem:** `on` é o id de uma forma (com `dx`, `dy` a partir do `x`, `y` dela) ou de uma seta (com `t`, a fração do percurso, via `tOnPath` / `pointAt`). Sem `on`, o comentário está fixo em `x`, `y`. `cmPos` resolve a posição; `cmTarget(p)` decide a que se prende um ponto largado em `p` (`hitTest`, ou uma forma a ≤ 12 px); `cmAttach` grava. Se o alvo deixar de existir, `cmPos` apaga `on` e o comentário fica no último sítio (`placeComments` mantém `x`, `y` atualizados em cada frame).
+- **Desenho:** botões DOM (`.cm`) dentro de `#cms`, posicionados por `placeComments()` em `frame()`; o pulse é uma animação CSS, por isso não custa repinturas do canvas. Classe `on` = preso (amarelo limão, `--cm-on`); sem ela = fixo (amarelo torrado, `--cm-free`). As cores são tokens por tema; tamanhos e animação são únicos.
+- **Interação:** ferramenta `comment` (`M`) em `onDown`; `cmDot` trata do hover (`cmTip`), do clique (`cmOpen`) e do arrasto (`S.cmDrag`, que mostra a cor do destino enquanto se arrasta). A caixa (`.cmbox`, estado `S.cmEd`) grava com `cmCommit` (Enter, clicar fora), cancela com `cmCancel` (Esc) e apaga com `cmDelete` (X). Um comentário novo que fique vazio é removido juntamente com o seu ponto de histórico.
+- **Histórico e entrada de dados:** `snap` / `restore` incluem `comments`. `packDoc` grava-os em `c`, a apontar para o índice da forma (`n`) ou da seta (`e`); `unpackDoc` e a importação de JSON passam por `sanitizeComments` (texto até 2000 caracteres, máx. 1000, `on` só para ids existentes).
+- **Texto:** `commentRefs` dá `{ref, text}`; `exportAI(d, true)` acrescenta a secção `COMMENTS` no fim e `exportMermaid(d, true)` linhas `%% COMMENT`. Sem o segundo argumento não saem (é o caso de `insightPrompt`). `parseAIText` lê a secção para `r.comments` e `buildDocFromParsed` volta a prendê-los.
+- No modo `?embed=1` os pontos só mostram o comentário ao passar o rato.
 
 ### Decisões e gateways BPMN
 

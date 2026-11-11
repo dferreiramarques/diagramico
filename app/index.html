@@ -14,6 +14,7 @@
   --theme: light;
   --bg:#f3f4f7; --panel:#ffffff; --panel-2:#f0f2f6; --line:#dde1e9; --ink:#1b1f2a; --muted:#646b7b;
   --accent:#3347d4; --accent-ink:#ffffff; --accent-soft:#e3e7ff; --danger:#c43c2c;
+  --cm-on:#f1ee1c; --cm-free:#dc9a12; --cm-edge:#ffffff; --cm-shadow:rgba(20,26,45,.4);
   --shadow:0 1px 2px rgba(20,26,45,.06),0 6px 20px rgba(20,26,45,.08);
   --sans:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -22,12 +23,14 @@
   --theme: dark;
   --bg:#14161b; --panel:#1d2027; --panel-2:#252932; --line:#323743; --ink:#e7e9ef; --muted:#9aa1b0;
   --accent:#8b98ff; --accent-ink:#11131a; --accent-soft:#2a3060; --danger:#ff8a78;
+  --cm-on:#f6f24a; --cm-free:#eba826; --cm-edge:#14161b; --cm-shadow:rgba(0,0,0,.6);
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;
 }}
 :root[data-theme="dark"]{
   --theme: dark;
   --bg:#14161b; --panel:#1d2027; --panel-2:#252932; --line:#323743; --ink:#e7e9ef; --muted:#9aa1b0;
   --accent:#8b98ff; --accent-ink:#11131a; --accent-soft:#2a3060; --danger:#ff8a78;
+  --cm-on:#f6f24a; --cm-free:#eba826; --cm-edge:#14161b; --cm-shadow:rgba(0,0,0,.6);
   --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;
 }
 [hidden]{display:none!important}
@@ -86,6 +89,21 @@ button{font:inherit;color:inherit}
 
 /* Text editor overlay */
 #ta{position:fixed;z-index:4;border:0;outline:none;background:transparent;color:var(--ink);resize:none;overflow:hidden;padding:0;margin:0;white-space:pre-wrap;word-break:break-word;caret-color:var(--accent)}
+
+/* Comments: floating dots over the board (DOM, so the pulse costs no canvas repaint). Lemon = attached to a shape or arrow, toasted = fixed on the board. */
+.cm{position:fixed;left:0;top:0;z-index:3;width:18px;height:18px;margin:-9px 0 0 -9px;padding:0;box-sizing:border-box;border:2px solid var(--cm-edge);border-radius:50%;background:var(--cm-free);cursor:pointer;touch-action:none;box-shadow:0 1px 4px var(--cm-shadow)}
+.cm.on{background:var(--cm-on)}
+.cm.drag{cursor:grabbing}
+.cm::after{content:"";position:absolute;inset:-2px;border-radius:50%;background:inherit;pointer-events:none;animation:cmPulse 1.8s ease-out infinite}
+.cm:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@keyframes cmPulse{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(2.5);opacity:0}}
+@media (prefers-reduced-motion:reduce){.cm::after{animation:none;opacity:0}}
+.cmbox{position:fixed;z-index:8;width:260px;max-width:calc(100vw - 20px);box-sizing:border-box;padding:8px 32px 8px 10px;border-top:3px solid var(--cm-free)}
+.cmbox.on{border-top-color:var(--cm-on)}
+.cmbox textarea{display:block;width:100%;box-sizing:border-box;min-height:56px;max-height:40vh;border:0;outline:none;resize:none;background:transparent;color:var(--ink);font:13px/1.45 var(--sans);padding:0;margin:0}
+.cmbox .x{position:absolute;top:4px;right:4px;width:24px;height:24px;min-width:24px;padding:0}
+.cmbox .x svg{width:14px;height:14px}
+.tip.cmtip{white-space:pre-wrap;overflow-wrap:anywhere;max-width:280px;line-height:1.4}
 
 /* Drawer */
 .drawer{position:fixed;top:0;left:0;bottom:0;width:min(340px,100vw);z-index:20;background:var(--panel);border-right:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
@@ -184,6 +202,7 @@ button{font:inherit;color:inherit}
 <body>
 <canvas id="cv" tabindex="0" data-i18n-aria="board"></canvas>
 <textarea id="ta" hidden spellcheck="false" data-i18n-aria="editText"></textarea>
+<div id="cms"></div>
 
 <div class="topbar">
   <div class="panel docbox">
@@ -276,6 +295,7 @@ const ICON = {
   note: I('<path d="M4 4h16v11l-5 5H4z"/><path d="M15 20v-5h5"/><path d="M8 9h8M8 12.5h5"/>'),
   lane: I('<rect x="2.5" y="4" width="19" height="16" rx="1.5"/><path d="M2.5 12h19M7 4v16"/>'),
   connector: I('<path d="M4 18c6 0 4-12 12-12"/><path d="M13 4l3.4 2-2 3.4"/><circle cx="4" cy="18" r="1.5"/>'),
+  comment: I('<path d="M4 5h16v11h-8l-4.5 4v-4H4z"/><path d="M8 9h8M8 12.5h5"/>'),
   th_auto: I('<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 010 16z" fill="currentColor"/>'),
   th_light: I('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>'),
   th_dark: I('<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>'),
@@ -424,7 +444,8 @@ Diagrama:`,
   backup:'Guardar cópia de segurança', import:'Importar…', untitled:'Sem título', newLane:'Nova lane', lane:'Lane', copySuffix:' (cópia)', importedSuffix:' (importado)',
   t_step:'Passo / processo', t_action:'Ação do utilizador', t_decision:'Decisão', t_screen:'Ecrã / interface', t_doc:'Documento', t_data:'Dados',
   t_start:'Início', t_end:'Fim', t_pause:'Pausa / espera', t_handoff:'Mudança de lane', t_note:'Nota', t_lane:'Swimlane',
-  t_select:'Selecionar', t_hand:'Mover quadro', t_connector:'Conector',
+  t_select:'Selecionar', t_hand:'Mover quadro', t_connector:'Conector', t_comment:'Comentário',
+  cmDelete:'Eliminar comentário', cmPh:'Comentário… Enter grava, Shift Enter muda de linha', cmAria:t => `Comentário: ${t}`, cmInclude:n => `Incluir comentários (${n})`,
   l_pessoa:'Pessoa', l_equipa:'Equipa', l_departamento:'Departamento', l_sistema:'Sistema',
   c_none:'Neutro', c_blue:'Azul', c_green:'Verde', c_yellow:'Amarelo', c_red:'Vermelho', c_violet:'Violeta', c_grey:'Cinza', color:'Cor',
   r_auto:'automático', r_hv:'horizontal → vertical', r_vh:'vertical → horizontal', r_h:'em Z horizontal', r_v:'em Z vertical',
@@ -471,6 +492,7 @@ Diagrama:`,
     <dt>N · L · C</dt><dd>Nota · Swimlane · Conector</dd>
     <dt>G</dt><dd>Forma geométrica (retângulo, círculo, triângulo ou linha): arraste no quadro; depois mude o tipo, o preenchimento, a cor e a espessura na barra. Serve de contentor e leva consigo o que está lá dentro</dd>
     <dt>T</dt><dd>Texto livre, sem forma: clique no quadro e escreva; tamanho, negrito, itálico e cor na barra. Sem texto, desaparece</dd>
+    <dt>M</dt><dd>Comentário: clique no quadro, escreva e Enter. Sobre uma forma ou seta fica preso a ela (amarelo limão); no vazio fica fixo no quadro (amarelo torrado). Arraste o ponto para prender ou soltar; clique para editar, X para eliminar. Não sai nas imagens e vai à parte no texto IA</dd>
     <dt>Ctrl G · Ctrl Shift G</dt><dd>Agrupar · Desagrupar as formas selecionadas: ficam selecionadas e movem-se em conjunto (só ajuda a desenhar; não conta para o texto IA)</dd>
     <dt>Duplo clique</dt><dd>No vazio cria um passo; numa forma edita o texto</dd>
     <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
@@ -609,7 +631,8 @@ Diagram:`,
   backup:'Download backup', import:'Import…', untitled:'Untitled', newLane:'New lane', lane:'Lane', copySuffix:' (copy)', importedSuffix:' (imported)',
   t_step:'Step / process', t_action:'User action', t_decision:'Decision', t_screen:'Screen / interface', t_doc:'Document', t_data:'Data',
   t_start:'Start', t_end:'End', t_pause:'Pause / wait', t_handoff:'Lane handoff', t_note:'Note', t_lane:'Swimlane',
-  t_select:'Select', t_hand:'Pan board', t_connector:'Connector',
+  t_select:'Select', t_hand:'Pan board', t_connector:'Connector', t_comment:'Comment',
+  cmDelete:'Delete comment', cmPh:'Comment… Enter saves, Shift Enter for a new line', cmAria:t => `Comment: ${t}`, cmInclude:n => `Include comments (${n})`,
   l_pessoa:'Person', l_equipa:'Team', l_departamento:'Department', l_sistema:'System',
   c_none:'Neutral', c_blue:'Blue', c_green:'Green', c_yellow:'Yellow', c_red:'Red', c_violet:'Violet', c_grey:'Grey', color:'Colour',
   r_auto:'automatic', r_hv:'horizontal → vertical', r_vh:'vertical → horizontal', r_h:'Z horizontal', r_v:'Z vertical',
@@ -656,6 +679,7 @@ Diagram:`,
     <dt>N · L · C</dt><dd>Note · Swimlane · Connector</dd>
     <dt>G</dt><dd>Geometric shape (rectangle, circle, triangle or line): drag on the board; then change the type, fill, colour and weight in the bar. It works as a container and carries what is inside it</dd>
     <dt>T</dt><dd>Free text, no shape: click the board and type; size, bold, italic and colour in the bar. With no text it disappears</dd>
+    <dt>M</dt><dd>Comment: click the board, type and press Enter. On a shape or arrow it stays attached to it (lemon yellow); on empty space it is fixed on the board (toasted yellow). Drag the dot to attach or detach; click to edit, X to delete. Left out of images and kept apart in the AI text</dd>
     <dt>Ctrl G · Ctrl Shift G</dt><dd>Group · Ungroup the selected shapes: they are selected and moved together (a drawing aid only; it does not count towards the AI text)</dd>
     <dt>Double-click</dt><dd>On empty space creates a step; on a shape edits its text</dd>
     <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
@@ -784,7 +808,7 @@ function persistNow(){
 function scheduleSave(){ $('#saveState').textContent = T('saving'); clearTimeout(saveTimer); saveTimer = setTimeout(persistNow, 450); }
 
 /* ---------- state ---------- */
-const S = { tool:'select', sel:new Set(), hover:null, hoverHandle:null, editing:null, space:false, guides:[], connect:null, marquee:null };
+const S = { tool:'select', sel:new Set(), hover:null, hoverHandle:null, editing:null, space:false, guides:[], connect:null, marquee:null, cmEd:null, cmDrag:null };
 const view = { ox:0, oy:0, z:1 };
 let idx = new Map();
 function reindex(){ idx = new Map(doc.nodes.map(n=>[n.id,n])); }
@@ -794,11 +818,11 @@ let W = 0, H = 0, DPR = 1;
 
 /* ---------- history ---------- */
 let undoS = [], redoS = [];
-const snap = () => JSON.stringify({nodes:doc.nodes, edges:doc.edges});
+const snap = () => JSON.stringify({nodes:doc.nodes, edges:doc.edges, comments:CM()});
 function checkpoint(){ undoS.push(snap()); if (undoS.length > 150) undoS.shift(); redoS.length = 0; }
-function restore(s){ const o = JSON.parse(s); doc.nodes = o.nodes; doc.edges = o.edges; reindex(); for (const id of [...S.sel]) if (!N(id) && !E(id)) S.sel.delete(id); changed(); }
-function undo(){ endEdit(); if (!undoS.length) return; redoS.push(snap()); restore(undoS.pop()); }
-function redo(){ endEdit(); if (!redoS.length) return; undoS.push(snap()); restore(redoS.pop()); }
+function restore(s){ const o = JSON.parse(s); doc.nodes = o.nodes; doc.edges = o.edges; doc.comments = o.comments || []; reindex(); for (const id of [...S.sel]) if (!N(id) && !E(id)) S.sel.delete(id); changed(); }
+function undo(){ endEdit(); cmCommit(); if (!undoS.length) return; redoS.push(snap()); restore(undoS.pop()); }
+function redo(){ endEdit(); cmCommit(); if (!redoS.length) return; undoS.push(snap()); restore(redoS.pop()); }
 function changed(){ reindex(); doc.updated = Date.now(); scheduleSave(); draw(); }
 
 /* ---------- text layout ---------- */
@@ -1190,7 +1214,7 @@ function frame(){
   drawGrid(ctx, P);
   ctx.setTransform(DPR*view.z,0,0,DPR*view.z,DPR*view.ox,DPR*view.oy);
   renderScene(ctx, P, {z:view.z, editing:S.editing && S.editing.id, overlay:true});
-  drawOverlay(ctx);
+  drawOverlay(ctx); placeComments();
   updateCtx(); updateZoomLabel(); if (S.editing) placeTA();
 }
 function drawOverlay(c){
@@ -1533,6 +1557,128 @@ ta.addEventListener('keydown', ev => {
 });
 ta.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== ta) endEdit(); }, 0));
 
+/* ---------- comments ---------- */
+// Review remarks pinned to the board: doc.comments = [{id, x, y, text, on?, dx?, dy?, t?}]. They live apart from the nodes, so they never enter the flow,
+// the layout, the selection or the images. `on` is the id of the shape (dx, dy from its x, y) or of the arrow (t along its path) the comment follows;
+// without `on` the comment is fixed at x, y on the board. The dots are DOM buttons placed by placeComments() on every frame.
+const CM = () => doc.comments || (doc.comments = []);
+const cmGet = id => CM().find(c => c.id === id);
+function cmPos(c){
+  if (c.on){
+    const n = N(c.on); if (n) return {x:n.x + (c.dx||0), y:n.y + (c.dy||0)};
+    const e = E(c.on); if (e){ const r = route(e); return r ? pointAt(r, c.t === undefined ? 0.5 : c.t) : {x:c.x, y:c.y}; }
+    delete c.on; delete c.dx; delete c.dy; delete c.t; // its shape or arrow is gone: the comment stays where it was, now fixed on the board
+  }
+  return {x:c.x, y:c.y};
+}
+// What a comment dropped at p attaches to: whatever is under the pointer, or else a shape close by.
+function cmTarget(p){
+  const h = hitTest(p); if (h) return h;
+  const m = 12/view.z; let best = null, bd = Infinity;
+  for (const n of doc.nodes){ if (n.type === 'lane' || n.type === 'geo') continue; const b = bbox(n); if (p.x < b.x0-m || p.x > b.x1+m || p.y < b.y0-m || p.y > b.y1+m) continue; const d = Math.hypot(p.x-n.x, p.y-n.y); if (d < bd){ bd = d; best = n; } }
+  return best ? {kind:'node', id:best.id} : null;
+}
+function cmAttach(c, p, h){
+  delete c.on; delete c.dx; delete c.dy; delete c.t; c.x = Math.round(p.x); c.y = Math.round(p.y);
+  if (!h) return;
+  if (h.kind === 'node'){ const n = N(h.id); if (n){ c.on = n.id; c.dx = Math.round(p.x - n.x); c.dy = Math.round(p.y - n.y); } }
+  else { const e = E(h.id), r = e && route(e); if (r){ c.on = e.id; c.t = +tOnPath(r, p).toFixed(3); } }
+}
+function addComment(p){ const c = {id:uid('c'), x:0, y:0, text:''}; cmAttach(c, p, cmTarget(p)); CM().push(c); return c; }
+function cmRemove(id){ doc.comments = CM().filter(c => c.id !== id); }
+const cmEls = new Map();
+function placeComments(){
+  const layer = $('#cms'), live = new Set();
+  for (const c of CM()){
+    live.add(c.id);
+    let b = cmEls.get(c.id); if (!b){ b = cmDot(c.id); cmEls.set(c.id, b); layer.appendChild(b); }
+    const dg = S.cmDrag && S.cmDrag.id === c.id && S.cmDrag.moved ? S.cmDrag : null;
+    const w = cmPos(c); if (c.on){ c.x = w.x; c.y = w.y; } // keeps the last known place, used if the shape is deleted
+    const s = toScreen(w.x, w.y);
+    b.style.transform = `translate(${s.x}px,${s.y}px)`;
+    b.classList.toggle('on', dg ? !!dg.target : !!c.on); b.classList.toggle('drag', !!dg);
+    b.setAttribute('aria-label', T('cmAria', c.text || ''));
+  }
+  for (const [id, b] of cmEls) if (!live.has(id)){ b.remove(); cmEls.delete(id); }
+  if (S.cmEd){ if (!cmGet(S.cmEd.id)) cmClose(); else cmPlaceBox(); }
+}
+function cmTip(b, text){
+  hideTip(); tipEl = document.createElement('div'); tipEl.className = 'tip cmtip'; tipEl.textContent = text; document.body.appendChild(tipEl);
+  const r = b.getBoundingClientRect(), tw = tipEl.offsetWidth, th = tipEl.offsetHeight; let x = r.right + 8; if (x + tw > W - 8) x = r.left - 8 - tw;
+  tipEl.style.left = clamp(x, 8, Math.max(8, W-tw-8)) + 'px'; tipEl.style.top = clamp(r.top - 2, 8, Math.max(8, H-th-8)) + 'px';
+}
+function cmDot(id){
+  const b = document.createElement('button'); b.type = 'button'; b.className = 'cm';
+  b.onmouseenter = () => { const c = cmGet(id); if (c && c.text && !S.cmDrag && !(S.cmEd && S.cmEd.id === id)) cmTip(b, c.text); };
+  b.onmouseleave = hideTip;
+  if (EMBED){ b.tabIndex = -1; return b; } // read-only demo: hover only
+  b.addEventListener('mousedown', ev => ev.preventDefault()); // focus stays where it is (board or the open comment box)
+  b.addEventListener('pointerdown', ev => {
+    if (ev.button !== 0) return; ev.stopPropagation(); hideTip();
+    if (S.editing) endEdit();
+    if (S.cmEd && S.cmEd.id !== id) cmCommit();
+    if (!cmGet(id)) return;
+    try { b.setPointerCapture(ev.pointerId); } catch(_){}
+    S.cmDrag = {id, sx:ev.clientX, sy:ev.clientY, moved:false, target:null};
+  });
+  // Dragging moves the dot; where it is dropped decides whether it attaches (shape or arrow) or stays fixed on the board. The colour previews it.
+  b.addEventListener('pointermove', ev => {
+    const d = S.cmDrag; if (!d || d.id !== id) return;
+    if (!d.moved){ if (Math.hypot(ev.clientX-d.sx, ev.clientY-d.sy) < 4) return; cmCommit(); if (!cmGet(id)){ S.cmDrag = null; return; } checkpoint(); d.moved = true; hideTip(); }
+    const p = toWorld(ev.clientX, ev.clientY); d.target = cmTarget(p); cmAttach(cmGet(id), p, null); draw();
+  });
+  const up = ev => {
+    const d = S.cmDrag; if (!d || d.id !== id) return; S.cmDrag = null; const c = cmGet(id); if (!c) return;
+    if (d.moved){ const p = toWorld(ev.clientX, ev.clientY); cmAttach(c, p, ev.type === 'pointerup' ? cmTarget(p) : null); changed(); }
+    else if (ev.type === 'pointerup') cmOpen(id);
+  };
+  b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up);
+  b.addEventListener('click', ev => { if (ev.detail === 0) cmOpen(id); }); // keyboard activation (the mouse opens on pointerup)
+  b.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter' || ev.key === ' ') ev.stopPropagation();
+    else if (ev.key === 'Delete' || ev.key === 'Backspace'){ ev.stopPropagation(); ev.preventDefault(); checkpoint(); cmRemove(id); changed(); cv.focus({preventScroll:true}); }
+  });
+  return b;
+}
+function cmOpen(id, isNew){
+  if (S.cmEd && S.cmEd.id === id){ S.cmEd.ta.focus(); return; }
+  cmCommit(); const c = cmGet(id); if (!c) return; hideTip();
+  const box = document.createElement('div'); box.className = 'panel cmbox';
+  const t = document.createElement('textarea'); t.spellcheck = false; t.maxLength = 2000; t.placeholder = T('cmPh'); t.setAttribute('aria-label', T('t_comment')); t.value = c.text || '';
+  const x = document.createElement('button'); x.type = 'button'; x.className = 'ibtn x'; x.innerHTML = ICON.close; x.title = T('cmDelete'); x.setAttribute('aria-label', T('cmDelete'));
+  x.onmousedown = ev => ev.preventDefault(); x.onclick = cmDelete;
+  box.append(t, x); document.body.appendChild(box);
+  S.cmEd = {id, isNew:!!isNew, box, ta:t};
+  const grow = () => { t.style.height = '0px'; t.style.height = t.scrollHeight + 'px'; cmPlaceBox(); };
+  t.addEventListener('input', grow);
+  t.addEventListener('keydown', ev => {
+    ev.stopPropagation();
+    if (ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing){ ev.preventDefault(); cmCommit(); cv.focus({preventScroll:true}); }
+    else if (ev.key === 'Escape'){ ev.preventDefault(); cmCancel(); }
+  });
+  t.addEventListener('blur', () => setTimeout(() => { if (S.cmEd && S.cmEd.ta === t && !box.contains(document.activeElement)) cmCommit(); }, 0));
+  box.addEventListener('pointerdown', ev => ev.stopPropagation());
+  grow(); t.focus(); t.select();
+  // same as startEdit: a tool click opens the box from pointerdown and the browser then focuses the canvas, so take the focus back afterwards
+  setTimeout(() => { if (S.cmEd && S.cmEd.ta === t && document.activeElement !== t) t.focus(); }, 0);
+}
+function cmPlaceBox(){
+  const ed = S.cmEd, c = ed && cmGet(ed.id); if (!c) return;
+  const w = cmPos(c), s = toScreen(w.x, w.y), bw = ed.box.offsetWidth, bh = ed.box.offsetHeight;
+  let x = s.x + 16; if (x + bw > W - 10) x = s.x - 16 - bw;
+  ed.box.style.left = clamp(x, 10, Math.max(10, W-bw-10)) + 'px'; ed.box.style.top = clamp(s.y - 14, 10, Math.max(10, H-bh-10)) + 'px';
+  ed.box.classList.toggle('on', !!c.on);
+}
+function cmClose(){ const ed = S.cmEd; if (!ed) return; S.cmEd = null; ed.box.remove(); }
+// Saves the open comment. An empty one is removed; a brand-new one that ends empty also drops its creation checkpoint.
+function cmCommit(){
+  const ed = S.cmEd; if (!ed) return; const c = cmGet(ed.id), v = ed.ta.value.replace(/\s+$/, '').slice(0, 2000); cmClose(); if (!c) return;
+  if (!v.trim()){ if (ed.isNew) undoS.pop(); else checkpoint(); cmRemove(c.id); changed(); return; }
+  if (v !== c.text){ if (!ed.isNew) checkpoint(); c.text = v; changed(); } else draw();
+}
+function cmCancel(){ const ed = S.cmEd; if (!ed) return; cmClose(); if (ed.isNew){ undoS.pop(); cmRemove(ed.id); changed(); } cv.focus({preventScroll:true}); }
+function cmDelete(){ const ed = S.cmEd; if (!ed) return; cmClose(); if (ed.isNew) undoS.pop(); else checkpoint(); cmRemove(ed.id); changed(); cv.focus({preventScroll:true}); }
+
 /* ---------- pointer ---------- */
 const ptrs = new Map();
 let pinch = null, lastClick = {t:0, x:0, y:0};
@@ -1545,6 +1691,7 @@ function evPt(e){ return {sx:e.clientX, sy:e.clientY, ...toWorld(e.clientX, e.cl
 
 function onDown(e){
   if (S.editing) endEdit();
+  cmCommit();
   closePopovers();
   cv.focus({preventScroll:true});
   try { cv.setPointerCapture(e.pointerId); } catch(_){}
@@ -1559,6 +1706,7 @@ function onDown(e){
   if (e.button === 2) return;
 
   if (S.tool === 'geo'){ checkpoint(); const n = addNode('geo', Math.round(p.x), Math.round(p.y), {w:0, h:0}); S.sel = new Set([n.id]); S.drag = {kind:'geodraw', id:n.id, start:p, moved:false}; draw(); return; }
+  if (S.tool === 'comment'){ checkpoint(); const c = addComment(p); setTool('select'); changed(); cmOpen(c.id, true); return; }
   // create shape
   if (TYPES[S.tool] ){
     checkpoint();
@@ -1658,7 +1806,7 @@ function onMove(e){
     S.hoverHandle = hh;
     let cur = 'default';
     if (S.space || S.tool === 'hand') cur = 'grab';
-    else if (TYPES[S.tool]) cur = 'crosshair';
+    else if (TYPES[S.tool] || S.tool === 'comment') cur = 'crosshair';
     else if (hh) cur = 'copy';
     else if (laneControlAt(p)) cur = 'pointer';
     else if (S.sel.size === 1){ const n = N([...S.sel][0]); if (n && n.type === 'lane'){ const h = laneHandles(n).find(h => Math.abs(h.x-p.x) <= 7/view.z && Math.abs(h.y-p.y) <= 7/view.z); if (h) cur = h.k === 'r' ? 'ew-resize' : h.k === 'br' ? 'nwse-resize' : 'ns-resize'; } }
@@ -1865,6 +2013,7 @@ window.addEventListener('keydown', e => {
   if (k === 'v'){ setTool('select'); return; }
   if (k === 'h'){ setTool('hand'); return; }
   if (k === 'c'){ setTool('connector'); return; }
+  if (k === 'm'){ setTool('comment'); return; }
   const t = Object.keys(TYPES).find(t => TYPES[t].key === k); if (t) setTool(t);
 });
 window.addEventListener('keyup', e => { if (e.code === 'Space'){ S.space = false; cv.style.cursor = S.tool === 'hand' ? 'grab' : 'default'; } });
@@ -1880,8 +2029,8 @@ function bumpFont(dir){ const ns = selNodes(); if (!ns.length) return; checkpoin
 function setProp(list, prop, val){ checkpoint(); list.forEach(x => x[prop] = val); changed(); }
 
 /* ---------- tool rail ---------- */
-const TOOL_GROUPS = [['select','hand'],['step','action','decision','screen','doc','data'],['start','end','pause','handoff'],['note','text','lane','geo','connector']];
-const TOOL_KEY = {select:'V', hand:'H', connector:'C'};
+const TOOL_GROUPS = [['select','hand'],['step','action','decision','screen','doc','data'],['start','end','pause','handoff'],['note','text','lane','geo','connector'],['comment']];
+const TOOL_KEY = {select:'V', hand:'H', connector:'C', comment:'M'};
 function buildTools(){
   const el = $('#tools'); el.innerHTML = '';
   TOOL_GROUPS.forEach((g, gi) => {
@@ -1896,7 +2045,7 @@ function buildTools(){
     }
   });
 }
-function setTool(t){ S.tool = t; document.querySelectorAll('#tools .ibtn').forEach(b => b.classList.toggle('on', b.dataset.tool === t)); cv.style.cursor = t === 'hand' ? 'grab' : TYPES[t] ? 'crosshair' : 'default'; draw(); }
+function setTool(t){ S.tool = t; document.querySelectorAll('#tools .ibtn').forEach(b => b.classList.toggle('on', b.dataset.tool === t)); cv.style.cursor = t === 'hand' ? 'grab' : TYPES[t] || t === 'comment' ? 'crosshair' : 'default'; draw(); }
 let tipEl = null;
 function showTip(b, text){ hideTip(); tipEl = document.createElement('div'); tipEl.className = 'tip'; tipEl.textContent = text; document.body.appendChild(tipEl);
   const r = b.getBoundingClientRect(); if (W > 700){ tipEl.style.left = (r.right + 8) + 'px'; tipEl.style.top = (r.top + r.height/2 - tipEl.offsetHeight/2) + 'px'; } else { tipEl.style.left = clamp(r.left + r.width/2 - tipEl.offsetWidth/2, 8, W - tipEl.offsetWidth - 8) + 'px'; tipEl.style.top = (r.top - tipEl.offsetHeight - 8) + 'px'; } }
@@ -2157,7 +2306,22 @@ function buildIds(d){
   for (const [key, list] of groups){ list.sort((a,b)=>a.x-b.x||a.y-b.y); const pre = key === '_' ? 'N' : laneCode.get(key); list.forEach((n,i)=>ids.set(n.id, pre + (i+1))); }
   return {lanes, laneCode, groups, ids};
 }
-function exportAI(d){
+// Comments as "C<n> @<where>: text". <where> is the shape ID, the arrow ("A1>A2"), the lane code, or "general".
+function commentRefs(d, lanes, laneCode, ids){
+  const out = [];
+  for (const c of (d.comments || [])){
+    if (!clean(c.text)) continue;
+    const n = d.nodes.find(x => x.id === c.on), e = n ? null : d.edges.find(x => x.id === c.on);
+    let ref = null;
+    if (n) ref = ids.get(n.id) || (n.type === 'lane' ? laneCode.get(n.id) : null);
+    else if (e && ids.has(e.from) && ids.has(e.to)) ref = ids.get(e.from) + '>' + ids.get(e.to);
+    if (!ref){ const l = laneOf(c, lanes); ref = l ? laneCode.get(l.id) : 'general'; }
+    out.push({ref, text:clean(c.text)});
+  }
+  return out;
+}
+let expCm = true; // export modal: include the comments in the AI text and in Mermaid
+function exportAI(d, withComments){
   const {lanes, laneCode, groups, ids} = buildIds(d);
   const nodeById = new Map(d.nodes.map(n=>[n.id,n]));
   const out = [];
@@ -2199,11 +2363,17 @@ function exportAI(d){
       out.push(`${linked.length ? linked.join(',') : l ? laneCode.get(l.id) : 'general'}: ${clean(n.text)}`);
     }
   }
+  // Comments go last and are labelled as remarks, so a reader (or an AI) never takes them for process logic.
+  const cms = withComments ? commentRefs(d, lanes, laneCode, ids) : [];
+  if (cms.length){
+    out.push('', 'COMMENTS (reviewer remarks about the diagram; NOT part of the process logic, do not turn into steps, rules or flow):');
+    cms.forEach((c, i) => out.push(`C${i+1} @${c.ref}: ${c.text}`));
+  }
   return out.join('\n');
 }
 // < and > become entity codes so a label can never be read as HTML by a lenient Mermaid renderer
 function mmEsc(t){ return clean(t).replace(/\*\*(.+?)\*\*/g,'$1').replace(/\*(.+?)\*/g,'$1').replace(/"/g,'#quot;').replace(/</g,'#lt;').replace(/>/g,'#gt;') || ' '; }
-function exportMermaid(d){
+function exportMermaid(d, withComments){
   const {lanes, laneCode, groups, ids} = buildIds(d);
   const sh = (n) => { const t = mmEsc(n.text); switch (n.type){
     case 'step': return `["${t}"]`; case 'action': return `[/"${t}"/]`; case 'decision': return `{"${GATES.includes(n.gate) ? GATE_SYM[n.gate] + ' ' : ''}${t}"}`; case 'screen': return `[["${t}"]]`;
@@ -2220,6 +2390,8 @@ function exportMermaid(d){
     out.push(`  ${a} ${arrow}${e.label ? `|"${mmEsc(e.label)}"|` : ''} ${b}`);
   }
   if (notes.length) out.push('  classDef note fill:#fff3b0,stroke:#c9a400,color:#333');
+  // comments travel as Mermaid comment lines: renderers ignore them
+  if (withComments) commentRefs(d, lanes, laneCode, ids).forEach((c, i) => out.push(`  %% COMMENT C${i+1} @${c.ref}: ${c.text.replace(/%%/g, '% %')}`));
   return out.join('\n');
 }
 const tokEst = s => Math.round(s.length / 3.6);
@@ -2426,10 +2598,13 @@ function renderModal(){
     return;
   }
   let text, hint, ext;
-  if (modalTab === 'ai'){ text = exportAI(doc); ext = 'txt'; hint = T('hintAi'); }
-  else if (modalTab === 'mermaid'){ text = exportMermaid(doc); ext = 'md'; hint = T('hintMermaid'); }
+  const nCm = CM().filter(c => clean(c.text)).length, cmOpt = nCm && modalTab !== 'json';
+  if (modalTab === 'ai'){ text = exportAI(doc, expCm); ext = 'txt'; hint = T('hintAi'); }
+  else if (modalTab === 'mermaid'){ text = exportMermaid(doc, expCm); ext = 'md'; hint = T('hintMermaid'); }
   else { text = JSON.stringify({app:'diagramico', version:1, doc}, null, 1); ext = 'json'; hint = T('hintJson'); }
   const p = document.createElement('p'); p.className = 'hint'; p.textContent = hint; body.appendChild(p);
+  if (cmOpt){ const o = document.createElement('div'); o.className = 'opts'; const l = document.createElement('label'), i = document.createElement('input'); i.type = 'checkbox'; i.checked = expCm;
+    i.onchange = () => { expCm = i.checked; renderModal(); }; l.append(i, ' ' + T('cmInclude', nCm)); o.appendChild(l); body.appendChild(o); }
   const pre = document.createElement('pre'); pre.textContent = text; body.appendChild(pre);
   const stat = document.createElement('span'); stat.className = 'stat'; stat.textContent = `${text.length.toLocaleString(LOC())} ${T('chars')} · ~${tokEst(text).toLocaleString(LOC())} ${T('tokens')}`; foot.appendChild(stat);
   const c = document.createElement('button'); c.className = 'btn'; c.textContent = T('copy'); c.onclick = () => copyText(modalTab === 'mermaid' ? text : text); foot.appendChild(c);
@@ -3089,7 +3264,7 @@ function errorDialog(msg){ modalRender = () => errorDialog(msg); dialog(T('imp_f
 const AI_REV = Object.fromEntries(Object.entries(AI_TYPE).map(([k,v]) => [v,k]));
 const LANE_REV = Object.fromEntries(Object.entries(LANE_TYPES).map(([k,v]) => [v,k]));
 const AI_OPS = {'>':{arrow:'end',dash:false}, '<>':{arrow:'both',dash:false}, '-':{arrow:'none',dash:false}, '~>':{arrow:'end',dash:true}, '~':{arrow:'none',dash:true}, '<~>':{arrow:'both',dash:true}};
-function newParsed(){ return {name:'', lanes:[], nodes:[], edges:[], notes:[], skipped:[]}; }
+function newParsed(){ return {name:'', lanes:[], nodes:[], edges:[], notes:[], comments:[], skipped:[]}; }
 function parseAIText(src){
   const r = newParsed(); let sec = '', m;
   for (const raw of src.split(/\r?\n/)){
@@ -3097,6 +3272,8 @@ function parseAIText(src){
     if (/^DIAGRAM\s*:/i.test(line)){ r.name = line.replace(/^DIAGRAM\s*:/i, '').trim(); continue; }
     if (/^SYNTAX\s*:/i.test(line)) continue;
     if ((m = /^(LANES|NODES|FLOW|NOTES)\s*:?\s*$/i.exec(line))){ sec = m[1].toUpperCase(); continue; }
+    if (/^COMMENTS\b[^:]*:?\s*$/i.test(line)){ sec = 'COMMENTS'; continue; }
+    if (sec === 'COMMENTS'){ m = /^C\d+\s+@([^\s:]+)\s*:\s*(.+)$/.exec(line); if (m) r.comments.push({ref:m[1], text:m[2].trim().replace(/\s\|\s/g, '\n')}); else r.skipped.push(line); continue; }
     if (sec === 'LANES'){
       m = /^(\S+)\s*=\s*(.+?)(?:\s*\(([^()]*)\))?$/.exec(line);
       if (m) r.lanes.push({code:m[1], name:m[2].trim(), type:LANE_REV[(m[3]||'').trim()]}); else r.skipped.push(line);
@@ -3203,6 +3380,17 @@ function buildDocFromParsed(r){
     for (const t of ts) edges.push(mkEdge(n.id, t.id, {style:'straight', arrow:'none', dash:true}));
   });
   const d = newDoc(r.name || T('untitled')); d.nodes = nodes; d.edges = edges;
+  // comments come back attached to what they referred to (a shape's top right corner, the middle of an arrow, a lane's header); the rest sit above the diagram
+  let free = 0; const perLane = new Map();
+  d.comments = r.comments.map(cm => {
+    const c = {id:uid('c'), x:0, y:0, text:cm.text.slice(0, 2000)}, n = byCode.get(cm.ref), lane = laneNodes.get(cm.ref), pair = /^(.+?)>(.+)$/.exec(cm.ref);
+    const e = pair && byCode.get(pair[1]) && byCode.get(pair[2]) ? edges.find(x => x.from === byCode.get(pair[1]).id && x.to === byCode.get(pair[2]).id) : null;
+    if (n){ c.on = n.id; c.dx = 40; c.dy = -24; }
+    else if (e){ c.on = e.id; c.t = 0.5; }
+    else if (lane){ const k = perLane.get(cm.ref) || 0; perLane.set(cm.ref, k+1); c.on = lane.id; c.dx = 14; c.dy = 14 + k*24; }
+    else { c.x = free++ * 26; c.y = -50; }
+    return c;
+  });
   return {d, dropped};
 }
 function detectText(src){
@@ -3269,7 +3457,7 @@ function renderDocs(){
   }
 }
 function openDoc(id){
-  endEdit(); doc = store.docs[id]; store.current = id; reindex(); undoS = []; redoS = []; S.sel = new Set(); S.hover = null;
+  endEdit(); cmCommit(); doc = store.docs[id]; store.current = id; reindex(); undoS = []; redoS = []; S.sel = new Set(); S.hover = null;
   $('#docName').value = doc.name;
   if (doc.view){ Object.assign(view, doc.view); draw(); } else fit();
   persistNow();
@@ -3287,7 +3475,7 @@ async function importJSONFile(f){
     const list = o.docs ? o.docs : o.doc ? [o.doc] : (o.nodes ? [o] : null);
     if (!list) throw new Error('formato');
     let n = 0, last = null;
-    for (const d of list){ if (!d || !Array.isArray(d.nodes)) continue; const c = JSON.parse(JSON.stringify(d)); if (!c.id || store.docs[c.id]){ c.id = uid('d'); if (store.docs[d.id]) c.name = (c.name||'Import') + T('importedSuffix'); } c.id = clipStr(c.id, 40); c.name = clipStr(c.name, 200) || T('untitled'); c.nodes = sanitizeNodes(c.nodes); c.edges = sanitizeEdges(c.edges, c.nodes, true);
+    for (const d of list){ if (!d || !Array.isArray(d.nodes)) continue; const c = JSON.parse(JSON.stringify(d)); if (!c.id || store.docs[c.id]){ c.id = uid('d'); if (store.docs[d.id]) c.name = (c.name||'Import') + T('importedSuffix'); } c.id = clipStr(c.id, 40); c.name = clipStr(c.name, 200) || T('untitled'); c.nodes = sanitizeNodes(c.nodes); c.edges = sanitizeEdges(c.edges, c.nodes, true); c.comments = sanitizeComments(c.comments, c.nodes, c.edges);
       c.created = finite(c.created) || Date.now(); c.updated = finite(c.updated) || Date.now(); c.view = c.view && typeof c.view === 'object' ? {ox:finite(c.view.ox), oy:finite(c.view.oy), z:clamp(finite(c.view.z) || 1, 0.08, 5)} : null; store.docs[c.id] = c; n++; last = c.id; }
     if (!n) throw new Error('vazio');
     persistNow(); if (n === 1) openDoc(last); renderDocs(); toast(n === 1 ? T('imported1') : T('importedN', n));
@@ -3444,7 +3632,11 @@ function packDoc(d){
     if ((e.from && !o.from) || (e.to && !o.to)) return null;
     if (!o.label) delete o.label; if (o.style === 'elbow') delete o.style; if (o.arrow === 'end') delete o.arrow; if (!o.dash) delete o.dash; if (!o.color || o.color === 'none') delete o.color; return o;
   }).filter(Boolean);
-  return {v:1, n:d.name, nodes, edges};
+  // comments point at their shape by its index (n) or at their arrow by its position in the packed list (e)
+  const eix = new Map(); let k = 0; for (const e of d.edges){ if ((e.from && !ids.has(e.from)) || (e.to && !ids.has(e.to))) continue; eix.set(e.id, (k++).toString(36)); }
+  const c = (d.comments || []).filter(m => m.text).map(m => { const o = {x:Math.round(m.x), y:Math.round(m.y), text:m.text};
+    if (ids.has(m.on)){ o.n = ids.get(m.on); o.dx = m.dx || 0; o.dy = m.dy || 0; } else if (eix.has(m.on)){ o.e = eix.get(m.on); o.t = m.t === undefined ? 0.5 : m.t; } return o; });
+  return c.length ? {v:1, n:d.name, nodes, edges, c} : {v:1, n:d.name, nodes, edges};
 }
 /* Everything that enters from outside (share links, imported JSON backups) is rebuilt field by field: known shape types only,
    finite numbers, bounded strings, known enum values, edges only between existing shapes, and bounded counts. */
@@ -3492,7 +3684,23 @@ function sanitizeEdges(arr, nodes, keepIds){
 function unpackDoc(o){
   if (!o || typeof o !== 'object' || !Array.isArray(o.nodes)) throw new Error('bad');
   const nodes = sanitizeNodes(o.nodes);
-  return {name:clipStr(o.n, 200), nodes, edges:sanitizeEdges(o.edges, nodes, false)};
+  // arrows get an id from their position, so the comments attached to them (c[].e) can find them again
+  const edges = sanitizeEdges((Array.isArray(o.edges) ? o.edges : []).map((e, i) => e && typeof e === 'object' ? {...e, id:'x' + i.toString(36)} : e), nodes, true);
+  const comments = sanitizeComments((Array.isArray(o.c) ? o.c : []).map(m => m && typeof m === 'object' ? {...m, id:'', on: m.n !== undefined ? String(m.n) : m.e !== undefined ? 'x' + m.e : undefined} : m), nodes, edges);
+  return {name:clipStr(o.n, 200), nodes, edges, comments};
+}
+function sanitizeComments(arr, nodes, edges){
+  const nid = new Set(nodes.map(n => n.id)), eid = new Set(edges.map(e => e.id)), seen = new Set(), out = [];
+  for (const m of (Array.isArray(arr) ? arr : []).slice(0, 1000)){
+    if (!m || typeof m !== 'object') continue;
+    const text = clipStr(m.text, 2000); if (!text.trim()) continue;
+    let id = clipStr(m.id, 40) || uid('c'); if (seen.has(id)) id = uid('c'); seen.add(id);
+    const c = {id, x:finite(m.x), y:finite(m.y), text}, on = m.on == null ? '' : clipStr(m.on, 40);
+    if (nid.has(on)){ c.on = on; c.dx = finite(m.dx); c.dy = finite(m.dy); }
+    else if (eid.has(on)){ c.on = on; c.t = clamp(m.t === undefined ? 0.5 : finite(m.t), 0, 1); }
+    out.push(c);
+  }
+  return out;
 }
 async function sharePayload(){ return b64u(await deflateRaw(new TextEncoder().encode(JSON.stringify(packDoc(doc))))); }
 async function shareUrl(){ return location.href.split('#')[0].split('?')[0] + '#d=' + await sharePayload(); }
@@ -3521,7 +3729,7 @@ async function openFromHash(){
     if (data.length > 600000) throw new Error('too long');
     const u = unpackDoc(JSON.parse(new TextDecoder().decode(await inflateRaw(unb64u(data), 8 * 1024 * 1024))));
     const base = u.name || T('untitled'), suf = T('sharedSuffix');
-    const d = newDoc(base.endsWith(suf) ? base : base + suf); d.nodes = u.nodes; d.edges = u.edges;
+    const d = newDoc(base.endsWith(suf) ? base : base + suf); d.nodes = u.nodes; d.edges = u.edges; d.comments = u.comments;
     openDoc(d.id); fit(); toast(T('linkOpened'));
   } catch(e){ toast(T('linkBad')); }
   history.replaceState(null, '', location.pathname + location.search); // so a refresh does not open it again
@@ -3549,7 +3757,7 @@ const fromLink = !EMBED && /^#[ds]=/.test(location.hash);
 if (fromLink) openFromHash();
 if (!EMBED){ if (isPhone) mobileNotice(); else if (!tourSeen && !fromLink) setTimeout(startTour, 600); }
 // expose for testing
-window.__diagramico = { exportAI: () => exportAI(doc), exportMermaid: () => exportMermaid(doc), state: S, view, doc: () => doc, importText: importFromText, redraw: () => draw(), loadSample: () => { const s = sampleDoc(); store.docs[s.id] = s; openDoc(s.id); return s; } };
+window.__diagramico = { exportAI: cm => exportAI(doc, cm), exportMermaid: cm => exportMermaid(doc, cm), state: S, view, doc: () => doc, importText: importFromText, redraw: () => draw(), loadSample: () => { const s = sampleDoc(); store.docs[s.id] = s; openDoc(s.id); return s; } };
 })();
 </script>
 </body>
