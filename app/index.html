@@ -101,8 +101,8 @@ button{font:inherit;color:inherit}
 .cmbox{position:fixed;z-index:8;width:260px;max-width:calc(100vw - 20px);box-sizing:border-box;padding:8px 32px 8px 10px;border-top:3px solid var(--cm-free)}
 .cmbox.on{border-top-color:var(--cm-on)}
 .cmbox textarea{display:block;width:100%;box-sizing:border-box;min-height:56px;max-height:40vh;border:0;outline:none;resize:none;background:transparent;color:var(--ink);font:13px/1.45 var(--sans);padding:0;margin:0}
-.cmbox .x{position:absolute;top:4px;right:4px;width:24px;height:24px;min-width:24px;padding:0}
-.cmbox .x svg{width:14px;height:14px}
+.cmbox .x{position:absolute;top:4px;right:4px;width:24px;height:24px;min-width:24px;padding:0;color:var(--danger)}
+.cmbox .x svg{width:15px;height:15px}
 .tip.cmtip{white-space:pre-wrap;overflow-wrap:anywhere;max-width:280px;line-height:1.4}
 
 /* Drawer */
@@ -304,8 +304,8 @@ const ICON = {
   plus: I('<path d="M12 5v14M5 12h14"/>'),
   minus: I('<path d="M5 12h14"/>'),
   fit: I('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>'),
-  undo: I('<path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 010 12" transform="translate(0,-6)"/>'),
-  redo: I('<path d="M15 7l5 5-5 5"/><path d="M20 12H10a6 6 0 000 12" transform="translate(0,-6)"/>'),
+  undo: I('<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/>'),
+  redo: I('<path d="M15 14l5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 000 11H13"/>'),
   trash: I('<path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13"/>'),
   copy: I('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3"/>'),
   edit: I('<path d="M4 20h4L19 9l-4-4L4 16z"/>'),
@@ -492,7 +492,7 @@ Diagrama:`,
     <dt>N · L · C</dt><dd>Nota · Swimlane · Conector</dd>
     <dt>G</dt><dd>Forma geométrica (retângulo, círculo, triângulo ou linha): arraste no quadro; depois mude o tipo, o preenchimento, a cor e a espessura na barra. Serve de contentor e leva consigo o que está lá dentro</dd>
     <dt>T</dt><dd>Texto livre, sem forma: clique no quadro e escreva; tamanho, negrito, itálico e cor na barra. Sem texto, desaparece</dd>
-    <dt>M</dt><dd>Comentário: clique no quadro, escreva e Enter. Sobre uma forma ou seta fica preso a ela (amarelo limão); no vazio fica fixo no quadro (amarelo torrado). Arraste o ponto para prender ou soltar; clique para editar, X para eliminar. Não sai nas imagens e vai à parte no texto IA</dd>
+    <dt>M</dt><dd>Comentário: clique no quadro, escreva e Enter. Sobre uma forma ou seta fica preso a ela (amarelo limão); no vazio fica fixo no quadro (amarelo torrado). Arraste o ponto para prender ou soltar; clique para editar, caixote do lixo para eliminar. Não sai nas imagens e vai à parte no texto IA</dd>
     <dt>Ctrl G · Ctrl Shift G</dt><dd>Agrupar · Desagrupar as formas selecionadas: ficam selecionadas e movem-se em conjunto (só ajuda a desenhar; não conta para o texto IA)</dd>
     <dt>Duplo clique</dt><dd>No vazio cria um passo; numa forma edita o texto</dd>
     <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
@@ -679,7 +679,7 @@ Diagram:`,
     <dt>N · L · C</dt><dd>Note · Swimlane · Connector</dd>
     <dt>G</dt><dd>Geometric shape (rectangle, circle, triangle or line): drag on the board; then change the type, fill, colour and weight in the bar. It works as a container and carries what is inside it</dd>
     <dt>T</dt><dd>Free text, no shape: click the board and type; size, bold, italic and colour in the bar. With no text it disappears</dd>
-    <dt>M</dt><dd>Comment: click the board, type and press Enter. On a shape or arrow it stays attached to it (lemon yellow); on empty space it is fixed on the board (toasted yellow). Drag the dot to attach or detach; click to edit, X to delete. Left out of images and kept apart in the AI text</dd>
+    <dt>M</dt><dd>Comment: click the board, type and press Enter. On a shape or arrow it stays attached to it (lemon yellow); on empty space it is fixed on the board (toasted yellow). Drag the dot to attach or detach; click to edit, the bin to delete. Left out of images and kept apart in the AI text</dd>
     <dt>Ctrl G · Ctrl Shift G</dt><dd>Group · Ungroup the selected shapes: they are selected and moved together (a drawing aid only; it does not count towards the AI text)</dd>
     <dt>Double-click</dt><dd>On empty space creates a step; on a shape edits its text</dd>
     <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
@@ -1645,7 +1645,7 @@ function cmOpen(id, isNew){
   cmCommit(); const c = cmGet(id); if (!c) return; hideTip();
   const box = document.createElement('div'); box.className = 'panel cmbox';
   const t = document.createElement('textarea'); t.spellcheck = false; t.maxLength = 2000; t.placeholder = T('cmPh'); t.setAttribute('aria-label', T('t_comment')); t.value = c.text || '';
-  const x = document.createElement('button'); x.type = 'button'; x.className = 'ibtn x'; x.innerHTML = ICON.close; x.title = T('cmDelete'); x.setAttribute('aria-label', T('cmDelete'));
+  const x = document.createElement('button'); x.type = 'button'; x.className = 'ibtn x'; x.innerHTML = ICON.trash; x.title = T('cmDelete'); x.setAttribute('aria-label', T('cmDelete'));
   x.onmousedown = ev => ev.preventDefault(); x.onclick = cmDelete;
   box.append(t, x); document.body.appendChild(box);
   S.cmEd = {id, isNew:!!isNew, box, ta:t};
