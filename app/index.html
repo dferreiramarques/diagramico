@@ -68,6 +68,8 @@ button{font:inherit;color:inherit}
 .tools{position:fixed;left:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;padding:4px;gap:2px;z-index:5}
 .tools .ibtn{width:38px;height:38px;padding:0;position:relative}
 .tools .ibtn .k{position:absolute;right:3px;bottom:1px;font:9px var(--mono);color:var(--muted)}
+/* Short windows (laptops): the rail takes two columns so every tool stays visible */
+@media (min-width:701px) and (max-height:940px){.tools{display:grid;grid-template-columns:38px 38px}.tools .hsep{grid-column:1/-1}}
 .tip{position:fixed;z-index:30;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:4px 8px;border-radius:5px;white-space:nowrap}
 
 /* Context bar */
@@ -254,6 +256,7 @@ button{font:inherit;color:inherit}
     <button class="btn" id="btnImpText" data-i18n="txt_btn"></button>
     <input type="file" id="fileIn" accept=".json,application/json" hidden>
     <input type="file" id="fileImp" hidden>
+    <input type="file" id="fileImg" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
   </footer>
 </aside>
 
@@ -324,6 +327,7 @@ const ICON = {
   group: I('<rect x="4" y="4" width="9" height="9" rx="1.5"/><rect x="11" y="11" width="9" height="9" rx="1.5"/><path d="M2.5 2.5h19v19h-19z" stroke-dasharray="2 2.6" opacity=".55"/>'),
   ungroup: I('<rect x="3.5" y="3.5" width="8" height="8" rx="1.5"/><rect x="12.5" y="12.5" width="8" height="8" rx="1.5"/>'),
   geo: I('<rect x="3.5" y="9" width="11" height="11" rx="1.5"/><circle cx="15" cy="9" r="5.5"/>'),
+  img: I('<rect x="3.5" y="5" width="17" height="14" rx="1.5"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M4 16.5l4.5-4 3.5 3 3-2.5 5 4.5"/>'),
   fill: I('<rect x="4.5" y="4.5" width="15" height="15" rx="2" fill="currentColor" fill-opacity=".28"/>'),
   flip: I('<path d="M5 19L19 5"/><path d="M5 5l14 14" opacity=".35"/>'),
   lw1: I('<path d="M4 12h16" stroke-width="1"/>'), lw2: I('<path d="M4 12h16" stroke-width="2.4"/>'), lw3: I('<path d="M4 12h16" stroke-width="4.6"/>'),
@@ -444,7 +448,8 @@ Diagrama:`,
   backup:'Guardar cópia de segurança', import:'Importar…', untitled:'Sem título', newLane:'Nova lane', lane:'Lane', copySuffix:' (cópia)', importedSuffix:' (importado)',
   t_step:'Passo / processo', t_action:'Ação do utilizador', t_decision:'Decisão', t_screen:'Ecrã / interface', t_doc:'Documento', t_data:'Dados',
   t_start:'Início', t_end:'Fim', t_pause:'Pausa / espera', t_handoff:'Mudança de lane', t_note:'Nota', t_lane:'Swimlane',
-  t_select:'Selecionar', t_hand:'Mover quadro', t_connector:'Conector', t_comment:'Comentário',
+  t_select:'Selecionar', t_hand:'Mover quadro', t_connector:'Conector', t_comment:'Comentário', t_img:'Inserir imagem do computador',
+  imgFail:'Imagem não suportada. Use PNG, JPEG, WebP ou GIF.',
   cmDelete:'Eliminar comentário', cmPh:'Comentário… Enter grava, Shift Enter muda de linha', cmAria:t => `Comentário: ${t}`, cmInclude:n => `Incluir comentários (${n})`,
   l_pessoa:'Pessoa', l_equipa:'Equipa', l_departamento:'Departamento', l_sistema:'Sistema',
   c_none:'Neutro', c_blue:'Azul', c_green:'Verde', c_yellow:'Amarelo', c_red:'Vermelho', c_violet:'Violeta', c_grey:'Cinza', color:'Cor',
@@ -476,12 +481,13 @@ Diagrama:`,
   tourSteps:[
     {t:'Bem-vindo ao Diagramico', d:'Um quadro infinito para desenhar diagramas lógicos e user flows. Em 1 minuto fica a saber o essencial. Já abri um diagrama de exemplo para explorar.'},
     {t:'Formas e eventos', d:'Cada botão desta barra cria uma forma: passos, decisões, ecrãs, eventos de início/fim, notas, swimlanes e conectores. A letra no canto é o atalho (R, D, E…). Clique numa e depois no quadro.'},
-    {t:'Criar depressa', d:'Duplo clique no vazio cria um passo; duplo clique numa forma edita o texto. Com uma forma selecionada, Tab cria a seguinte já ligada. Escreva **negrito** e *itálico* diretamente no texto.'},
-    {t:'Ligar formas', d:'Ao passar o rato sobre uma forma aparecem pontos nos lados: arraste para outra forma para a ligar, ou clique para criar a seguinte. Cada lado cria a sua seta. Com o conector (C) também pode desenhar setas soltas. Selecione uma seta para mudar o percurso, a seta, o tracejado e o rótulo.'},
+    {t:'Criar depressa', d:'Duplo clique no vazio cria um passo; duplo clique numa forma edita o texto. Com uma forma selecionada, Tab cria a seguinte já ligada. Escreva **negrito** e *itálico* diretamente no texto. Os pontos nos lados de uma forma selecionada ajustam a largura do texto.'},
+    {t:'Ligar formas', d:'Ao passar o rato sobre uma forma aparecem pontos nos lados: arraste para outra forma para a ligar, ou clique para criar a seguinte. Com o conector (C) também desenha setas soltas. Selecione uma seta para mudar a cor, o percurso, o tracejado e o rótulo. Arraste um segmento da seta para ajustar o trajeto, ou o rótulo para o deslizar ao longo dela.'},
     {t:'Swimlanes', d:'Use lanes para pessoas, equipas ou sistemas. Mover uma lane leva as formas que estão dentro, e na exportação para IA cada forma fica associada à lane onde está.'},
+    {t:'Imagens e comentários', d:'Este botão (I) abre uma imagem do computador: um screenshot, um mockup, um logótipo. Também pode colar com Ctrl V ou largar o ficheiro no quadro. Redimensione pelos cantos e ligue-a com setas, como qualquer forma. O botão por baixo (M) deixa comentários de revisão: pontos amarelos que não mudam a lógica do diagrama.'},
     {t:'Navegar no quadro', d:'Roda do rato ou pinça para zoom; Espaço + arrastar (ou H) para mover. Shift 1 mostra tudo, Shift 0 repõe 100%. Shift A alinha as formas à grelha. Ctrl Z desfaz.'},
     {t:'Os seus diagramas', d:'Tudo é gravado automaticamente neste browser. Aqui cria novos diagramas, faz cópias de segurança e importa de draw.io ou Visio (ou largue o ficheiro no quadro).'},
-    {t:'Exportar', d:'Texto compacto para IA (poucos tokens), Mermaid, JSON ou PNG. O texto para IA é ideal para colar num chat e pedir documentação ou explicação da lógica.'},
+    {t:'Exportar', d:'Texto compacto para IA (poucos tokens), Mermaid, JSON, PNG, SVG ou uma ligação para partilhar. O texto para IA é ideal para colar num chat e pedir documentação ou explicação da lógica.'},
     {t:'Tema e idioma', d:'Claro, escuro ou automático (Shift T) e português ou inglês (Shift L).'},
     {t:'Pronto!', d:'O botão ? mostra todos os atalhos e a bússola repete esta visita. Apague o exemplo quando quiser e comece o seu diagrama.'},
   ],
@@ -493,6 +499,7 @@ Diagrama:`,
     <dt>G</dt><dd>Forma geométrica (retângulo, círculo, triângulo ou linha): arraste no quadro; depois mude o tipo, o preenchimento, a cor e a espessura na barra. Serve de contentor e leva consigo o que está lá dentro</dd>
     <dt>T</dt><dd>Texto livre, sem forma: clique no quadro e escreva; tamanho, negrito, itálico e cor na barra. Sem texto, desaparece</dd>
     <dt>M</dt><dd>Comentário: clique no quadro, escreva e Enter. Sobre uma forma ou seta fica preso a ela (amarelo limão); no vazio fica fixo no quadro (amarelo torrado). Arraste o ponto para prender ou soltar; clique para editar, caixote do lixo para eliminar. Não sai nas imagens e vai à parte no texto IA</dd>
+    <dt>I</dt><dd>Imagem: escolha um ou mais ficheiros (PNG, JPEG, WebP, GIF). Também pode colar um screenshot com Ctrl V ou largar o ficheiro no quadro. Redimensiona pelos cantos, mantendo a proporção, e aceita setas. Não entra no texto IA</dd>
     <dt>Ctrl G · Ctrl Shift G</dt><dd>Agrupar · Desagrupar as formas selecionadas: ficam selecionadas e movem-se em conjunto (só ajuda a desenhar; não conta para o texto IA)</dd>
     <dt>Duplo clique</dt><dd>No vazio cria um passo; numa forma edita o texto</dd>
     <dt>Tab</dt><dd>Cria o passo seguinte, ligado à direita</dd>
@@ -501,7 +508,9 @@ Diagrama:`,
     <dt>Lanes</dt><dd>Selecione uma lane: o <b>+</b> nos cantos direitos junta uma lane colada. Lanes coladas mostram uma corrente; clique nela para as afastar 10 px. Largar uma lane a menos de 8 px de outra cola-as, e herda dessa lane o x, a largura, o tipo, a cor e o tamanho do texto</dd>
     <dt>Decisão</dt><dd>Selecione-a e use a segunda lista da barra para escolher o tipo BPMN (exclusiva XOR, paralela AND, inclusiva OR, complexa)</dd>
     <dt>Pontas da seta</dt><dd>Selecione uma seta e arraste uma ponta para uma forma (liga) ou para o vazio (desliga)</dd>
-    <dt>Largar ficheiro</dt><dd>Importa .drawio, .vsdx ou .json para um novo diagrama</dd></dl>
+    <dt>Trajeto e rótulo</dt><dd>Numa seta em cotovelo, arraste um segmento para ajustar o trajeto (duplo clique repõe o automático). Arraste o rótulo para o deslizar ao longo da seta. A cor da seta escolhe-se na barra</dd>
+    <dt>Largura do texto</dt><dd>Com uma forma, nota ou texto selecionado, arraste os pontos dos lados esquerdo e direito para definir a largura; as palavras nunca são partidas</dd>
+    <dt>Largar ficheiro</dt><dd>Importa .drawio, .vsdx ou .json para um novo diagrama; uma imagem entra no diagrama atual</dd></dl>
   <h3>Texto</h3><dl>
     <dt>[ · ]</dt><dd>Diminuir · aumentar texto (a caixa acompanha)</dd>
     <dt>Ctrl B · Ctrl I</dt><dd>Negrito · itálico (forma inteira ou seleção de texto)</dd>
@@ -631,7 +640,8 @@ Diagram:`,
   backup:'Download backup', import:'Import…', untitled:'Untitled', newLane:'New lane', lane:'Lane', copySuffix:' (copy)', importedSuffix:' (imported)',
   t_step:'Step / process', t_action:'User action', t_decision:'Decision', t_screen:'Screen / interface', t_doc:'Document', t_data:'Data',
   t_start:'Start', t_end:'End', t_pause:'Pause / wait', t_handoff:'Lane handoff', t_note:'Note', t_lane:'Swimlane',
-  t_select:'Select', t_hand:'Pan board', t_connector:'Connector', t_comment:'Comment',
+  t_select:'Select', t_hand:'Pan board', t_connector:'Connector', t_comment:'Comment', t_img:'Insert image from your computer',
+  imgFail:'Image not supported. Use PNG, JPEG, WebP or GIF.',
   cmDelete:'Delete comment', cmPh:'Comment… Enter saves, Shift Enter for a new line', cmAria:t => `Comment: ${t}`, cmInclude:n => `Include comments (${n})`,
   l_pessoa:'Person', l_equipa:'Team', l_departamento:'Department', l_sistema:'System',
   c_none:'Neutral', c_blue:'Blue', c_green:'Green', c_yellow:'Yellow', c_red:'Red', c_violet:'Violet', c_grey:'Grey', color:'Colour',
@@ -663,12 +673,13 @@ Diagram:`,
   tourSteps:[
     {t:'Welcome to Diagramico', d:'An infinite board for drawing logic diagrams and user flows. One minute is enough to learn the basics. An example diagram is already open to explore.'},
     {t:'Shapes and events', d:'Each button here creates a shape: steps, decisions, screens, start/end events, notes, swimlanes and connectors. The letter in the corner is the shortcut (R, D, E…). Click one, then click the board.'},
-    {t:'Create quickly', d:'Double-click empty space to create a step; double-click a shape to edit its text. With a shape selected, Tab creates the next one already connected. Type **bold** and *italic* right in the text.'},
-    {t:'Connecting shapes', d:'Hover a shape to see dots on its sides: drag to another shape to connect them, or click to create the next one. Each side makes its own arrow. With the connector (C) you can also draw loose arrows. Select an arrow to change its route, arrow, dashes and label.'},
+    {t:'Create quickly', d:'Double-click empty space to create a step; double-click a shape to edit its text. With a shape selected, Tab creates the next one already connected. Type **bold** and *italic* right in the text. The handles on the sides of a selected shape set the text width.'},
+    {t:'Connecting shapes', d:'Hover a shape to see dots on its sides: drag to another shape to connect them, or click to create the next one. With the connector (C) you can also draw loose arrows. Select an arrow to change its colour, route, dashes and label. Drag a segment of the arrow to adjust its path, or drag the label to slide it along.'},
     {t:'Swimlanes', d:'Use lanes for people, teams or systems. Moving a lane carries the shapes inside it, and the AI export assigns each shape to the lane it sits in.'},
+    {t:'Images and comments', d:'This button (I) opens an image from your computer: a screenshot, a mockup, a logo. You can also paste with Ctrl V or drop the file on the board. Resize it by the corners and connect it with arrows, like any shape. The button below (M) leaves review comments: yellow dots that do not change the logic of the diagram.'},
     {t:'Moving around', d:'Mouse wheel or pinch to zoom; Space + drag (or H) to pan. Shift 1 fits everything, Shift 0 resets to 100%. Shift A aligns the shapes to a grid. Ctrl Z undoes.'},
     {t:'Your diagrams', d:'Everything is saved automatically in this browser. Here you create new diagrams, make backups and import from draw.io or Visio (or drop the file on the board).'},
-    {t:'Export', d:'Compact text for AI (few tokens), Mermaid, JSON or PNG. The AI text is ideal to paste into a chat and ask for documentation or an explanation of the logic.'},
+    {t:'Export', d:'Compact text for AI (few tokens), Mermaid, JSON, PNG, SVG or a link to share. The AI text is ideal to paste into a chat and ask for documentation or an explanation of the logic.'},
     {t:'Theme and language', d:'Light, dark or automatic (Shift T), and Portuguese or English (Shift L).'},
     {t:'All set!', d:'The ? button lists every shortcut and the compass replays this tour. Delete the example whenever you like and start your own diagram.'},
   ],
@@ -680,6 +691,7 @@ Diagram:`,
     <dt>G</dt><dd>Geometric shape (rectangle, circle, triangle or line): drag on the board; then change the type, fill, colour and weight in the bar. It works as a container and carries what is inside it</dd>
     <dt>T</dt><dd>Free text, no shape: click the board and type; size, bold, italic and colour in the bar. With no text it disappears</dd>
     <dt>M</dt><dd>Comment: click the board, type and press Enter. On a shape or arrow it stays attached to it (lemon yellow); on empty space it is fixed on the board (toasted yellow). Drag the dot to attach or detach; click to edit, the bin to delete. Left out of images and kept apart in the AI text</dd>
+    <dt>I</dt><dd>Image: choose one or more files (PNG, JPEG, WebP, GIF). You can also paste a screenshot with Ctrl V or drop the file on the board. It resizes by the corners, keeping its proportions, and accepts arrows. Left out of the AI text</dd>
     <dt>Ctrl G · Ctrl Shift G</dt><dd>Group · Ungroup the selected shapes: they are selected and moved together (a drawing aid only; it does not count towards the AI text)</dd>
     <dt>Double-click</dt><dd>On empty space creates a step; on a shape edits its text</dd>
     <dt>Tab</dt><dd>Creates the next step, connected to the right</dd>
@@ -688,7 +700,9 @@ Diagram:`,
     <dt>Lanes</dt><dd>Select a lane: the <b>+</b> at its right corners adds a glued lane. Glued lanes show a chain; click it to pull them 10 px apart. Dropping a lane within 8 px of another glues it, and it inherits that lane's x, width, type, colour and text size</dd>
     <dt>Decision</dt><dd>Select it and use the second drop-down in the bar to pick its BPMN type (exclusive XOR, parallel AND, inclusive OR, complex)</dd>
     <dt>Arrow ends</dt><dd>Select an arrow and drag an end onto a shape to attach it, or onto empty space to detach it</dd>
-    <dt>Drop a file</dt><dd>Imports .drawio, .vsdx or .json into a new diagram</dd></dl>
+    <dt>Path and label</dt><dd>On an elbow arrow, drag a segment to adjust the path (double-click restores the automatic one). Drag the label to slide it along the arrow. Pick the arrow colour in the bar</dd>
+    <dt>Text width</dt><dd>With a shape, note or text selected, drag the handles on its left and right sides to set the width; words are never broken</dd>
+    <dt>Drop a file</dt><dd>Imports .drawio, .vsdx or .json into a new diagram; an image goes into the current diagram</dd></dl>
   <h3>Text</h3><dl>
     <dt>[ · ]</dt><dd>Smaller · larger text (the box follows)</dd>
     <dt>Ctrl B · Ctrl I</dt><dd>Bold · italic (whole shape or selected text)</dd>
@@ -2014,6 +2028,7 @@ window.addEventListener('keydown', e => {
   if (k === 'h'){ setTool('hand'); return; }
   if (k === 'c'){ setTool('connector'); return; }
   if (k === 'm'){ setTool('comment'); return; }
+  if (k === 'i'){ pickImage(); return; }
   const t = Object.keys(TYPES).find(t => TYPES[t].key === k); if (t) setTool(t);
 });
 window.addEventListener('keyup', e => { if (e.code === 'Space'){ S.space = false; cv.style.cursor = S.tool === 'hand' ? 'grab' : 'default'; } });
@@ -2029,17 +2044,19 @@ function bumpFont(dir){ const ns = selNodes(); if (!ns.length) return; checkpoin
 function setProp(list, prop, val){ checkpoint(); list.forEach(x => x[prop] = val); changed(); }
 
 /* ---------- tool rail ---------- */
-const TOOL_GROUPS = [['select','hand'],['step','action','decision','screen','doc','data'],['start','end','pause','handoff'],['note','text','lane','geo','connector'],['comment']];
-const TOOL_KEY = {select:'V', hand:'H', connector:'C', comment:'M'};
+const TOOL_GROUPS = [['select','hand'],['step','action','decision','screen','doc','data'],['start','end','pause','handoff'],['note','text','lane','geo','connector'],['img','comment']];
+const TOOL_KEY = {select:'V', hand:'H', connector:'C', comment:'M', img:'I'};
+// 'img' is an action, not a mode: it opens the file picker (same result as pasting or dropping a picture)
+function pickImage(){ setTool('select'); $('#fileImg').click(); }
 function buildTools(){
   const el = $('#tools'); el.innerHTML = '';
   TOOL_GROUPS.forEach((g, gi) => {
     if (gi) { const s = document.createElement('div'); s.className = 'hsep'; el.appendChild(s); }
     for (const t of g){
-      const label = T('t_'+t), key = TYPES[t] ? TYPES[t].key.toUpperCase() : TOOL_KEY[t];
+      const label = T('t_'+t), key = TOOL_KEY[t] || TYPES[t].key.toUpperCase();
       const b = document.createElement('button'); b.className = 'ibtn'; b.dataset.tool = t; b.setAttribute('aria-label', `${label} (${key})`);
       b.innerHTML = ICON[t] + `<span class="k">${key}</span>`;
-      b.onclick = () => setTool(t);
+      b.onclick = () => t === 'img' ? pickImage() : setTool(t);
       b.onmouseenter = () => showTip(b, `${label} · ${key}`); b.onmouseleave = hideTip;
       el.appendChild(b);
     }
@@ -3485,7 +3502,10 @@ $('#fileIn').onchange = e => { const f = e.target.files[0]; e.target.value = '';
 $('#fileImp').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f){ closeModal(); importFile(f, importKind); } };
 $('#btnImpDrawio').onclick = () => showImportInfo('drawio');
 $('#btnImpVisio').onclick = () => showImportInfo('visio');
-function addImageFile(f){
+const IMG_MIME = /^image\/(png|jpeg|webp|gif)$/;
+$('#fileImg').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; const ok = fs.filter(f => IMG_MIME.test(f.type)); if (ok.length < fs.length) toast(T('imgFail')); ok.slice(0, 20).forEach((f, i) => addImageFile(f, i)); };
+// `i` > 0: one of several pictures chosen together; each is offset a little and joins the selection
+function addImageFile(f, i = 0){
   const rd = new FileReader();
   rd.onload = () => {
     const im = new Image();
@@ -3496,24 +3516,25 @@ function addImageFile(f){
       let src = c.toDataURL('image/webp', .92); if (!src.startsWith('data:image/webp')) src = c.toDataURL('image/png');
       const dk = Math.min(1, clamp(0.45*Math.min(W, H)/view.z, 120, 800) / Math.max(cw, ch)), ctr = toWorld(W/2, H/2);
       checkpoint();
-      const n = addNode('img', Math.round(ctr.x), Math.round(ctr.y), {src, w:Math.round(cw*dk), h:Math.round(ch*dk)});
-      S.sel = new Set([n.id]); setTool('select'); changed();
+      const off = i*24/view.z, n = addNode('img', Math.round(ctr.x + off), Math.round(ctr.y + off), {src, w:Math.round(cw*dk), h:Math.round(ch*dk)});
+      if (i) S.sel.add(n.id); else S.sel = new Set([n.id]);
+      setTool('select'); changed();
     };
-    im.onerror = () => toast(T('importFail'));
+    im.onerror = () => toast(T('imgFail'));
     im.src = rd.result;
   };
   rd.readAsDataURL(f);
 }
 window.addEventListener('paste', e => {
   const t = e.target; if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT' || t.isContentEditable) || S.editing || EMBED) return;
-  const item = [...(e.clipboardData ? e.clipboardData.items : [])].find(i => i.kind === 'file' && /^image\/(png|jpeg|webp|gif)$/.test(i.type));
+  const item = [...(e.clipboardData ? e.clipboardData.items : [])].find(i => i.kind === 'file' && IMG_MIME.test(i.type));
   if (item){ e.preventDefault(); const f = item.getAsFile(); if (f) addImageFile(f); return; }
   if (clip){ e.preventDefault(); paste(S.cursor); }
 });
 window.addEventListener('dragover', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
 window.addEventListener('drop', e => {
   const f = e.dataTransfer && e.dataTransfer.files[0]; if (!f) return; e.preventDefault();
-  if (/^image\/(png|jpeg|webp|gif)$/.test(f.type)){ addImageFile(f); return; }
+  if (IMG_MIME.test(f.type)){ [...e.dataTransfer.files].filter(x => IMG_MIME.test(x.type)).slice(0, 20).forEach((x, i) => addImageFile(x, i)); return; }
   if (/\.(drawio|dio|xml|vsdx|vsd|json)$/i.test(f.name)) importFile(f, null);
   else if (/\.(txt|md|mmd|mermaid)$/i.test(f.name)) importTextFile(f);
   else toast(T('importFail'));
@@ -3567,7 +3588,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden){ clea
 
 /* ---------- guided tour ---------- */
 const TOUR_KEY = 'diagramico.tour';
-const TOUR_TARGETS = [null, '#tools', null, null, null, '.zoom', '#btnMenu', '#btnExport', '#btnTheme', '#btnHelp'];
+const TOUR_TARGETS = [null, '#tools', null, null, null, '#tools [data-tool="img"]', '.zoom', '#btnMenu', '#btnExport', '#btnTheme', '#btnHelp'];
 let tour = null;
 const mdInline = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\*(.+?)\*/g,'<i>$1</i>');
 function tourEnd(){
