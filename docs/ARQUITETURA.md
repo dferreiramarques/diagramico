@@ -34,7 +34,9 @@ A largura/altura das formas **não é guardada**: deriva do texto e do `fs` (`la
 
 - `lt` (0–1): posição do rótulo ao longo da seta (omitido = 0,5); arrasto `edgelabel`, `labelPt`, `tOnPath`.
 - `bd` (px): deslocamento manual do segmento do meio de uma seta em cotovelo, perpendicular a esse segmento. `route()` envolve `route0()` (o cálculo automático) e aplica `bd`: com 4 pontos (`bendAxis`) desloca o segmento do meio; com 3 pontos (L) converte em Z, e `bk = 1` indica que foi arrastado o primeiro segmento (senão o segundo). Arrasto `edgebend` (`onDown`/`onMove`); duplo clique (`dbl`) apaga `bd` e `bk`. Validado em `sanitizeEdges`.
-- Tipo `img` (`src`, `w`, `h`): imagem colada ou largada; redimensiona com proporção fixa (`georesize`), desenha-se com `drawImg` e exporta-se em SVG.
+- Tipo `img` (`src`, `w`, `h`): imagem escolhida no seletor de ficheiros, colada ou largada; redimensiona com proporção fixa (`georesize`), desenha-se com `drawImg` e exporta-se em SVG. As três entradas acabam em `addImageFile(f, i)` (reduz a 1600 px, converte em WebP `data:`, e `i` desloca e junta à seleção quando vêm várias); `IMG_MIME` é o filtro comum. Na barra de ferramentas, `img` é uma **ação e não um modo**: `pickImage()` (botão ou tecla `I`) abre o `<input id="fileImg" multiple>` e volta à ferramenta de seleção. Por isso `TYPES.img.key` fica vazio e a tecla vem de `TOOL_KEY`.
+- A barra de ferramentas (`.tools`) passa a duas colunas quando a janela tem menos de 940 px de altura (media query junto à regra `.tools`), para todos os botões caberem em portáteis.
+- `e.color` (setas) usa as mesmas chaves de `COLORS`; `n.tw` é a largura do texto definida pelas pegas laterais (`twHandles`, arrasto `twresize`; `hasTW` exclui decisões, eventos, lanes, `geo` e `img`). `layoutText` nunca parte palavras.
 - Deslocamento automático da vista (`AUTOSCROLL`, `edgePush`, `autoScroll`) durante os arrastos `connect`, `endpoint` e `move`.
 
 ## Mapa do código
@@ -195,7 +197,7 @@ Todos os textos visíveis vivem em `I18N.pt` / `I18N.en`. Em HTML estático usam
 
 ## Visita guiada
 
-- Passos em `I18N.<lang>.tourSteps` (`{t, d}`; `d` aceita `**negrito**` e `*itálico*`). O alvo de cada passo está em `TOUR_TARGETS` (mesma ordem; `null` = cartão ao centro).
+- Passos em `I18N.<lang>.tourSteps` (`{t, d}`; `d` aceita `**negrito**` e `*itálico*`). O alvo de cada passo está em `TOUR_TARGETS` (mesma ordem; `null` = cartão ao centro). O alvo pode ser um só botão da barra, por exemplo `#tools [data-tool="img"]` no passo das imagens e comentários.
 - `startTour()` cria um bloqueador de cliques, um destaque (`.tour-hl`, escurece o resto com `box-shadow`) e um cartão (`.tour-card`) posicionado ao lado do alvo.
 - Arranca sozinha na primeira visita (chave `diagramico.tour` em `localStorage`) e pode ser repetida no botão da bússola junto ao `?`.
 - Teclado: `→`/`←` navegam, `Esc` fecha. Um listener em fase de captura impede que os atalhos do quadro corram durante a visita.

@@ -16,14 +16,15 @@ Para usar localmente basta abrir `app/index.html` no browser.
 
 ## Primeiros passos
 
-Na primeira visita abre uma **visita guiada** de 10 passos sobre um diagrama de exemplo (ferramentas, criar e ligar formas, lanes, navegação, diagramas, exportação, tema e idioma). Pode saltá-la com `Esc` e repeti-la a qualquer momento no botão da bússola, junto ao `?`.
+Na primeira visita abre uma **visita guiada** de 11 passos sobre um diagrama de exemplo (ferramentas, criar e ligar formas, lanes, imagens e comentários, navegação, diagramas, exportação, tema e idioma). Pode saltá-la com `Esc` e repeti-la a qualquer momento no botão da bússola, junto ao `?`.
 
 Arranque rápido:
 
 1. Escolha uma forma na barra à esquerda (ou prima `R`) e clique no quadro; ou faça duplo clique no vazio.
 2. Escreva o texto e prima `Esc`. Com a forma selecionada, `Tab` cria a seguinte já ligada.
 3. Para ligar formas, arraste a partir dos pontos que aparecem nos lados.
-4. Use **Exportar → Texto para IA** para copiar o diagrama em poucos tokens.
+4. Para juntar um screenshot ou um mockup, use o botão de imagem da barra (ou `I`) e escolha o ficheiro.
+5. Use **Exportar → Texto para IA** para copiar o diagrama em poucos tokens.
 
 ## Funcionalidades (MVP)
 
@@ -47,7 +48,9 @@ Arranque rápido:
 - **Setas soltas**: com o conector (`C`), arraste de uma forma ou do vazio e largue onde quiser. Também se larga um ponto lateral no vazio com `Alt` premido. Arrastando uma ponta de uma seta selecionada, liga-se a uma forma ou desliga-se. Setas soltas não entram no texto para IA nem no Mermaid.
 - **Ajustar o trajeto de uma seta**: nas setas em cotovelo, clicar e arrastar o segmento do meio desloca-o para o lado (um segmento vertical para a esquerda/direita, um horizontal para cima/baixo), sem pegas nem indicação visual. Numa seta em L, qualquer dos dois segmentos pode ser arrastado e a seta passa a Z. **Duplo clique** na seta (fora do rótulo) repõe o trajeto automático. Retas e curvas não têm este ajuste.
 - **Rótulos das setas**: arrastar o rótulo desliza-o ao longo da seta (encaixa ao meio; `Alt` desativa o encaixe) e acompanha a seta quando as formas se movem. Duplo clique no rótulo edita o texto.
-- **Imagens**: colar (`Ctrl V`) um screenshot ou largar um ficheiro de imagem cria uma forma de imagem, com redimensionamento que mantém a proporção, 4 pontos de ligação para setas e exportação em SVG. A barra só oferece duplicar e apagar. Não entram no texto para IA.
+- **Imagens** (`I`): o botão **Inserir imagem** da barra de ferramentas (ou a tecla `I`) abre o seletor de ficheiros; pode escolher várias de uma vez (PNG, JPEG, WebP ou GIF, até 20). Também se pode colar (`Ctrl V`) um screenshot ou largar ficheiros de imagem no quadro. Cada uma cria uma forma de imagem no centro da vista, com redimensionamento que mantém a proporção, 4 pontos de ligação para setas e exportação em PNG e SVG. Imagens grandes são reduzidas a 1600 px no lado maior. A barra só oferece duplicar e apagar. Não entram no texto para IA.
+- **Cor das setas**: com uma seta selecionada, as amostras de cor da barra pintam a linha, a cabeça e o rótulo (as mesmas cores das formas).
+- **Largura do texto**: uma forma, nota ou texto livre selecionado mostra dois pontos de pega, à esquerda e à direita; arrastá-los define a largura do texto e a altura acompanha. Decisões, eventos, lanes, formas geométricas e imagens não têm este ajuste. As palavras nunca são partidas a meio: uma palavra mais larga do que a caixa fica inteira.
 - **Colar no cursor**: `Ctrl V` cola as formas copiadas centradas no cursor.
 - **Deslocamento automático**: ao arrastar uma seta, uma ponta ou formas junto à margem do quadro, a vista desloca-se sozinha (mais depressa quanto mais perto da margem).
 - **Tema** automático, claro ou escuro (botão na barra superior ou `Shift T`).
@@ -152,6 +155,7 @@ C3 @general: rever os nomes das lanes
 | `G` | Forma geométrica (arrastar no quadro) |
 | `T` | Texto livre, sem forma |
 | `M` | Comentário (clicar no quadro, escrever, `Enter`) |
+| `I` | Inserir imagem (abre o seletor de ficheiros) |
 | `Ctrl G` / `Ctrl Shift G` | Agrupar / desagrupar |
 | `V` / `H` | Selecionar / mover quadro |
 | Duplo clique | No vazio cria um passo; numa forma edita o texto; numa seta ajustada repõe o trajeto automático |
