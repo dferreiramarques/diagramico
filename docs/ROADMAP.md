@@ -147,7 +147,7 @@ Fases 1 a 4: **cerca de 10 a 15 semanas** de trabalho contínuo, com a Fase 2 a 
 | Semana | Foco | Saída |
 |---|---|---|
 | 1 | Analítica, `og:image`, sitemap, página de preços honesta ("Equipas em preparação") | Visitas e eventos medidos. **Feito no código em 2026-11-12**; falta publicar e definir `STATS_KEY` |
-| 2 | 3 tutoriais + lançamento em 2 comunidades | Primeiros utilizadores e inscrições |
+| 2 | 3 tutoriais + lançamento em 2 comunidades | Primeiros utilizadores e inscrições. **Guias feitos em 2026-11-12** (`/guides/pt/`, `/guides/en/`); posts redigidos em `docs/LANCAMENTO.md`, **por publicar** |
 | 3 | 5 conversas com utilizadores; corrigir o que bloquear o primeiro diagrama | Lista de dores e do que pagariam |
 | 4 | Decisão: ≥ marco da Fase 0? Sim: arrancar Pro (Fase 1). Não: iterar na mensagem e canais | Decisão registada neste ficheiro |
 

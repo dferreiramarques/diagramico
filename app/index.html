@@ -3784,12 +3784,17 @@ if (doc.view) Object.assign(view, doc.view); else fit();
 fontsReady.then(() => { LC.clear(); draw(); });
 setTimeout(() => { LC.clear(); draw(); }, 1500);
 persistNow();
-if (EMBED && QS.get('t')) importFromText(QS.get('t')); // landing page: show a given AI text / Mermaid diagram instead of the sample
+// ?t=<AI text or Mermaid>: in the embed (landing page, guides) it replaces the sample; in the full editor it opens as a new diagram, which is how the
+// guide pages offer "open this flow in the editor". The parameter is then taken out of the address so a reload does not import it twice.
+if (QS.get('t')){
+  const r = importFromText(QS.get('t'));
+  if (!EMBED){ try { history.replaceState(null, '', location.pathname + (QS.get('lang') ? '?lang=' + encodeURIComponent(QS.get('lang')) : '') + location.hash); } catch(e){} if (r && r.error) toast(r.error); }
+}
 // Phones (touch device whose shorter screen side is under 600 px) get a warning; tablets are not affected.
 const isPhone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 600;
 function mobileNotice(){ modalRender = mobileNotice; dialog(T('mobTitle'), [el('p', 'hint', T('mobBody'))], [{label: T('mobOk'), primary: true, onClick: closeModal}]); }
 let tourSeen = true; try { tourSeen = !!localStorage.getItem(TOUR_KEY); } catch(e){}
-const fromLink = !EMBED && /^#[ds]=/.test(location.hash);
+const fromLink = !EMBED && (/^#[ds]=/.test(location.hash) || QS.has('t')); // arriving with a diagram: no guided tour over it
 if (fromLink) openFromHash();
 if (!EMBED){ if (isPhone) mobileNotice(); else if (!tourSeen && !fromLink) setTimeout(startTour, 600); }
 track('app_open');
