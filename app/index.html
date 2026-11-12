@@ -1358,6 +1358,7 @@ function handleNode(){
 
 /* ---------- mutations ---------- */
 function addNode(type, x, y, extra={}){
+  track('first_diagram', true);
   const n = type === 'lane'
     ? {id:uid('n'), type, x, y, w:1100, h:180, text:T('newLane'), laneType:'pessoa', fs:14, color:'none'}
     : type === 'geo'
@@ -2624,9 +2625,9 @@ function renderModal(){
     i.onchange = () => { expCm = i.checked; renderModal(); }; l.append(i, ' ' + T('cmInclude', nCm)); o.appendChild(l); body.appendChild(o); }
   const pre = document.createElement('pre'); pre.textContent = text; body.appendChild(pre);
   const stat = document.createElement('span'); stat.className = 'stat'; stat.textContent = `${text.length.toLocaleString(LOC())} ${T('chars')} · ~${tokEst(text).toLocaleString(LOC())} ${T('tokens')}`; foot.appendChild(stat);
-  const c = document.createElement('button'); c.className = 'btn'; c.textContent = T('copy'); c.onclick = () => copyText(modalTab === 'mermaid' ? text : text); foot.appendChild(c);
+  const c = document.createElement('button'); c.className = 'btn'; c.textContent = T('copy'); c.onclick = () => { if (modalTab === 'ai') track('export_ai'); copyText(text); }; foot.appendChild(c);
   const s = document.createElement('button'); s.className = 'btn primary'; s.textContent = T('saveFile');
-  s.onclick = () => saveFile(slug(doc.name) + (modalTab === 'ai' ? '.flow.txt' : modalTab === 'mermaid' ? '.mermaid.md' : '.diagramico.json'), modalTab === 'mermaid' ? '```mermaid\n' + text + '\n```\n' : text);
+  s.onclick = () => { if (modalTab === 'ai') track('export_ai'); saveFile(slug(doc.name) + (modalTab === 'ai' ? '.flow.txt' : modalTab === 'mermaid' ? '.mermaid.md' : '.diagramico.json'), modalTab === 'mermaid' ? '```mermaid\n' + text + '\n```\n' : text); };
   foot.appendChild(s);
 }
 $('#mClose').onclick = closeModal;
@@ -2836,8 +2837,8 @@ function renderInsight(){
     const text = insightPrompt(insTab), pre = el('pre'); pre.textContent = empty ? T('empty') : text; body.appendChild(pre);
     if (empty) return;
     stat.textContent = `${text.length.toLocaleString(LOC())} ${T('chars')} · ~${tokEst(text).toLocaleString(LOC())} ${T('tokens')}`;
-    const s = el('button', 'btn'); s.textContent = T('saveFile'); s.onclick = () => saveFile(slug(doc.name) + (insTab === 'summary' ? '.summary-prompt.txt' : '.walkthrough-prompt.txt'), text);
-    const c = el('button', 'btn primary'); c.textContent = T('ins_copyPrompt'); c.onclick = () => copyText(text);
+    const s = el('button', 'btn'); s.textContent = T('saveFile'); s.onclick = () => { track('export_ai'); saveFile(slug(doc.name) + (insTab === 'summary' ? '.summary-prompt.txt' : '.walkthrough-prompt.txt'), text); };
+    const c = el('button', 'btn primary'); c.textContent = T('ins_copyPrompt'); c.onclick = () => { track('export_ai'); copyText(text); };
     foot.append(s, c); return;
   }
   const out = el('div', 'md'); body.appendChild(out);
@@ -3731,6 +3732,20 @@ let healthP = null;
 const health = () => healthP || (healthP = !/^https?:$/.test(location.protocol) ? Promise.resolve(null)
   : fetch('/api/health', {cache:'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null));
 const shortAvailable = () => health().then(j => !!(j && j.shortLinks));
+/* Anonymous usage counts (server/server.js, POST /api/event): only the event name and the site the visitor came from. No cookies, no visitor id, never
+   anything from a diagram. Nothing is sent from the embedded demo, on static hosting (no server), or when the browser asks not to be tracked.
+   once = at most one time per browser (remembered in localStorage). */
+const NO_TRACK = EMBED || navigator.globalPrivacyControl === true || navigator.doNotTrack === '1';
+function track(name, once){
+  if (NO_TRACK) return;
+  if (once){ const k = 'diagramico.ev.' + name; try { if (localStorage.getItem(k)) return; localStorage.setItem(k, '1'); } catch(e){ return; } }
+  health().then(j => {
+    if (!j || !j.stats) return;
+    let r = ''; try { r = document.referrer ? new URL(document.referrer).hostname : ''; } catch(e){}
+    if (r === location.hostname) r = '';
+    fetch('/api/event', {method:'POST', keepalive:true, headers:{'Content-Type':'application/json'}, body: JSON.stringify({e:name, r})}).catch(() => {});
+  });
+}
 async function shortUrl(){
   const r = await fetch('/api/short', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({d: await sharePayload()})});
   if (!r.ok) throw new Error('short ' + r.status);
@@ -3777,6 +3792,7 @@ let tourSeen = true; try { tourSeen = !!localStorage.getItem(TOUR_KEY); } catch(
 const fromLink = !EMBED && /^#[ds]=/.test(location.hash);
 if (fromLink) openFromHash();
 if (!EMBED){ if (isPhone) mobileNotice(); else if (!tourSeen && !fromLink) setTimeout(startTour, 600); }
+track('app_open');
 // expose for testing
 window.__diagramico = { exportAI: cm => exportAI(doc, cm), exportMermaid: cm => exportMermaid(doc, cm), state: S, view, doc: () => doc, importText: importFromText, redraw: () => draw(), loadSample: () => { const s = sampleDoc(); store.docs[s.id] = s; openDoc(s.id); return s; } };
 })();

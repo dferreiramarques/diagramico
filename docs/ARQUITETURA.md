@@ -150,11 +150,24 @@ Limitações: só horizontal; não desenha arestas à volta de formas; a lane de
 
 Node sem dependências. Serve só uma lista fechada (`/index.html`, `/product-page.css`, `/app/`, `/assets/`) com cabeçalhos de segurança e CSP, e a API das ligações curtas, desligada por defeito (`SHORTLINKS=on`):
 
-- `GET /api/health` → `{ok, commit, shortLinks, ttlDays, idLen}` (o editor usa `shortLinks` para mostrar ou não a opção *Curta*; `commit` são os 7 primeiros caracteres do `RAILWAY_GIT_COMMIT_SHA`, ou `null`, e serve para confirmar que versão está em produção).
+- `GET /api/health` → `{ok, commit, shortLinks, ttlDays, idLen, stats}` (o editor usa `shortLinks` para mostrar ou não a opção *Curta*; `commit` são os 7 primeiros caracteres do `RAILWAY_GIT_COMMIT_SHA`, ou `null`, e serve para confirmar que versão está em produção).
 - `POST /api/short` `{d}` → `201 {id}` (ou `200` se o mesmo diagrama já existir: deduplicação por sha256). `d` é o mesmo payload do `#d=`; só é aceite se descomprimir (limite 8 MB) para JSON com `nodes[]`.
 - `GET /api/short/:id` → `{d}`; `GET /s/:id` → 302 para `/app/#s=ID`. O editor revalida tudo com `unpackDoc`, como em `#d=`.
 - IDs de 6 caracteres de `23456789abcdefghjkmnpqrstuvwxyz` (sem caracteres ambíguos), gerados com `crypto.randomInt`.
 - Armazenamento num `shorts.json` (escrita atómica, 0,4 s depois de cada alteração). Expira 90 dias depois da última abertura. Limites: 120 000 caracteres por payload, 50 000 ligações, 50 MB, 20 criações/hora e 240 leituras/min por IP. Em produção precisa de um volume persistente (`DATA_DIR`).
+
+### Contagem anónima de utilização
+
+Serve para medir o marco da Fase 0 do roadmap sem serviços de terceiros (a CSP continua `connect-src 'self'` no editor). Ligada por defeito; `STATS=off` desliga.
+
+- `POST /api/event` `{e, r}` → `204`. `e` é um de `view` (landing), `app_open`, `first_diagram` (primeira forma criada neste browser, lembrado em `localStorage` `diagramico.ev.first_diagram`), `export_ai` (copiar ou guardar o texto IA ou um prompt de Resumir/Guia) e `waitlist`. `r` é o domínio de origem (`document.referrer`), só guardado em `view` e `app_open`. Só aceita `application/json` até 400 bytes, 60 eventos/min por IP; bots conhecidos recebem `204` mas não contam.
+- No cliente é a função `track()` (uma na landing, outra no editor). Não envia nada no modo `EMBED`, em alojamento estático, nem com Do Not Track ou Global Privacy Control. O editor só envia se `/api/health` disser `stats: true`.
+- Por dia (UTC) guarda-se `n` (ocorrências), `u` (visitantes diferentes) e `r` (origens, no máximo 200 por dia). Um visitante distingue-se só dentro do dia, por um hash de sal aleatório + IP + browser; o sal muda todos os dias e vive só em memória, e nem o hash nem o IP vão para o disco. Um reinício a meio do dia pode inflacionar um pouco o `u` desse dia.
+- `DATA_DIR/stats.json` (escrita atómica, 1 s depois de cada alteração), 400 dias de histórico (`STATS_KEEP_DAYS`).
+- `GET /api/stats?days=N` com `Authorization: Bearer <STATS_KEY>` → `{from, to, total:{n, uDaily, r}, days}`. Sem `STATS_KEY` (16+ caracteres) responde `404`. `uDaily` é a soma dos visitantes diários, não visitantes únicos do período.
+- Ao acrescentar um evento: juntá-lo a `EVENTS` no servidor, chamar `track()` no cliente e rever a pergunta "O site segue-me?" da landing (`q7`/`a7`), que descreve o que se conta.
+
+`robots.txt` e `sitemap.xml` estão na raiz e entram na lista fechada de ficheiros servidos. A imagem de partilha `assets/og.png` (1200×630) gera-se a partir de `tools/og-image.html` (instruções no próprio ficheiro).
 
 ## Partilha por ligação (`#d=…`)
 

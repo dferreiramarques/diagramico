@@ -1,5 +1,5 @@
 'use strict';
-/* Diagramico server: serves the site (landing + editor) and, when SHORTLINKS=on, a tiny short-link API.
+/* Diagramico server: serves the site (landing + editor), counts anonymous usage events and, when SHORTLINKS=on, runs a tiny short-link API.
    No dependencies. Short links store a copy of the diagram payload (the same compressed text that travels in a #d= link) under a
    random id, so  https://host/s/k7m3qa  opens the diagram without a long URL. Everything else (editing, saving, exporting) stays in the browser.
 
@@ -12,6 +12,9 @@
      SHORT_MAX_CHARS      largest accepted payload, in characters (default 120000)
      SHORT_MAX_ITEMS      most links stored (default 50000);  SHORT_MAX_BYTES  most payload bytes stored (default 50 MB)
      SHORT_RATE_WRITE     links one IP may create per hour (default 20);  SHORT_RATE_READ  lookups per IP per minute (default 240)
+     STATS                on|off  (default on: POST /api/event adds to daily totals in DATA_DIR/stats.json; no cookies, no ids, no IPs stored)
+     STATS_KEY            secret (16+ characters) that opens GET /api/stats with "Authorization: Bearer <key>"; without it the totals cannot be read over HTTP
+     STATS_KEEP_DAYS      days of totals kept (default 400);  STATS_RATE  events one IP may send per minute (default 60)
      TRUST_PROXY_HOPS     proxies in front of this server whose X-Forwarded-For entry can be trusted (default 1; 0 = use the socket address)
      RAILWAY_GIT_COMMIT_SHA / GIT_COMMIT   set by Railway (or by hand) to show which version is live in /api/health */
 const http = require('http'), fs = require('fs'), path = require('path'), crypto = require('crypto'), zlib = require('zlib');
@@ -30,6 +33,10 @@ const CFG = {
   rateWrite: int(process.env.SHORT_RATE_WRITE, 1, 100000, 20),
   rateRead: int(process.env.SHORT_RATE_READ, 1, 100000, 240),
   hops: int(process.env.TRUST_PROXY_HOPS, 0, 5, 1),
+  statsOn: !/^(0|off|false|no)$/i.test(process.env.STATS || ''),
+  statsKey: String(process.env.STATS_KEY || '').trim().length >= 16 ? String(process.env.STATS_KEY).trim() : '',
+  statsKeep: int(process.env.STATS_KEEP_DAYS, 1, 3650, 400),
+  rateEvent: int(process.env.STATS_RATE, 1, 100000, 60),
   commit: String(process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT || '').trim().slice(0, 7),
 };
 const ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz'; // 31 symbols: no 0 1 i l o, so ids survive being read aloud or retyped
@@ -75,6 +82,55 @@ function validPayload(d){
   } catch (e) { return false; }
 }
 
+/* ---------- anonymous usage counts ----------
+   What is kept, per UTC day: how many times each event happened (n), how many different visitors sent it (u) and which sites visitors came from (r).
+   A visitor is told apart only for the current day, by a hash of a random salt + IP + browser name. The salt is made each day and lives in memory only,
+   so the hashes cannot be traced back or linked from one day to the next; neither the hash nor the IP is ever written to disk.
+   A restart during the day forgets who was already seen, so that day's "u" can come out a little high. */
+const EVENTS = new Set(['view', 'app_open', 'first_diagram', 'export_ai', 'waitlist']);
+const REF_RE = /^[a-z0-9-]{1,63}(\.[a-z0-9-]{1,63})+$/, DAY_RE = /^\d{4}-\d\d-\d\d$/, BOT_RE = /bot|crawl|spider|slurp|headless|preview|monitor|curl|wget|python|scrapy|lighthouse/i;
+const stats = { days: {}, seen: new Set(), seenDay: '', salt: '', dirty: false, timer: null };
+const statsFile = () => path.join(CFG.dataDir, 'stats.json');
+const today = () => new Date().toISOString().slice(0, 10);
+const cleanCounts = (o, ok) => { const out = {}; for (const [k, v] of Object.entries(o || {})) if (ok(k) && Number.isSafeInteger(v) && v > 0) out[k] = v; return out; };
+function loadStats(){
+  if (!CFG.statsOn) return;
+  try {
+    const o = JSON.parse(fs.readFileSync(statsFile(), 'utf8'));
+    for (const [day, d] of Object.entries(o.days || {})) if (DAY_RE.test(day) && d) stats.days[day] = { n: cleanCounts(d.n, k => EVENTS.has(k)), u: cleanCounts(d.u, k => EVENTS.has(k)), r: cleanCounts(d.r, k => k === 'other' || REF_RE.test(k)) };
+  } catch (e) { if (e.code !== 'ENOENT') console.error('could not read', statsFile(), e.message); }
+}
+function saveStats(){
+  if (!CFG.statsOn || !stats.dirty) return; stats.dirty = false;
+  try {
+    fs.mkdirSync(CFG.dataDir, { recursive: true });
+    const tmp = statsFile() + '.tmp'; fs.writeFileSync(tmp, JSON.stringify({ v: 1, days: stats.days })); fs.renameSync(tmp, statsFile());
+  } catch (e) { stats.dirty = true; console.error('could not save', e.message); }
+}
+function scheduleStats(){ stats.dirty = true; if (stats.timer) return; stats.timer = setTimeout(() => { stats.timer = null; saveStats(); }, 1000); stats.timer.unref && stats.timer.unref(); }
+function pruneStats(){ const cut = new Date(Date.now() - CFG.statsKeep * DAY).toISOString().slice(0, 10); for (const day of Object.keys(stats.days)) if (day < cut){ delete stats.days[day]; scheduleStats(); } }
+function countEvent(name, ref, ip, ua){
+  const day = today();
+  if (stats.seenDay !== day){ stats.seenDay = day; stats.seen.clear(); stats.salt = crypto.randomBytes(16).toString('hex'); }
+  const d = stats.days[day] || (stats.days[day] = { n: {}, u: {}, r: {} });
+  d.n[name] = (d.n[name] || 0) + 1;
+  const who = name + ':' + hash(stats.salt + ip + '\n' + ua).slice(0, 16);
+  if (!stats.seen.has(who) && stats.seen.size < 500000){ stats.seen.add(who); d.u[name] = (d.u[name] || 0) + 1; }
+  if (ref && (name === 'view' || name === 'app_open')){ const k = Object.hasOwn(d.r, ref) || Object.keys(d.r).length < 200 ? ref : 'other'; d.r[k] = (d.r[k] || 0) + 1; }
+  scheduleStats();
+}
+function statsReport(nDays){
+  const cut = new Date(Date.now() - (nDays - 1) * DAY).toISOString().slice(0, 10), days = {}, total = { n: {}, uDaily: {}, r: {} };
+  for (const day of Object.keys(stats.days).sort()) if (day >= cut){
+    const d = days[day] = stats.days[day];
+    for (const [k, v] of Object.entries(d.n)) total.n[k] = (total.n[k] || 0) + v;
+    for (const [k, v] of Object.entries(d.u)) total.uDaily[k] = (total.uDaily[k] || 0) + v; // daily visitors added up: someone who comes on two days counts twice
+    for (const [k, v] of Object.entries(d.r)) total.r[k] = (total.r[k] || 0) + v;
+  }
+  return { from: cut, to: today(), total, days };
+}
+const sameSecret = (a, b) => crypto.timingSafeEqual(Buffer.from(hash(a), 'hex'), Buffer.from(hash(b), 'hex'));
+
 /* ---------- rate limits ---------- */
 const buckets = new Map();
 function limited(key, max, windowMs){
@@ -90,7 +146,7 @@ function clientIp(req){
 }
 
 /* ---------- responses ---------- */
-const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.gif': 'image/gif', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.json': 'application/json; charset=utf-8', '.ico': 'image/x-icon' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.gif': 'image/gif', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8', '.xml': 'application/xml; charset=utf-8', '.json': 'application/json; charset=utf-8', '.ico': 'image/x-icon' };
 const HTML_CSP = "default-src 'self'; script-src 'self' 'unsafe-inline' https://roadmaps.monco.io; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://formspree.io https://roadmaps.monco.io; frame-src 'self'; frame-ancestors 'self'; object-src 'none'; base-uri 'none'; form-action 'none'";
 function secHeaders(req, h = {}){
   const o = { 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()', ...h };
@@ -112,7 +168,7 @@ function readBody(req, max){
 }
 
 /* ---------- static files (only the site itself: landing, editor, assets) ---------- */
-const PUBLIC_FILES = new Set(['/index.html', '/product-page.css']), PUBLIC_DIRS = ['/app/', '/assets/'];
+const PUBLIC_FILES = new Set(['/index.html', '/product-page.css', '/robots.txt', '/sitemap.xml']), PUBLIC_DIRS = ['/app/', '/assets/'];
 function resolvePublic(urlPath){
   let p; try { p = decodeURIComponent(urlPath); } catch (e) { return null; }
   if (p === '/') p = '/index.html'; else if (p.endsWith('/')) p += 'index.html';
@@ -133,7 +189,7 @@ function serveStatic(req, res, urlPath){
     if (req.headers['if-none-match'] === etag){ res.writeHead(304, secHeaders(req, h)); return res.end(); }
     fs.readFile(f, (e, buf) => {
       if (e) return notFound(req, res);
-      if (/\b(?:html|css|js|svg|json|txt)\b/.test(ext.slice(1)) && /\bgzip\b/.test(String(req.headers['accept-encoding'] || ''))){
+      if (/\b(?:html|css|js|svg|json|txt|xml)\b/.test(ext.slice(1)) && /\bgzip\b/.test(String(req.headers['accept-encoding'] || ''))){
         const k = f + st.mtimeMs; if (!gz.has(k)){ if (gz.size > 200) gz.clear(); gz.set(k, zlib.gzipSync(buf, { level: 6 })); }
         buf = gz.get(k); h['Content-Encoding'] = 'gzip'; h.Vary = 'Accept-Encoding';
       }
@@ -148,7 +204,33 @@ async function handle(req, res){
   const url = new URL(req.url, 'http://x'), p = url.pathname;
   const get = req.method === 'GET' || req.method === 'HEAD';
 
-  if (p === '/api/health' && get) return json(req, res, 200, { ok: true, commit: CFG.commit || null, shortLinks: CFG.shortOn, ttlDays: CFG.ttlDays, idLen: CFG.idLen });
+  if (p === '/api/health' && get) return json(req, res, 200, { ok: true, commit: CFG.commit || null, shortLinks: CFG.shortOn, ttlDays: CFG.ttlDays, idLen: CFG.idLen, stats: CFG.statsOn });
+
+  if (p === '/api/event'){
+    if (!CFG.statsOn) return json(req, res, 404, { error: 'disabled' });
+    if (req.method !== 'POST') return json(req, res, 405, { error: 'method' }, { Allow: 'POST' });
+    const ip = clientIp(req);
+    if (limited('e:' + ip, CFG.rateEvent, 60000)) return json(req, res, 429, { error: 'rate' }, { 'Retry-After': '60' });
+    if (!/^application\/json\b/i.test(String(req.headers['content-type'] || ''))) return json(req, res, 415, { error: 'type' }); // a page on another site cannot send JSON here without a CORS preflight, which is never granted
+    let body; try { body = JSON.parse((await readBody(req, 400)).toString('utf8')); }
+    catch (e) { if (e.status === 413){ res.on('finish', () => req.destroy()); return json(req, res, 413, { error: 'size' }, { Connection: 'close' }); } return json(req, res, 400, { error: 'json' }); }
+    if (!body || !EVENTS.has(body.e)) return json(req, res, 400, { error: 'event' });
+    const ua = String(req.headers['user-agent'] || '').slice(0, 300);
+    if (ua && !BOT_RE.test(ua)){
+      let ref = typeof body.r === 'string' ? body.r.toLowerCase().replace(/^www\./, '') : '';
+      if (ref.length > 80 || !REF_RE.test(ref) || ref === String(req.headers.host || '').toLowerCase().split(':')[0].replace(/^www\./, '')) ref = '';
+      countEvent(body.e, ref, ip, ua);
+    }
+    res.writeHead(204, secHeaders(req, { 'Cache-Control': 'no-store' })); return res.end();
+  }
+
+  if (p === '/api/stats' && get){
+    if (!CFG.statsOn || !CFG.statsKey) return json(req, res, 404, { error: 'disabled' });
+    if (limited('s:' + clientIp(req), 30, 60000)) return json(req, res, 429, { error: 'rate' }, { 'Retry-After': '60' });
+    const m = /^Bearer\s+(.+)$/i.exec(String(req.headers.authorization || ''));
+    if (!m || !sameSecret(m[1].trim(), CFG.statsKey)) return json(req, res, 401, { error: 'key' }, { 'WWW-Authenticate': 'Bearer' });
+    return json(req, res, 200, statsReport(int(url.searchParams.get('days'), 1, 3650, 30)));
+  }
 
   if (p === '/api/short'){
     if (!CFG.shortOn) return json(req, res, 404, { error: 'disabled' });
@@ -196,10 +278,10 @@ function createServer(){
 }
 
 if (require.main === module){
-  loadStore(); expire();
+  loadStore(); expire(); loadStats(); pruneStats();
   const srv = createServer();
-  srv.listen(CFG.port, () => console.log(`diagramico${CFG.commit ? ' ' + CFG.commit : ''} listening on ${srv.address().port}; short links ${CFG.shortOn ? 'on (' + store.items.size + ' stored, data in ' + CFG.dataDir + ')' : 'off'}`));
-  setInterval(() => { sweepBuckets(); expire(); }, 3600000).unref();
-  for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => { saveStore(); process.exit(0); });
+  srv.listen(CFG.port, () => console.log(`diagramico${CFG.commit ? ' ' + CFG.commit : ''} listening on ${srv.address().port}; short links ${CFG.shortOn ? 'on (' + store.items.size + ' stored, data in ' + CFG.dataDir + ')' : 'off'}; usage counts ${CFG.statsOn ? 'on' + (CFG.statsKey ? '' : ' (set STATS_KEY to read them at /api/stats)') : 'off'}`));
+  setInterval(() => { sweepBuckets(); expire(); pruneStats(); }, 3600000).unref();
+  for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => { saveStore(); saveStats(); process.exit(0); });
 }
-module.exports = { createServer, loadStore, saveStore, store, CFG };
+module.exports = { createServer, loadStore, saveStore, store, loadStats, saveStats, stats, CFG };

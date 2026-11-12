@@ -9,6 +9,20 @@
 <meta property="og:title" content="Diagramico · Desenha o fluxo, a IA escreve a documentação">
 <meta property="og:description" content="Desenha fluxos com o teclado, exporta texto compacto e deixa a IA escrever a documentação.">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Diagramico">
+<meta property="og:url" content="https://diagramico.monco.io/">
+<meta property="og:image" content="https://diagramico.monco.io/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Diagramico: um diagrama de fluxo passa a texto compacto e a documentação escrita por IA">
+<meta property="og:locale" content="pt_PT">
+<meta property="og:locale:alternate" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://diagramico.monco.io/assets/og.png">
+<link rel="canonical" href="https://diagramico.monco.io/">
+<link rel="alternate" hreflang="pt" href="https://diagramico.monco.io/?lang=pt">
+<link rel="alternate" hreflang="en" href="https://diagramico.monco.io/?lang=en">
+<link rel="alternate" hreflang="x-default" href="https://diagramico.monco.io/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233347d4'/%3E%3Cpath d='M7 10h9l-2.5 6H7z M18 17l5 5-5 5-5-5z' fill='white'/%3E%3C/svg%3E">
 <script>
 /* theme first, before anything paints: saved choice, else the OS setting (this page keeps following the OS until you pick one) */
@@ -83,6 +97,8 @@ details{border-bottom:1px solid var(--line);padding:14px 0}details summary{curso
 .tier li::before{content:"";position:absolute;left:2px;top:.45em;width:9px;height:5px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg)}
 .tier li.inc{color:var(--muted)}
 .tier .fine{margin:auto 0 0;padding-top:12px;font-size:13px;color:var(--muted)}
+.tier .price{margin:0;font-size:15px;font-weight:600}
+.tier .btn{align-self:flex-start;margin-top:12px}
 .case2{display:grid;grid-template-columns:1fr;gap:18px}
 .dcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .dcard h3{margin:0;padding:12px 16px;font-size:15px;font-weight:600;border-bottom:1px solid var(--line)}
@@ -274,6 +290,7 @@ details{border-bottom:1px solid var(--line);padding:14px 0}details summary{curso
       </div>
       <details><summary data-i18n="q1"></summary><p data-i18n="a1"></p></details>
       <details><summary data-i18n="q2"></summary><p data-i18n="a2"></p></details>
+      <details><summary data-i18n="q7"></summary><p data-i18n="a7"></p></details>
       <details><summary data-i18n="q3"></summary><p data-i18n="a3"></p></details>
       <details><summary data-i18n="q4"></summary><p data-i18n="a4"></p></details>
       <details><summary data-i18n="q6"></summary><p data-i18n="a6"></p></details>
@@ -304,6 +321,15 @@ details{border-bottom:1px solid var(--line);padding:14px 0}details summary{curso
 // Waitlist endpoint (e.g. a Formspree form URL). While empty, the form stays hidden and nothing is collected.
 // When this is set, also add the endpoint's origin (e.g. https://formspree.io) to connect-src in the Content-Security-Policy <meta> above, or the browser blocks the request.
 const WAITLIST_URL = 'https://formspree.io/f/maeqaqrn';
+
+// Anonymous usage counts (server/server.js, POST /api/event): only the event name and the site the visitor came from. No cookies, no visitor id.
+// Nothing is sent on static hosting (no server there) or when the browser asks not to be tracked. The FAQ ("Does the site track me?") says the same: keep them in step.
+function track(name){
+  if (!/^https?:$/.test(location.protocol) || /\.github\.io$/.test(location.hostname) || navigator.globalPrivacyControl === true || navigator.doNotTrack === '1') return;
+  let r = ''; try { r = document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) {}
+  if (r === location.hostname) r = '';
+  fetch('/api/event', {method:'POST', keepalive:true, headers:{'Content-Type':'application/json'}, body:JSON.stringify({e:name, r})}).catch(() => {});
+}
 
 const AI = {
 pt:`DIAGRAM: Exemplo · Compra na loja online
@@ -447,19 +473,19 @@ SY4 > US2 [asks again]`,
 // Plans (the roadmap is a Roadmaps embed: roadmaps.monco.io; the long version is docs/ROADMAP.md)
 const PLANS = {
 pt:[
-  {k:'free', name:'Free', st:'Disponível', sub:'Para desenhar e documentar, sem conta.', hl:true,
-   items:['Desenhar sem registo, no browser','Swimlanes, decisões BPMN, formas geométricas e alinhamento à grelha','Exportar: texto para IA, Mermaid, SVG, PNG, JSON e ligação','Importar de draw.io, Visio, Mermaid e texto','Os teus dados ficam no teu browser'], fine:'Gratuito.'},
+  {k:'free', name:'Free', st:'Disponível', sub:'Para desenhar e documentar, sem conta.', hl:true, price:'0 €',
+   items:['Desenhar sem registo, no browser','Swimlanes, decisões BPMN, formas geométricas e alinhamento à grelha','Imagens e comentários de revisão','Exportar: texto para IA, Mermaid, SVG, PNG, JSON e ligação (completa ou curta)','Importar de draw.io, Visio, Mermaid e texto','Os teus diagramas ficam no teu browser'], fine:'Gratuito e de código aberto (MIT). O que é Free hoje continua Free.', cta:'Abrir o editor', href:'app/'},
   {k:'teams', name:'Equipas', st:'Em preparação', sub:'Para trabalhar em conjunto.',
-   inc:'Tudo do Free', items:['Gravar os diagramas na tua conta Google, em qualquer computador','Colaboração em tempo real: partilhas a ligação, a equipa entra e cada pessoa tem o seu cursor colorido com o nome','Comentários nas formas','Acessos: membro (lê e escreve) e revisor (só lê)'], fine:'Na colaboração, o conteúdo da sala passa pelo nosso servidor. Preço por anunciar.'},
+   price:'Preço por anunciar', inc:'Tudo do Free', items:['Gravar os diagramas na tua conta Google, em qualquer computador','Colaboração em tempo real: partilhas a ligação, a equipa entra e cada pessoa tem o seu cursor colorido com o nome','Comentários em conversa, partilhados com a equipa','Acessos: membro (lê e escreve) e revisor (só lê)'], fine:'Ainda não existe e não tem data: só avançamos se houver procura. Na colaboração, o conteúdo da sala passará pelo nosso servidor.', cta:'Entrar na lista de espera', href:'#teams'},
   {k:'premium', name:'Premium', st:'A pensar', sub:'Para empresas com dados internos.',
-   inc:'Tudo de Equipas', items:['Gravação na infraestrutura da empresa, em vez do Google','Colaboração só na rede interna'], fine:'Preço sob consulta.'}],
+   price:'Sob consulta', inc:'Tudo de Equipas', items:['Gravação na infraestrutura da empresa, em vez do Google','Colaboração só na rede interna'], fine:'Uma ideia, não um produto: só com um pedido concreto de uma empresa.'}],
 en:[
-  {k:'free', name:'Free', st:'Available', sub:'For drawing and documenting, no account.', hl:true,
-   items:['Draw with no sign-up, in your browser','Swimlanes, BPMN decisions, geometric shapes and grid alignment','Export: AI text, Mermaid, SVG, PNG, JSON and link','Import from draw.io, Visio, Mermaid and text','Your data stays in your browser'], fine:'Free.'},
+  {k:'free', name:'Free', st:'Available', sub:'For drawing and documenting, no account.', hl:true, price:'€0',
+   items:['Draw with no sign-up, in your browser','Swimlanes, BPMN decisions, geometric shapes and grid alignment','Images and review comments','Export: AI text, Mermaid, SVG, PNG, JSON and link (full or short)','Import from draw.io, Visio, Mermaid and text','Your diagrams stay in your browser'], fine:'Free and open source (MIT). What is Free today stays Free.', cta:'Open the editor', href:'app/'},
   {k:'teams', name:'Teams', st:'In preparation', sub:'For working together.',
-   inc:'Everything in Free', items:['Save diagrams to your Google account, on any computer','Real-time collaboration: share the link, the team joins and everyone gets a coloured cursor with their name','Comments on shapes','Access roles: member (read and write) and reviewer (read only)'], fine:'With collaboration, the room content goes through our server. Price to be announced.'},
+   price:'Price to be announced', inc:'Everything in Free', items:['Save diagrams to your Google account, on any computer','Real-time collaboration: share the link, the team joins and everyone gets a coloured cursor with their name','Threaded comments, shared with the team','Access roles: member (read and write) and reviewer (read only)'], fine:'It does not exist yet and has no date: we only build it if there is demand. With collaboration, the room content will go through our server.', cta:'Join the waitlist', href:'#teams'},
   {k:'premium', name:'Premium', st:'Being considered', sub:'For companies with internal data.',
-   inc:'Everything in Teams', items:['Saving on the company\'s own infrastructure instead of Google','Collaboration on the internal network only'], fine:'Price on request.'}]
+   price:'On request', inc:'Everything in Teams', items:['Saving on the company\'s own infrastructure instead of Google','Collaboration on the internal network only'], fine:'An idea, not a product: only with a concrete request from a company.'}]
 };
 const I18N = {
 pt:{
@@ -467,7 +493,7 @@ pt:{
   c_txt:'Ver o texto exportado', c_bot:'Assistente de suporte', c_ex:'exemplo ilustrativo',
   c_note:'Exemplo ilustrativo: a resposta foi escrita por uma IA (Claude) apenas a partir do texto dos dois diagramas, e apresentada aqui como uma conversa de suporte. O Diagramico não inclui um assistente: gera o texto que colas no que já usas.',
   e_f:'O que ganhas', e_ai:'Texto para IA', e_case:'Exemplo', e_how:'Como funciona', e_plans:'Planos', e_road:'Roadmap', e_teams:'Equipas', e_faq:'Perguntas', cta_h:'Desenha o teu primeiro fluxo.', cta_p:'Gratuito, sem registo: os dados ficam no teu browser.',
-  nav_plans:'Planos', nav_road:'Roadmap', p_h:'Planos', p_sub:'O Diagramico é gratuito para desenhar e documentar. As Equipas acrescentam gravação na conta, colaboração e comentários, e o Premium leva tudo para a infraestrutura da tua empresa.', r_h:'Roadmap', r_sub:'O que estamos a fazer e a ordem em que vem a seguir. Uma vista simples do nosso quadro de trabalho.', r_note:'Sem datas: a ordem pode mudar com o feedback que recebermos.',
+  nav_plans:'Planos', nav_road:'Roadmap', p_h:'Planos', p_sub:'O Diagramico é gratuito para desenhar e documentar. As Equipas, ainda em preparação, vão acrescentar gravação na conta, colaboração e comentários partilhados; o Premium levaria tudo para a infraestrutura da tua empresa.', r_h:'Roadmap', r_sub:'O que estamos a fazer e a ordem em que vem a seguir. Uma vista simples do nosso quadro de trabalho.', r_note:'Sem datas: a ordem pode mudar com o feedback que recebermos.',
   nav_ai:'Texto para IA', nav_faq:'Perguntas', open:'Abrir a app', see_ai:'Ver o texto para IA',
   eyebrow:'Gratuito · sem registo · os dados ficam no teu browser',
   h1:'Desenha o fluxo. A IA escreve a documentação.',
@@ -488,7 +514,8 @@ pt:{
   t_ph:'o.teu@email.com', t_use:'O que desenhas? (opcional)', t_btn:'Entrar na lista de espera', t_consent:'Aceito receber um email quando as Equipas forem lançadas.', t_priv:'Usamos o teu email apenas para te avisar do lançamento das Equipas e para perguntar o que precisas. Não o partilhamos com terceiros; o envio é tratado pelo Formspree, que o guarda por nossa conta. Podes pedir a remoção a qualquer momento, respondendo a um email nosso.', t_ok:'Obrigado! Avisamos quando houver novidades.', t_err:'Não foi possível enviar. Tenta de novo mais tarde.',
   q_h:'Perguntas frequentes',
   q1:'Quanto custa?', a1:'A app é gratuita e não pede registo. Os planos para equipas ainda estão em preparação.',
-  q2:'Onde ficam os meus diagramas?', a2:'No teu browser (localStorage). Nada é enviado para um servidor, a não ser que geres uma ligação curta: nesse caso o servidor guarda uma cópia desse diagrama durante 90 dias desde a última abertura. Usa Diagramas → Guardar cópia de segurança para mudar de computador ou proteger o trabalho.',
+  q2:'Onde ficam os meus diagramas?', a2:'No teu browser (localStorage). Os diagramas não são enviados para um servidor, a não ser que geres uma ligação curta: nesse caso o servidor guarda uma cópia desse diagrama durante 90 dias desde a última abertura. Usa Diagramas → Guardar cópia de segurança para mudar de computador ou proteger o trabalho.',
+  q7:'O site segue-me?', a7:'Não. Contamos apenas totais diários e anónimos: visitas à página, aberturas do editor, o primeiro diagrama, exportações de texto para IA, inscrições na lista de espera e o site de onde vieste. Sem cookies, sem identificadores, sem serviços de terceiros e sem nada do conteúdo dos diagramas; o endereço IP não é guardado. Se o teu browser pedir para não ser seguido (Do Not Track ou Global Privacy Control), nem isso contamos.',
   q3:'Funciona em telemóvel?', a3:'Não: foi pensado para computador e tablet, e num telemóvel o quadro fica demasiado pequeno para desenhar.',
   q4:'Posso importar diagramas que já tenho?', a4:'Sim: draw.io (.drawio), Visio (.vsdx, incluindo exportações do Lucidchart), texto IA e Mermaid. Um relatório mostra o que mudou.',
   f4_t:'Inspirado em BPMN', f4_p:'Símbolos que a tua equipa já reconhece (eventos, swimlanes e gateways XOR, AND, OR), sem seres obrigado a seguir a convenção à risca. O que conta é o fluxo ficar claro.',
@@ -499,7 +526,7 @@ en:{
   c_txt:'See the exported text', c_bot:'Support assistant', c_ex:'illustrative example',
   c_note:'Illustrative example: the answer was written by an AI (Claude) using only the text of the two diagrams, and shown here as a support chat. Diagramico does not include an assistant: it produces the text you paste into the one you already use.',
   e_f:'What you get', e_ai:'AI text', e_case:'Example', e_how:'How it works', e_plans:'Plans', e_road:'Roadmap', e_teams:'Teams', e_faq:'FAQ', cta_h:'Draw your first flow.', cta_p:'Free, no sign-up: your data stays in your browser.',
-  nav_plans:'Plans', nav_road:'Roadmap', p_h:'Plans', p_sub:'Diagramico is free for drawing and documenting. Teams adds saving to your account, collaboration and comments, and Premium moves everything onto your own company infrastructure.', r_h:'Roadmap', r_sub:'What we are working on and what comes next. A simple view of our work board.', r_note:'No dates: the order may change with the feedback we receive.',
+  nav_plans:'Plans', nav_road:'Roadmap', p_h:'Plans', p_sub:'Diagramico is free for drawing and documenting. Teams, still in preparation, will add saving to your account, collaboration and shared comments; Premium would move everything onto your own company infrastructure.', r_h:'Roadmap', r_sub:'What we are working on and what comes next. A simple view of our work board.', r_note:'No dates: the order may change with the feedback we receive.',
   nav_ai:'AI text', nav_faq:'FAQ', open:'Open the app', see_ai:'See the AI text',
   eyebrow:'Free · no sign-up · your data stays in your browser',
   h1:'Draw the flow. Let AI write the documentation.',
@@ -520,7 +547,8 @@ en:{
   t_ph:'you@email.com', t_use:'What do you draw? (optional)', t_btn:'Join the waitlist', t_consent:'I agree to receive an email when Teams launches.', t_priv:'We use your email only to tell you about the Teams launch and to ask what you need. We do not share it with third parties; the submission is handled by Formspree, which stores it on our behalf. You can ask us to delete it at any time by replying to one of our emails.', t_ok:'Thank you! We will let you know when there is news.', t_err:'Could not send. Please try again later.',
   q_h:'Frequently asked questions',
   q1:'How much does it cost?', a1:'The app is free and needs no sign-up. Team plans are still being prepared.',
-  q2:'Where are my diagrams stored?', a2:'In your browser (localStorage). Nothing is sent to a server, unless you create a short link: then the server keeps a copy of that diagram for 90 days since it was last opened. Use Diagrams → Save backup to switch computers or protect your work.',
+  q2:'Where are my diagrams stored?', a2:'In your browser (localStorage). Diagrams are not sent to a server, unless you create a short link: then the server keeps a copy of that diagram for 90 days since it was last opened. Use Diagrams → Save backup to switch computers or protect your work.',
+  q7:'Does the site track me?', a7:'No. We only count anonymous daily totals: page visits, editor opens, the first diagram, AI text exports, waitlist sign-ups and the site you came from. No cookies, no identifiers, no third-party services and nothing from the content of your diagrams; your IP address is not stored. If your browser asks not to be tracked (Do Not Track or Global Privacy Control), we do not count even that.',
   q3:'Does it work on a phone?', a3:'No: it is designed for computers and tablets, and on a phone the board is too small to draw on.',
   q4:'Can I import diagrams I already have?', a4:'Yes: draw.io (.drawio), Visio (.vsdx, including Lucidchart exports), AI text and Mermaid. A report shows what changed.',
   f4_t:'BPMN-inspired', f4_p:'Symbols your team already recognises (events, swimlanes and XOR, AND, OR gateways), without having to follow the convention to the letter. What matters is a clear flow.',
@@ -544,8 +572,9 @@ function apply(){
   $('#aiSample').textContent = AI[lang];
   $('#tiers').replaceChildren(...PLANS[lang].map(p => { const d = document.createElement('div'); d.className = 'tier' + (p.hl ? ' hl' : '');
     const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; e.textContent = txt; return e; };
-    d.append(h('span', 'st', p.st), h('h3', '', p.name), h('p', 'sub2', p.sub)); const ul = document.createElement('ul');
-    if (p.inc) ul.append(h('li', 'inc', p.inc)); for (const it of p.items) ul.append(h('li', '', it)); d.append(ul, h('p', 'fine', p.fine)); return d; }));
+    d.append(h('span', 'st', p.st), h('h3', '', p.name), h('p', 'price', p.price), h('p', 'sub2', p.sub)); const ul = document.createElement('ul');
+    if (p.inc) ul.append(h('li', 'inc', p.inc)); for (const it of p.items) ul.append(h('li', '', it)); d.append(ul, h('p', 'fine', p.fine));
+    if (p.cta){ const a = h('a', 'btn ' + (p.hl ? 'btn--primary' : 'btn--outline'), p.cta); a.href = p.href; d.append(a); } return d; }));
   const gif = $('#flowGif'), gsrc = 'assets/flow-' + lang + '.gif'; if (gif.getAttribute('src') !== gsrc) gif.setAttribute('src', gsrc); gif.alt = t('gif_alt');
   const C = CASE[lang];
   [['c1', C.d1], ['c2', C.d2]].forEach(([k, txt]) => {
@@ -567,12 +596,13 @@ if (WAITLIST_URL){
       const r = await fetch(WAITLIST_URL, {method:'POST', headers:{'Content-Type':'application/json', 'Accept':'application/json'}, body:JSON.stringify({email:form.email.value, uso:form.uso.value, consent:form.consent.checked, _gotcha:form._gotcha.value, _subject:'Diagramico: lista de espera (Equipas)', lang, page:location.pathname})});
       btn.disabled = false;
       if (!r.ok){ let m = ''; try { m = ((await r.json()).errors || []).map(x => x.message).join(' '); } catch (_) {} throw new Error(m || r.status); }
-      form.reset(); msg.textContent = t('t_ok');
+      form.reset(); msg.textContent = t('t_ok'); track('waitlist');
     } catch (err) { form.querySelector('button[type=submit]').disabled = false; msg.textContent = t('t_err'); }
   });
 }
 else $('#teams').hidden = true; // nothing to show until a waitlist endpoint is configured
 apply();
+track('view');
 })();
 </script>
 <script>

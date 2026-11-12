@@ -67,6 +67,8 @@ Arranque rápido:
 
 `npm start` serve o site (landing, `/app/`, assets) e, se `SHORTLINKS=on`, as ligações curtas. Sem dependências, só Node 20+. Variáveis: `PORT`, `SHORTLINKS`, `DATA_DIR` (pasta do `shorts.json`; no Railway, um Volume montado em `/data`), `SHORT_TTL_DAYS`, `TRUST_PROXY_HOPS`. `npm test` corre os testes.
 
+**Contagem de utilização** (ligada por defeito; `STATS=off` desliga): a landing e o editor enviam para `POST /api/event` apenas o nome do evento (`view`, `app_open`, `first_diagram`, `export_ai`, `waitlist`) e o site de origem. O servidor guarda totais diários em `DATA_DIR/stats.json`: sem cookies, sem identificadores, sem IP e sem conteúdo dos diagramas, e nada é contado se o browser pedir Do Not Track ou Global Privacy Control. Para ler os totais, define `STATS_KEY` (16 ou mais caracteres) e pede `GET /api/stats?days=30` com o cabeçalho `Authorization: Bearer <chave>`; sem chave, os totais não se leem por HTTP. Precisa do mesmo volume persistente que as ligações curtas.
+
 ## Resumir e Guia (walkthrough)
 
 Dois botões ao lado de **Exportar**:
@@ -173,7 +175,7 @@ C3 @general: rever os nomes das lanes
 
 ## Dados
 
-Os diagramas ficam guardados apenas no browser onde foram criados (`localStorage`, chave `diagramico.v1`). Para mudar de máquina ou proteger o trabalho, usa **Diagramas → Guardar cópia de segurança** e depois **Importar…**.
+Os diagramas ficam guardados apenas no browser onde foram criados (`localStorage`, chave `diagramico.v1`). Para mudar de máquina ou proteger o trabalho, usa **Diagramas → Guardar cópia de segurança** e depois **Importar…**. O site só conta totais anónimos de utilização (ver *Servidor*); nunca o conteúdo dos diagramas.
 
 ## Próximos passos
 
