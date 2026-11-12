@@ -1,0 +1,85 @@
+<!doctype html>
+<!-- Source of assets/og.png, the 1200x630 picture shown when a link to the site is shared (og:image in index.html).
+     To make it again after editing this file, from the repository root:
+       "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" --headless --hide-scrollbars --force-device-scale-factor=1 --window-size=1200,630 --screenshot=assets\og.png tools\og-image.html
+     (Chrome takes the same flags.) Few words on purpose: the same picture serves the Portuguese and the English page. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Diagramico social card</title>
+<link rel="stylesheet" href="../assets/fonts/inter.css">
+<style>
+html,body{margin:0;width:1200px;height:630px;overflow:hidden}
+body{background:#f6f7fb;color:#14172b;font-family:Inter,system-ui,sans-serif;position:relative}
+.top{position:absolute;left:64px;top:52px;display:flex;align-items:center;gap:18px}
+.top svg{width:64px;height:64px}
+.top b{font-size:46px;font-weight:700;letter-spacing:-.02em}
+.tag{position:absolute;left:64px;top:140px;font-size:30px;font-weight:500;color:#4a4f6a;letter-spacing:-.01em}
+.tag i{font-style:normal;color:#3347d4;padding:0 6px}
+.row{position:absolute;left:64px;right:64px;top:226px;height:340px;display:grid;grid-template-columns:1fr 54px 1fr 54px 1fr;align-items:stretch}
+.card{background:#fff;border:1.5px solid #d9dcea;border-radius:18px;box-shadow:0 14px 34px rgba(20,23,43,.08);position:relative;overflow:hidden}
+.card h4{margin:0;padding:14px 20px;font-size:17px;font-weight:600;color:#4a4f6a;border-bottom:1.5px solid #e6e8f2;background:#fafbfe;letter-spacing:.04em;text-transform:uppercase}
+.arrow{display:flex;align-items:center;justify-content:center}
+.arrow svg{width:38px;height:38px}
+pre{margin:0;padding:18px 20px;font:500 17px/1.62 "JetBrains Mono",ui-monospace,Consolas,monospace;color:#14172b}
+pre span{color:#3347d4}
+.doc{padding:22px 22px 0}
+.doc .h{height:16px;width:62%;border-radius:8px;background:#3347d4;margin-bottom:20px}
+.doc .l{height:11px;border-radius:6px;background:#d5d8e6;margin-bottom:13px}
+.doc .chk{display:flex;align-items:center;gap:12px;margin-bottom:13px}
+.doc .chk s{width:16px;height:16px;border-radius:5px;background:#2c8048;flex:none}
+.doc .chk .l{margin:0;flex:1}
+</style>
+</head>
+<body>
+<div class="top">
+  <svg viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#3347d4"/><path d="M7 10h9l-2.5 6H7z M18 17l5 5-5 5-5-5z" fill="#fff"/></svg>
+  <b>Diagramico</b>
+</div>
+<div class="tag">Flow <i>→</i> text <i>→</i> AI docs</div>
+<div class="row">
+  <div class="card">
+    <h4>Flow</h4>
+    <svg viewBox="0 0 320 284" width="100%" height="284" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="14" y="14" width="292" height="256" rx="10" stroke="#d9dcea" stroke-width="1.5"/>
+      <path d="M14 142h292" stroke="#d9dcea" stroke-width="1.5"/>
+      <circle cx="58" cy="78" r="17" stroke="#2c8048" stroke-width="3"/>
+      <rect x="112" y="54" width="92" height="48" rx="9" fill="#eef0fd" stroke="#3347d4" stroke-width="2.5"/>
+      <path d="M254 48l30 30-30 30-30-30z" fill="#fff6e0" stroke="#c98a12" stroke-width="2.5"/>
+      <rect x="112" y="182" width="92" height="48" rx="9" fill="#eef0fd" stroke="#3347d4" stroke-width="2.5"/>
+      <circle cx="58" cy="206" r="17" stroke="#b3372f" stroke-width="5"/>
+      <g stroke="#4a4f6a" stroke-width="2.5">
+        <path d="M76 78h30"/><path d="M99 72l8 6-8 6"/>
+        <path d="M205 78h14"/><path d="M212 72l8 6-8 6"/>
+        <path d="M254 109v97h-44"/><path d="M218 200l-8 6 8 6"/>
+        <path d="M111 206H82"/><path d="M90 200l-8 6 8 6"/>
+      </g>
+    </svg>
+  </div>
+  <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#3347d4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+  <div class="card">
+    <h4>Text</h4>
+<pre><span>DIAGRAM:</span> Refund
+<span>LANES:</span> US, SU
+US1 (start)
+SU1 ? Under 30 days
+SU2 Approve
+US2 (end)
+US1 <span>&gt;</span> SU1
+SU1 <span>&gt;</span> SU2 [yes]</pre>
+  </div>
+  <div class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="#3347d4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+  <div class="card">
+    <h4>AI docs</h4>
+    <div class="doc">
+      <div class="h"></div>
+      <div class="l" style="width:96%"></div><div class="l" style="width:88%"></div><div class="l" style="width:70%;margin-bottom:24px"></div>
+      <div class="chk"><s></s><div class="l"></div></div>
+      <div class="chk"><s></s><div class="l" style="max-width:82%"></div></div>
+      <div class="chk"><s></s><div class="l" style="max-width:90%"></div></div>
+      <div class="l" style="width:92%;margin-top:24px"></div><div class="l" style="width:64%"></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

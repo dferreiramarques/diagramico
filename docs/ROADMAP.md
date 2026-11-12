@@ -11,7 +11,8 @@ Estado em 2026-11-04 (avaliação dos próximos passos no fim). A versão públi
 | Importar: draw.io, Visio, texto IA, Mermaid | ✔ | ✔ | ✔ |
 | Gravação | Só no browser (`localStorage`) | **Na conta Google** do utilizador | **Na infraestrutura do cliente** |
 | Colaboração em tempo real (lobby + mesa, cursor colorido com nome) | — | ✔ | Só na rede interna |
-| Comentários | — | ✔ | ✔ |
+| Comentários de revisão (pontos presos a formas, setas ou ao quadro) | ✔ | ✔ | ✔ |
+| Comentários em conversa (respostas, resolver, menções), partilhados | — | ✔ | ✔ |
 | Acesso: *team member* (ler e escrever) e *reviewer* (só ler) | — | ✔ | ✔ |
 
 Princípio: tudo o que está no Free continua a funcionar sem conta e sem servidor. O pago acrescenta; nunca tira.
@@ -34,7 +35,7 @@ Princípio: tudo o que está no Free continua a funcionar sem conta e sem servid
 
 ### Fase 0: fechar o Free e medir a procura (agora)
 - Lista de espera: **o aviso de RGPD e a caixa de consentimento já estão no formulário**; **ligada ao Formspree** (`maeqaqrn`), com `connect-src` já aberto para `formspree.io`.
-- Medir visitas sem cookies (Plausible ou GoatCounter).
+- Medir visitas sem cookies: **feito (2026-11-12) com contagem própria no servidor** (`/api/event`, totais diários anónimos; ver `docs/ARQUITETURA.md`), em vez de Plausible ou GoatCounter, para a página continuar sem terceiros. Falta definir `STATS_KEY` no Railway para ler os totais em `/api/stats`.
 - Rever o texto "equipas" da landing para listar as funcionalidades pagas acima, sem prometer datas.
 - Criar o repositório privado do servidor desde o início (o editor atual fica MIT, já publicado).
 - **Critério para avançar:** um número de inscrições definido de antemão (sugestão: 50 emails ou 5% das visitas únicas) e respostas ao "O que desenhas?".
@@ -145,7 +146,7 @@ Fases 1 a 4: **cerca de 10 a 15 semanas** de trabalho contínuo, com a Fase 2 a 
 ### Plano de 30 dias
 | Semana | Foco | Saída |
 |---|---|---|
-| 1 | Analítica, `og:image`, sitemap, página de preços honesta ("Equipas em preparação") | Visitas e eventos medidos |
+| 1 | Analítica, `og:image`, sitemap, página de preços honesta ("Equipas em preparação") | Visitas e eventos medidos. **Feito no código em 2026-11-12**; falta publicar e definir `STATS_KEY` |
 | 2 | 3 tutoriais + lançamento em 2 comunidades | Primeiros utilizadores e inscrições |
 | 3 | 5 conversas com utilizadores; corrigir o que bloquear o primeiro diagrama | Lista de dores e do que pagariam |
 | 4 | Decisão: ≥ marco da Fase 0? Sim: arrancar Pro (Fase 1). Não: iterar na mensagem e canais | Decisão registada neste ficheiro |

@@ -106,3 +106,65 @@ test('short links: write and read rate limits, and storage caps', async () => {
     assert.deepEqual(codes, [404, 404, 404, 404, 404, 429, 429]);
   } finally { await s.stop(); fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+const ev = (base, body, headers = {}) => fetch(base + '/api/event', { method: 'POST', headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 Test', ...headers }, body: typeof body === 'string' ? body : JSON.stringify(body) });
+const KEY_OK = 'a-long-test-key-0123456789';
+
+test('robots.txt and sitemap.xml are served', async () => {
+  const s = await start({ STATS: 'off' });
+  try {
+    let r = await fetch(s.base + '/robots.txt'); assert.equal(r.status, 200); assert.match(await r.text(), /Sitemap: https:\/\//);
+    r = await fetch(s.base + '/sitemap.xml'); assert.equal(r.status, 200); assert.match(r.headers.get('content-type'), /xml/); assert.match(await r.text(), /<urlset/);
+    assert.equal((await (await fetch(s.base + '/api/health')).json()).stats, false);
+    assert.equal((await ev(s.base, { e: 'view' })).status, 404); // STATS=off
+  } finally { await s.stop(); }
+});
+
+test('usage counts: events, daily visitors, referrers, and what is refused', async () => {
+  const dir = tmp(), s = await start({ DATA_DIR: dir, STATS_KEY: KEY_OK });
+  try {
+    assert.equal((await (await fetch(s.base + '/api/health')).json()).stats, true);
+    assert.equal((await ev(s.base, { e: 'view', r: 'www.Example.com' })).status, 204);
+    assert.equal((await ev(s.base, { e: 'view', r: 'example.com' })).status, 204);                          // same visitor again
+    assert.equal((await ev(s.base, { e: 'view', r: 'news.site.org' }, { 'User-Agent': 'Mozilla/5.0 Other' })).status, 204); // another visitor
+    assert.equal((await ev(s.base, { e: 'view', r: '127.0.0.1' })).status, 204);                             // our own host is not a referrer
+    assert.equal((await ev(s.base, { e: 'view', r: '<script>alert(1)</script>' })).status, 204);             // counted, referrer dropped
+    assert.equal((await ev(s.base, { e: 'export_ai', r: 'example.com' })).status, 204);                      // referrers only kept for view and app_open
+    assert.equal((await ev(s.base, { e: 'view' }, { 'User-Agent': 'Googlebot/2.1' })).status, 204);          // bots are answered but not counted
+    // refused: unknown events, junk, oversized bodies, wrong content type, wrong method
+    assert.equal((await ev(s.base, { e: 'purchase' })).status, 400);
+    assert.equal((await ev(s.base, { e: '__proto__' })).status, 400);
+    assert.equal((await ev(s.base, '{not json')).status, 400);
+    assert.equal((await ev(s.base, { e: 'view', r: 'x'.repeat(5000) })).status, 413);
+    assert.equal((await ev(s.base, { e: 'view' }, { 'Content-Type': 'text/plain' })).status, 415);
+    assert.equal((await fetch(s.base + '/api/event')).status, 405);
+    // reading needs the key
+    assert.equal((await fetch(s.base + '/api/stats')).status, 401);
+    assert.equal((await fetch(s.base + '/api/stats', { headers: { Authorization: 'Bearer wrong-key-wrong-key-wrong' } })).status, 401);
+    const r = await fetch(s.base + '/api/stats?days=7', { headers: { Authorization: 'Bearer ' + KEY_OK } }); assert.equal(r.status, 200);
+    const o = await r.json(), day = new Date().toISOString().slice(0, 10);
+    assert.deepEqual(o.days[day], { n: { view: 5, export_ai: 1 }, u: { view: 2, export_ai: 1 }, r: { 'example.com': 2, 'news.site.org': 1 } });
+    assert.deepEqual(o.total.n, { view: 5, export_ai: 1 }); assert.deepEqual(o.total.uDaily, { view: 2, export_ai: 1 });
+    // what reaches the disk: totals only, nothing that identifies a visitor
+    await new Promise(r => setTimeout(r, 1600));
+    const disk = fs.readFileSync(path.join(dir, 'stats.json'), 'utf8');
+    assert.deepEqual(JSON.parse(disk).days[day].n, { view: 5, export_ai: 1 });
+    assert.doesNotMatch(disk, /127\.0\.0\.1|Mozilla|script/);
+  } finally { await s.stop(); }
+  // totals survive a restart; without a key they cannot be read over HTTP
+  const s2 = await start({ DATA_DIR: dir, STATS_KEY: 'short' });
+  try { assert.equal((await fetch(s2.base + '/api/stats', { headers: { Authorization: 'Bearer short' } })).status, 404); } finally { await s2.stop(); }
+  const s3 = await start({ DATA_DIR: dir, STATS_KEY: KEY_OK });
+  try {
+    const o = await (await fetch(s3.base + '/api/stats', { headers: { Authorization: 'Bearer ' + KEY_OK } })).json();
+    assert.equal(o.total.n.view, 5);
+  } finally { await s3.stop(); fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('usage counts: rate limit per IP', async () => {
+  const dir = tmp(), s = await start({ DATA_DIR: dir, STATS_RATE: '3' });
+  try {
+    const codes = []; for (let i = 0; i < 5; i++) codes.push((await ev(s.base, { e: 'app_open' })).status);
+    assert.deepEqual(codes, [204, 204, 204, 429, 429]);
+  } finally { await s.stop(); fs.rmSync(dir, { recursive: true, force: true }); }
+});

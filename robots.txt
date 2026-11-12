@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /s/
+
+Sitemap: https://diagramico.monco.io/sitemap.xml
