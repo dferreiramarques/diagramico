@@ -87,7 +87,7 @@ function validPayload(d){
    A visitor is told apart only for the current day, by a hash of a random salt + IP + browser name. The salt is made each day and lives in memory only,
    so the hashes cannot be traced back or linked from one day to the next; neither the hash nor the IP is ever written to disk.
    A restart during the day forgets who was already seen, so that day's "u" can come out a little high. */
-const EVENTS = new Set(['view', 'app_open', 'first_diagram', 'export_ai', 'waitlist']);
+const EVENTS = new Set(['view', 'guide', 'app_open', 'first_diagram', 'export_ai', 'waitlist']);
 const REF_RE = /^[a-z0-9-]{1,63}(\.[a-z0-9-]{1,63})+$/, DAY_RE = /^\d{4}-\d\d-\d\d$/, BOT_RE = /bot|crawl|spider|slurp|headless|preview|monitor|curl|wget|python|scrapy|lighthouse/i;
 const stats = { days: {}, seen: new Set(), seenDay: '', salt: '', dirty: false, timer: null };
 const statsFile = () => path.join(CFG.dataDir, 'stats.json');
@@ -116,7 +116,7 @@ function countEvent(name, ref, ip, ua){
   d.n[name] = (d.n[name] || 0) + 1;
   const who = name + ':' + hash(stats.salt + ip + '\n' + ua).slice(0, 16);
   if (!stats.seen.has(who) && stats.seen.size < 500000){ stats.seen.add(who); d.u[name] = (d.u[name] || 0) + 1; }
-  if (ref && (name === 'view' || name === 'app_open')){ const k = Object.hasOwn(d.r, ref) || Object.keys(d.r).length < 200 ? ref : 'other'; d.r[k] = (d.r[k] || 0) + 1; }
+  if (ref && (name === 'view' || name === 'guide' || name === 'app_open')){ const k = Object.hasOwn(d.r, ref) || Object.keys(d.r).length < 200 ? ref : 'other'; d.r[k] = (d.r[k] || 0) + 1; }
   scheduleStats();
 }
 function statsReport(nDays){
@@ -168,7 +168,7 @@ function readBody(req, max){
 }
 
 /* ---------- static files (only the site itself: landing, editor, assets) ---------- */
-const PUBLIC_FILES = new Set(['/index.html', '/product-page.css', '/robots.txt', '/sitemap.xml']), PUBLIC_DIRS = ['/app/', '/assets/'];
+const PUBLIC_FILES = new Set(['/index.html', '/product-page.css', '/robots.txt', '/sitemap.xml']), PUBLIC_DIRS = ['/app/', '/assets/', '/guides/'];
 function resolvePublic(urlPath){
   let p; try { p = decodeURIComponent(urlPath); } catch (e) { return null; }
   if (p === '/') p = '/index.html'; else if (p.endsWith('/')) p += 'index.html';

@@ -114,6 +114,8 @@ test('robots.txt and sitemap.xml are served', async () => {
   const s = await start({ STATS: 'off' });
   try {
     let r = await fetch(s.base + '/robots.txt'); assert.equal(r.status, 200); assert.match(await r.text(), /Sitemap: https:\/\//);
+    for (const p of ['/guides/pt/', '/guides/en/', '/guides/guides.css', '/guides/en/expense-approval-flowchart/', '/guides/pt/fluxograma-ticket-suporte/']) assert.equal((await fetch(s.base + p)).status, 200, p);
+    assert.equal((await fetch(s.base + '/guides/../README.md')).status, 404);
     r = await fetch(s.base + '/sitemap.xml'); assert.equal(r.status, 200); assert.match(r.headers.get('content-type'), /xml/); assert.match(await r.text(), /<urlset/);
     assert.equal((await (await fetch(s.base + '/api/health')).json()).stats, false);
     assert.equal((await ev(s.base, { e: 'view' })).status, 404); // STATS=off
@@ -133,6 +135,7 @@ test('usage counts: events, daily visitors, referrers, and what is refused', asy
     assert.equal((await ev(s.base, { e: 'view' }, { 'User-Agent': 'Googlebot/2.1' })).status, 204);          // bots are answered but not counted
     // refused: unknown events, junk, oversized bodies, wrong content type, wrong method
     assert.equal((await ev(s.base, { e: 'purchase' })).status, 400);
+    assert.equal((await ev(s.base, { e: 'guide' }, { 'User-Agent': 'Googlebot/2.1' })).status, 204); // a known event, accepted (and, being a bot, not counted)
     assert.equal((await ev(s.base, { e: '__proto__' })).status, 400);
     assert.equal((await ev(s.base, '{not json')).status, 400);
     assert.equal((await ev(s.base, { e: 'view', r: 'x'.repeat(5000) })).status, 413);
