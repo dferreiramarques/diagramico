@@ -151,6 +151,16 @@ Fases 1 a 4: **cerca de 10 a 15 semanas** de trabalho contínuo, com a Fase 2 a 
 | 3 | 5 conversas com utilizadores; corrigir o que bloquear o primeiro diagrama | Lista de dores e do que pagariam |
 | 4 | Decisão: ≥ marco da Fase 0? Sim: arrancar Pro (Fase 1). Não: iterar na mensagem e canais | Decisão registada neste ficheiro |
 
+### Por fazer a seguir (2026-11-12)
+O código das semanas 1 e 2 está feito e publicado em `main`. O que falta já não é código:
+
+- [ ] **Definir `STATS_KEY` no Railway**, para ler os totais em `/api/stats`. Sem isto, o tráfego do lançamento é contado mas não se consegue ver.
+- [ ] **Publicar os posts de lançamento** de `docs/LANCAMENTO.md`, em 2 comunidades para começar.
+- [ ] **Semana 3:** 5 conversas com utilizadores; corrigir o que bloquear o primeiro diagrama.
+- [ ] **Semana 4:** verificar o marco da Fase 0 (50 emails ou 5% das visitas únicas) e registar a decisão neste ficheiro. Sim: arrancar o Pro (Fase 1). Não: iterar na mensagem e nos canais.
+- [ ] **Criar o repositório privado do servidor das Equipas** (pendente da Fase 0; só é preciso quando a Fase 1 arrancar).
+- [ ] **Responder às três decisões abaixo** (objetivo de receita, tempo semanal, mercado), que condicionam a decisão da semana 4.
+
 ### Decisões que preciso de ti
 1. **Objetivo de receita:** rendimento complementar rápido (então, serviços e Pro) ou construir um produto de equipas a prazo?
 2. **Tempo semanal** disponível, porque define se o Pro (2-3 semanas) ou as Equipas (10-15) são realistas.
