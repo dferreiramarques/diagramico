@@ -17,6 +17,7 @@
 })();
 </script>
 <link rel="stylesheet" href="../assets/nimble/tokens.css">
+<link rel="stylesheet" href="../assets/nimble/overlays.css">
 <link rel="stylesheet" href="../assets/fonts/inter.css">
 <link rel="stylesheet" href="../assets/fonts/fonts.css">
 <style>
@@ -169,13 +170,17 @@ button{font:inherit;color:inherit}
 .help dt{font:11px var(--mono);color:var(--muted);white-space:nowrap}
 .help dd{margin:0}
 .help code{font:12px var(--mono);background:var(--panel-2);padding:1px 4px;border-radius:4px}
-.toast{position:fixed;left:50%;bottom:calc(64px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:40;background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:calc(100vw - 32px)}
-.toast.show{opacity:1}
 
 /* Drawer: one full-width button per line */
 .drawer footer .btn{flex:1 1 100%;text-align:left}
 /* Embedded demo (landing page) */
-.embed .topbar,.embed .tools,.embed .zoom,.embed .helpbtn,.embed .ctxbar,.embed .toast{display:none!important}
+/* Toasts: NimbleUI.toast + the kit's overlays.css (assets/nimble). The editor keeps its inverted look and its position; the rest (dialog, menu) is available when the editor's own modals are migrated. */
+.toasts{bottom:calc(64px + env(safe-area-inset-bottom,0px));gap:6px}
+.toast{background:var(--ink);color:var(--bg);padding:8px 14px;border:0;box-shadow:none;border-radius:8px;font-size:13px;max-width:calc(100vw - 32px);animation:toastIn .2s}
+.toast__icon{display:none}
+@keyframes toastIn{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none}}
+.embed .topbar,.embed .tools,.embed .zoom,.embed .helpbtn,.embed .ctxbar,.embed .toasts{display:none!important}
 .embed #cv{cursor:grab}
 /* Guided tour */
 .tour-block{position:fixed;inset:0;z-index:50}
@@ -196,7 +201,7 @@ button{font:inherit;color:inherit}
   .exportbox .lbl{display:none}
   .topbar{flex-wrap:wrap}
 }
-@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+
 </style>
 </head>
 <body>
@@ -258,16 +263,16 @@ button{font:inherit;color:inherit}
   </footer>
 </aside>
 
-<div class="modal" id="modal" hidden>
-  <div class="card" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+<div class="modal" id="modal" data-dialog-overlay data-static hidden>
+  <div class="card" data-dialog-panel aria-labelledby="mTitle">
     <header><h2 id="mTitle"></h2><button class="ibtn" id="mClose" data-i18n-aria="close"></button></header>
     <div class="tabs" id="mTabs"></div>
     <div class="body" id="mBody"></div>
     <footer id="mFoot"></footer>
   </div>
 </div>
-<div class="toast" id="toast" role="status"></div>
 
+<script src="../assets/nimble/behaviors.js"></script>
 <script>
 (() => {
 'use strict';
@@ -2543,9 +2548,9 @@ async function copyText(t){ try { await navigator.clipboard.writeText(t); toast(
 /* ---------- modal ---------- */
 let modalTab = 'ai';
 function openExport(tab){
-  endEdit(); modalTab = tab; modalRender = renderModal; $('#modal').hidden = false; renderModal();
+  endEdit(); modalTab = tab; modalRender = renderModal; NimbleUI.dialog.open($('#modal')); renderModal();
 }
-function closeModal(){ $('#modal').hidden = true; previewSeq++; if (lastImgUrl){ URL.revokeObjectURL(lastImgUrl); lastImgUrl = null; } cv.focus({preventScroll:true}); }
+function closeModal(){ NimbleUI.dialog.close($('#modal')); previewSeq++; if (lastImgUrl){ URL.revokeObjectURL(lastImgUrl); lastImgUrl = null; } cv.focus({preventScroll:true}); }
 let linkMode = 'full', lastImgUrl = null, imgOpts = {sel:false, scale:2, transparent:false}, previewSeq = 0;
 // Only the newest preview request may show an image; the previous object URL is revoked once the new image has loaded
 // (revoking it earlier, or from an older request that finishes late, left the visible <img> broken).
@@ -2816,7 +2821,7 @@ function mdRender(md){
 }
 const INS_MODE_KEY = 'diagramico.insightMode';
 let insTab = 'summary', insMode = (() => { try { return localStorage.getItem(INS_MODE_KEY) === 'prompt' ? 'prompt' : 'local'; } catch(e){ return 'local'; } })();
-function openInsight(kind){ endEdit(); insTab = kind; modalRender = renderInsight; $('#modal').hidden = false; renderInsight(); }
+function openInsight(kind){ endEdit(); insTab = kind; modalRender = renderInsight; NimbleUI.dialog.open($('#modal')); renderInsight(); }
 const insightPrompt = kind => T(kind === 'summary' ? 'ins_prSum' : 'ins_prWalk') + '\n\n```\n' + exportAI(doc) + '\n```\n';
 function renderInsight(){
   const title = T(insTab === 'summary' ? 'ins_tabSum' : 'ins_tabWalk');
@@ -3213,7 +3218,7 @@ function dialog(title, bodyNodes, buttons){
   const body = $('#mBody'), foot = $('#mFoot'); body.innerHTML = ''; foot.innerHTML = '';
   for (const n of bodyNodes) body.appendChild(n);
   for (const b of buttons){ const el = document.createElement('button'); el.className = 'btn' + (b.primary ? ' primary' : ''); el.textContent = b.label; el.onclick = b.onClick; foot.appendChild(el); }
-  $('#modal').hidden = false;
+  NimbleUI.dialog.open($('#modal'));
   const pb = foot.querySelector('.primary'); if (pb) pb.focus();
 }
 function el(tag, cls, html){ const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; return e; }
@@ -3568,8 +3573,7 @@ function applyLang(){
 $('#btnLang').onclick = () => { lang = lang === 'pt' ? 'en' : 'pt'; try { localStorage.setItem(LANG_KEY, lang); } catch(e){} applyLang(); toast(T('langToast')); };
 
 /* ---------- misc UI ---------- */
-let toastT = null;
-function toast(t){ const el = $('#toast'); el.textContent = t; el.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('show'), 2600); }
+function toast(t){ NimbleUI.toast(t, {duration: 2600}); }   // nimble toast (bottom centre; not shown in the embed)
 function closePopovers(){ $('#help').hidden = true; hideTip(); }
 $('#btnHelp').onclick = e => { e.stopPropagation(); $('#help').hidden = !$('#help').hidden; };
 $('#btnExport').onclick = () => openExport(modalTab);
