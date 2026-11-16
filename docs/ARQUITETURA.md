@@ -148,7 +148,7 @@ Limitações: só horizontal; não desenha arestas à volta de formas; a lane de
 
 ## Servidor e ligações curtas (`server/server.js`)
 
-Node sem dependências. Serve só uma lista fechada (`/index.html`, `/product-page.css`, `/robots.txt`, `/sitemap.xml`, `/app/`, `/assets/`, `/guides/`) com cabeçalhos de segurança e CSP, e a API das ligações curtas, desligada por defeito (`SHORTLINKS=on`):
+Node sem dependências. Serve só uma lista fechada (`/index.html`, `/robots.txt`, `/sitemap.xml`, `/app/`, `/assets/`, `/guides/`) com cabeçalhos de segurança e CSP, e a API das ligações curtas, desligada por defeito (`SHORTLINKS=on`):
 
 - `GET /api/health` → `{ok, commit, shortLinks, ttlDays, idLen, stats}` (o editor usa `shortLinks` para mostrar ou não a opção *Curta*; `commit` são os 7 primeiros caracteres do `RAILWAY_GIT_COMMIT_SHA`, ou `null`, e serve para confirmar que versão está em produção).
 - `POST /api/short` `{d}` → `201 {id}` (ou `200` se o mesmo diagrama já existir: deduplicação por sha256). `d` é o mesmo payload do `#d=`; só é aceite se descomprimir (limite 8 MB) para JSON com `nodes[]`.
@@ -175,7 +175,7 @@ Páginas estáticas por caso de uso, em PT e EN (`/guides/pt/<slug>/`, `/guides/
 
 - Cada guia é um fluxo no formato "Texto para IA". A página mostra-o ao vivo (o editor em `?embed=1&t=…`), explica-o, dá três pedidos prontos para uma IA (o botão copia o pedido mais o texto) e abre-o no editor com um clique.
 - **`/app/?t=<texto>` fora do modo embebido** importa o texto como diagrama novo (não toca nos existentes), tira o parâmetro do endereço para um recarregamento não importar outra vez, e não abre a visita guiada por cima.
-- Estilos em `guides/guides.css`, sobre o `product-page.css`. Os caminhos são absolutos (`/assets/…`), por isso os guias só funcionam com o site na raiz do domínio.
+- Estilos em `guides/guides.css`, sobre o kit nimbleUI (`assets/nimble/`). Os caminhos são absolutos (`/assets/…`), por isso os guias só funcionam com o site na raiz do domínio.
 - Cada página envia o evento `guide` (ver *Contagem anónima de utilização*).
 - Para um guia novo: acrescentar uma entrada a `GUIDES` com `pt` e `en` equivalentes, gerar, e confirmar no browser que o fluxo importa sem linhas ignoradas.
 

@@ -2,7 +2,7 @@
 
 Quadro infinito para desenhar diagramas lógicos e user flows, com saída em imagem ou num texto compacto pensado para ser lido por IA (documentação e explicação de lógica com poucos tokens).
 
-Aplicação de ficheiro único (`app/index.html`): HTML, CSS e JavaScript sem dependências nem build. Usa IBM Plex Sans e IBM Plex Mono, servidas localmente a partir de `assets/fonts/` (licença OFL em `assets/fonts/OFL.txt`); sem pedidos a terceiros. Sem essa pasta (por exemplo, se descarregares só o `app/index.html`), a app usa as fontes do sistema e funciona na mesma.
+Aplicação de ficheiro único (`app/index.html`): HTML, CSS e JavaScript sem dependências nem build. A interface usa Inter e JetBrains Mono (kit nimbleUI, em `assets/nimble/` e `assets/fonts/`); o texto dos diagramas (quadro e exportações) mantém IBM Plex Sans e Mono, para os diagramas guardados não mudarem de forma. Fontes servidas localmente a partir de `assets/fonts/` (licença OFL em `assets/fonts/OFL.txt`); sem pedidos a terceiros. Sem essa pasta (por exemplo, se descarregares só o `app/index.html`), a app usa as fontes do sistema e funciona na mesma.
 
 ## Publicar no GitHub Pages
 

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-PT">
+<html lang="pt-PT" data-accent="indigo" data-density="compact">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
@@ -7,32 +7,30 @@
 <meta name="description" content="Diagramico: quadro infinito para diagramas lógicos e user flows, com exportação em texto para IA.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233347d4'/%3E%3Cpath d='M7 10h9l-2.5 6H7z M18 17l5 5-5 5-5-5z' fill='white'/%3E%3C/svg%3E">
 <title>Diagramico</title>
+<script>
+/* theme before first paint: nimble tokens are driven by data-theme, so "auto" is resolved here (and kept in sync below). data-host-theme = a theme forced by the host page. */
+(function () {
+  var r = document.documentElement, host = r.getAttribute('data-theme'), pref = 'auto';
+  try { pref = localStorage.getItem('diagramico.theme') || 'auto'; } catch (e) {}
+  if (host) r.setAttribute('data-host-theme', host);
+  r.setAttribute('data-theme', pref === 'auto' ? (host || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) : pref);
+})();
+</script>
+<link rel="stylesheet" href="../assets/nimble/tokens.css">
+<link rel="stylesheet" href="../assets/fonts/inter.css">
 <link rel="stylesheet" href="../assets/fonts/fonts.css">
 <style>
 /* Layout: full-bleed infinite canvas; floating chrome (top bar, left tool rail, contextual bar, zoom) */
+/* Tokens: colours, shadow and UI font come from nimbleUI (assets/nimble/tokens.css, driven by data-theme). Only the names this app already uses are aliased here;
+   the diagram content (canvas text, exports) keeps IBM Plex via the SANS/MONO constants in the script, so existing diagrams do not reflow. */
 :root{
-  --theme: light;
-  --bg:#f3f4f7; --panel:#ffffff; --panel-2:#f0f2f6; --line:#dde1e9; --ink:#1b1f2a; --muted:#646b7b;
-  --accent:#3347d4; --accent-ink:#ffffff; --accent-soft:#e3e7ff; --danger:#c43c2c;
+  --panel:var(--surface); --panel-2:var(--surface-2); --line:var(--border); --ink:var(--text);
+  --accent:var(--primary); --accent-ink:var(--primary-ink); --accent-soft:var(--primary-soft);
+  --shadow:var(--sh-md);
+  --sans:var(--font);
   --cm-on:#f1ee1c; --cm-free:#dc9a12; --cm-edge:#ffffff; --cm-shadow:rgba(20,26,45,.4);
-  --shadow:0 1px 2px rgba(20,26,45,.06),0 6px 20px rgba(20,26,45,.08);
-  --sans:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --theme: dark;
-  --bg:#14161b; --panel:#1d2027; --panel-2:#252932; --line:#323743; --ink:#e7e9ef; --muted:#9aa1b0;
-  --accent:#8b98ff; --accent-ink:#11131a; --accent-soft:#2a3060; --danger:#ff8a78;
-  --cm-on:#f6f24a; --cm-free:#eba826; --cm-edge:#14161b; --cm-shadow:rgba(0,0,0,.6);
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;
-}}
-:root[data-theme="dark"]{
-  --theme: dark;
-  --bg:#14161b; --panel:#1d2027; --panel-2:#252932; --line:#323743; --ink:#e7e9ef; --muted:#9aa1b0;
-  --accent:#8b98ff; --accent-ink:#11131a; --accent-soft:#2a3060; --danger:#ff8a78;
-  --cm-on:#f6f24a; --cm-free:#eba826; --cm-edge:#14161b; --cm-shadow:rgba(0,0,0,.6);
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35); color-scheme:dark;
-}
+[data-theme="dark"]{ --cm-on:#f6f24a; --cm-free:#eba826; --cm-edge:#14161b; --cm-shadow:rgba(0,0,0,.6); }
 [hidden]{display:none!important}
 html,body{height:100%}
 body{margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13px;-webkit-font-smoothing:antialiased}
@@ -3542,17 +3540,17 @@ window.addEventListener('drop', e => {
 });
 
 /* ---------- theme ---------- */
-const THEME_KEY = 'diagramico.theme', hostTheme = document.documentElement.getAttribute('data-theme');
+const THEME_KEY = 'diagramico.theme', hostTheme = document.documentElement.getAttribute('data-host-theme');
 const THEME_NEXT = {auto:'light', light:'dark', dark:'auto'};
 let themePref = 'auto'; try { themePref = localStorage.getItem(THEME_KEY) || 'auto'; } catch(e){}
 function applyTheme(){
   const r = document.documentElement;
-  if (themePref === 'auto'){ if (hostTheme) r.setAttribute('data-theme', hostTheme); else r.removeAttribute('data-theme'); }
-  else r.setAttribute('data-theme', themePref);
+  r.setAttribute('data-theme', themePref === 'auto' ? (hostTheme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) : themePref);
   const b = $('#btnTheme'); b.innerHTML = ICON['th_' + themePref];
   const t = T('themeTitle', T('th_'+themePref), T('th_'+THEME_NEXT[themePref]).toLowerCase()); b.title = t; b.setAttribute('aria-label', t);
   ctxKey = ''; draw();
 }
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (themePref === 'auto') applyTheme(); });
 $('#btnTheme').onclick = () => { themePref = THEME_NEXT[themePref]; try { localStorage.setItem(THEME_KEY, themePref); } catch(e){} applyTheme(); toast(T('theme') + ': ' + T('th_'+themePref)); };
 
 /* ---------- language ---------- */

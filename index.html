@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-PT">
+<html lang="pt-PT" data-accent="indigo">
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://roadmaps.monco.io; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://formspree.io https://roadmaps.monco.io; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
@@ -34,21 +34,14 @@
 })();
 </script>
 <link rel="stylesheet" href="assets/fonts/inter.css">
-<link rel="stylesheet" href="product-page.css">
+<link rel="stylesheet" href="assets/nimble/tokens.css">
+<link rel="stylesheet" href="assets/nimble/components.css">
 <style>
-/* Diagramico accent. Colours only: every size, space and radius comes from product-page.css (shared with Roadmaps and Taskboards). */
-[data-theme="light"]{
-  --primary:#3347d4; --primary-h:#2a3bb0; --primary-ink:#ffffff;
-  --primary-soft:rgba(51,71,212,.12); --glow:rgba(51,71,212,.10);
-  --ok:#2c8048;
-}
-[data-theme="dark"]{
-  --primary:#8b98ff; --primary-h:#a9b3ff; --primary-ink:#11131a;
-  --primary-soft:rgba(139,152,255,.16); --glow:rgba(139,152,255,.12);
-  --ok:#5cc282;
-}
+/* Diagramico: the indigo accent comes from nimbleUI (data-accent="indigo" on <html>); only page-specific colours live here. */
+[data-theme="light"]{ --ok:#2c8048; }
+[data-theme="dark"]{ --ok:#5cc282; }
 :root{
-  /* fonts: Inter and JetBrains Mono from product-page.css, self-hosted in assets/fonts (the page loads nothing from third parties) */
+  /* fonts: Inter and JetBrains Mono from the nimbleUI kit, self-hosted in assets/fonts (the page loads nothing from third parties) */
   /* names used by the page-specific components below */
   --panel:var(--surface); --panel-2:var(--surface-2); --line:var(--border); --ink:var(--text);
   --accent:var(--primary); --accent-ink:var(--primary-ink); --accent-soft:var(--primary-soft); --code:var(--surface-2);
