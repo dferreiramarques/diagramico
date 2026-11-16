@@ -168,7 +168,7 @@ function readBody(req, max){
 }
 
 /* ---------- static files (only the site itself: landing, editor, assets) ---------- */
-const PUBLIC_FILES = new Set(['/index.html', '/product-page.css', '/robots.txt', '/sitemap.xml']), PUBLIC_DIRS = ['/app/', '/assets/', '/guides/'];
+const PUBLIC_FILES = new Set(['/index.html', '/robots.txt', '/sitemap.xml']), PUBLIC_DIRS = ['/app/', '/assets/', '/guides/'];
 function resolvePublic(urlPath){
   let p; try { p = decodeURIComponent(urlPath); } catch (e) { return null; }
   if (p === '/') p = '/index.html'; else if (p.endsWith('/')) p += 'index.html';

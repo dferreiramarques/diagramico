@@ -27,7 +27,8 @@ test('static site: only the landing, the editor and assets are served, with secu
     assert.equal(r.headers.get('x-content-type-options'), 'nosniff');
     assert.equal((await fetch(s.base + '/app/')).status, 200);
     assert.equal((await fetch(s.base + '/assets/fonts/inter.css')).status, 200);
-    assert.equal((await fetch(s.base + '/product-page.css')).status, 200);
+    for (const f of ['tokens.css', 'components.css']) assert.equal((await fetch(s.base + '/assets/nimble/' + f)).status, 200, f);
+    assert.equal((await fetch(s.base + '/product-page.css')).status, 404);
     r = await fetch(s.base + '/app', { redirect: 'manual' }); assert.equal(r.status, 301);
     assert.equal((await fetch(s.base + '/', { method: 'HEAD' })).status, 200);
     for (const p of ['/README.md', '/docs/ARQUITETURA.md', '/server/server.js', '/package.json', '/.git/config', '/private/AUTORIA.md', '/app/../README.md', '/%2e%2e/README.md', '/assets/%2e%2e/README.md', '/app/..%2fREADME.md', '/tools/record-flow-gif.js'])
