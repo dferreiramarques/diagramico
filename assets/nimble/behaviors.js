@@ -17,6 +17,10 @@
              (or your own classes: overlay[data-dialog-overlay][hidden] > [data-dialog-panel])
              focus trap, Esc / backdrop close ([data-static] disables), focus returns to opener; events nimble:dialogopen/-close
    Confirm   NimbleUI.confirm({title, message, confirmLabel, cancelLabel, danger}) -> Promise<boolean>
+   Install   [data-install] (button, hidden until the browser says the app can be installed; shows a download-arrow icon, no text (in a menu row put <span class="install-ico"></span> next to the label); click = install prompt;
+             hidden once installed or when already running as an installed app; needs a web app manifest; iOS has no install prompt, so it stays hidden there)
+   File drop [data-filedrop] (e.g. .dropzone): drop files on it or click/Enter to choose; optional data-filedrop-input="#fileInput" (an <input type=file>), data-filedrop-accept=".json,.csv";
+             event nimble:filedrop {files: File[]} (files not matching the accept list are ignored); the zone gets .is-over while dragging over it
    Menu      [data-menu-toggle="#id"] + .menu[hidden] > [role=menuitem]; arrows/Home/End/Esc; event nimble:menuselect {item, value}
    Tabs      [data-tabs] > [role=tablist] > [role=tab][aria-controls]; panels [role=tabpanel]; event nimble:tab {tab, panel}
    Toast     NimbleUI.toast(text, {tone:'warn', duration:3200})                                                              */
@@ -493,8 +497,58 @@
     return entry;
   };
 
+  /* ═════════════ install (PWA) ═════════════ */
+  var installEvt = null, INSTALL_ICON = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>';
+  function standalone() { return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true; }
+  function refreshInstall() {
+    var bs = document.querySelectorAll('[data-install]'), show = !!installEvt && !standalone();
+    for (var i = 0; i < bs.length; i++) {
+      var b = bs[i];
+      var ic = b.querySelector('.install-ico') || (b.firstElementChild ? null : b); if (ic && !ic.firstElementChild) ic.innerHTML = INSTALL_ICON;
+      if (!b.hasAttribute('aria-label')) b.setAttribute('aria-label', 'Install app');
+      if (!b.hasAttribute('title')) b.setAttribute('title', 'Install app');
+      b.hidden = !show;
+    }
+  }
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); installEvt = e; refreshInstall(); });
+  window.addEventListener('appinstalled', function () { installEvt = null; refreshInstall(); document.dispatchEvent(new CustomEvent('nimble:install', { detail: { outcome: 'installed' } })); });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-install]');
+    if (!b || !installEvt) return;
+    var ev = installEvt; installEvt = null; refreshInstall();
+    ev.prompt();
+    if (ev.userChoice) ev.userChoice.then(function (c) { document.dispatchEvent(new CustomEvent('nimble:install', { detail: { outcome: c && c.outcome } })); });
+  });
+
+  /* ═════════════ file drop ═════════════ */
+  function dropOk(zone, f) {
+    var acc = zone.getAttribute('data-filedrop-accept'); if (!acc) return true;
+    var n = f.name.toLowerCase();
+    return acc.toLowerCase().split(',').some(function (a) { a = a.trim(); return a && (a.charAt(0) === '.' ? n.slice(-a.length) === a : f.type === a || (a.slice(-2) === '/*' && f.type.indexOf(a.slice(0, -1)) === 0)); });
+  }
+  function dropEmit(zone, list) {
+    var files = Array.prototype.slice.call(list || []).filter(function (f) { return dropOk(zone, f); });
+    if (files.length) emit(zone, 'nimble:filedrop', { files: files });
+  }
+  document.addEventListener('dragover', function (e) {
+    var z = e.target.closest && e.target.closest('[data-filedrop]');
+    if (z && e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') >= 0) { e.preventDefault(); z.classList.add('is-over'); }
+  });
+  document.addEventListener('dragleave', function (e) { var z = e.target.closest && e.target.closest('[data-filedrop]'); if (z && !z.contains(e.relatedTarget)) z.classList.remove('is-over'); });
+  document.addEventListener('drop', function (e) {
+    var z = e.target.closest && e.target.closest('[data-filedrop]'); if (!z) return;
+    e.preventDefault(); z.classList.remove('is-over'); dropEmit(z, e.dataTransfer && e.dataTransfer.files);
+  });
+  function dropPick(z) { var i = z.getAttribute('data-filedrop-input') && $(z.getAttribute('data-filedrop-input')); if (i) i.click(); }
+  document.addEventListener('click', function (e) { var z = e.target.closest && e.target.closest('[data-filedrop]'); if (z && !e.target.closest('input,button,a')) dropPick(z); });
+  document.addEventListener('keydown', function (e) { var z = e.target.closest && e.target.closest('[data-filedrop]'); if (z && z === e.target && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); dropPick(z); } });
+  document.addEventListener('change', function (e) {
+    var t = e.target; if (!t || t.type !== 'file' || !t.id) return;
+    var z = document.querySelector('[data-filedrop-input="#' + t.id + '"]'); if (z) { dropEmit(z, t.files); }
+  });
+
   /* ═════════════ boot ═════════════ */
-  function init(root) { refreshSortable(root); refreshEditable(root); initTabs(root); }
+  function init(root) { refreshSortable(root); refreshEditable(root); initTabs(root); refreshInstall(); }
   NS.init = init;
   function boot() {
     init();
