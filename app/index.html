@@ -57,7 +57,7 @@ button{font:inherit;color:inherit}
 .docbox{display:flex;align-items:center;gap:4px;padding:4px 10px 4px 4px;min-width:0}
 .brand{font-weight:600;letter-spacing:.01em;padding:0 4px 0 2px}
 .brand b{color:var(--accent);font-weight:600}
-#docName{border:0;background:transparent;font:500 13px var(--sans);color:var(--ink);padding:5px 6px;border-radius:6px;width:16ch;min-width:6ch}
+#docName{border:0;background:transparent;font:500 13px var(--sans);color:var(--ink);padding:5px 6px;border-radius:6px;width:16ch;min-width:6ch;max-width:min(420px,calc(100vw - 260px));flex:none;text-overflow:ellipsis}
 #docName:hover{background:var(--panel-2)}
 #saveState{font:11px var(--mono);color:var(--muted);white-space:nowrap}
 .spacer{flex:1}
@@ -3479,14 +3479,23 @@ function renderDocs(){
 }
 function openDoc(id){
   endEdit(); cmCommit(); doc = store.docs[id]; store.current = id; reindex(); undoS = []; redoS = []; S.sel = new Set(); S.hover = null;
-  $('#docName').value = doc.name;
+  $('#docName').value = doc.name; fitDocName();
   if (doc.view){ Object.assign(view, doc.view); draw(); } else fit();
   persistNow();
 }
 $('#btnMenu').innerHTML = ICON.menu; $('#btnCloseDrawer').innerHTML = ICON.close; $('#mClose').innerHTML = ICON.close;
 $('#btnMenu').onclick = openDrawer; $('#btnCloseDrawer').onclick = closeDrawer; $('#scrim').onclick = closeDrawer;
 $('#btnNew').onclick = () => { const d = newDoc(); openDoc(d.id); closeDrawer(); setTimeout(() => { $('#docName').focus(); $('#docName').select(); }, 50); };
-$('#docName').addEventListener('input', e => { doc.name = e.target.value || T('untitled'); scheduleSave(); });
+// The name field grows with the name (capped by max-width in CSS) instead of clipping it.
+let docNameCtx = null;
+function fitDocName(){
+  const el = $('#docName'), cs = getComputedStyle(el);
+  docNameCtx = docNameCtx || document.createElement('canvas').getContext('2d');
+  docNameCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  const text = el.value || el.placeholder || '';
+  el.style.width = Math.ceil(docNameCtx.measureText(text).width + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 2) + 'px';
+}
+$('#docName').addEventListener('input', e => { doc.name = e.target.value || T('untitled'); fitDocName(); scheduleSave(); });
 $('#docName').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Escape') e.target.blur(); });
 $('#btnBackup').onclick = () => saveFile(`diagramico-backup-${today()}.json`, JSON.stringify({app:'diagramico', version:1, kind:'backup', exported:new Date().toISOString(), docs:Object.values(store.docs)}));
 $('#btnImport').onclick = () => $('#fileIn').click();
@@ -3780,7 +3789,7 @@ const FONT_FACES = ['400 14px "IBM Plex Sans"','600 14px "IBM Plex Sans"','itali
 const fontsReady = (document.fonts ? Promise.all(FONT_FACES.map(f => document.fonts.load(f).catch(()=>null))).then(() => document.fonts.ready) : Promise.resolve()).catch(()=>{});
 setTool('select'); applyLang();
 doc = store.docs[store.current]; reindex();
-$('#docName').value = doc.name;
+$('#docName').value = doc.name; fitDocName(); fontsReady.then(fitDocName);
 resize();
 if (doc.view) Object.assign(view, doc.view); else fit();
 fontsReady.then(() => { LC.clear(); draw(); });
